@@ -1,0 +1,18 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/01_Game/">
+    <Project Path="TestGame/TestGame.vcxproj" />
+  </Folder>
+  <Folder Name="/02_Tool/">
+    <Project Path="TestTool/TestTool.vcxproj" />
+  </Folder>
+  <Folder Name="/03_Engine/">
+    <Project Path="Engine/Engine.vcxproj" />
+  </Folder>
+  <Folder Name="/99_Library/">
+    <Project Path="Common/Common.vcxproj" />
+  </Folder>
+</Solution>
