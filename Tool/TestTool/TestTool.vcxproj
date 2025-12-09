@@ -152,7 +152,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Library\Engine\Engine.vcxproj">
+    <ProjectReference Include="..\..\Engine\Engine.vcxproj">
       <Project>{0922f055-76c0-4a33-b810-587e67fa89a3}</Project>
     </ProjectReference>
   </ItemGroup>
