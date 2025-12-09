@@ -15,8 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
+    <ClCompile Include="App\Main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shader\Vertex\TestVertexShader.hlsl" />
+    <FxCompile Include="Shader\Pixel\TestPixelShader.hlsl" />
   </ItemGroup>
 </Project>

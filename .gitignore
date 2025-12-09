@@ -55,8 +55,10 @@ dkms.conf
 *.recipe
 
 # My Extra
-/.vs
-*.cso
-x64
+.vs/
+x64/
 !Vendor/**/*.lib
 !Vendor/**/*.dll
+Intermediate/
+Bin/
+*.user
