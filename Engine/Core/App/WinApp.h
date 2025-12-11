@@ -6,10 +6,10 @@ namespace engine
 {
 	struct WindowSettings
 	{
-		int width = 1280;
-		int height = 720;
+		int resolutionWidth = 1280;
+		int resolutionHeight = 720;
+		std::vector<std::string> supportedResolutions{ "1280x720", "1920x1080", "2560x1440", "3840x2160" };
 		bool isFullScreen = false;
-		bool isResizable = false;
 		bool useVsync = true;
 	};
 
@@ -31,6 +31,8 @@ namespace engine
 		DWORD m_windowStyle = 0;
 		int m_x = 0;
 		int m_y = 0;
+		int m_screenWidth = 0;
+		int m_screenHeight = 0;
 
 		GraphicsDevice m_graphicsDevice;
 
@@ -46,6 +48,10 @@ namespace engine
 	private:
 		void Update();
 		void Render();
+
+		void ValidateSettings();
+		void SetWindowMode(bool isFullScreen);
+		void SetResolution(int width, int height, bool isFullScreen);
 
 	protected:
 		virtual LRESULT MessageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

@@ -16,6 +16,7 @@
 #include <chrono>
 #include <format>
 #include <cassert>
+#include <array>
 
 
 // d3d

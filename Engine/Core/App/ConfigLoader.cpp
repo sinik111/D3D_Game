@@ -7,7 +7,13 @@ namespace engine
 {
 	using json = nlohmann::json;
 
-	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WindowSettings, width, height, isFullScreen, isResizable, useVsync)
+	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+		WindowSettings,
+		resolutionWidth,
+		resolutionHeight,
+		supportedResolutions,
+		isFullScreen,
+		useVsync)
 
 		void ConfigLoader::Load(const std::string& filePath, WindowSettings& outSettings)
 	{

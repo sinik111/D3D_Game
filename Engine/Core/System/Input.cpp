@@ -17,6 +17,11 @@ namespace engine
 
 		bool* g_mouseHeldStateTable[static_cast<size_t>(Input::Button::MAX)];
 		ButtonState* g_mouseStateTable[static_cast<size_t>(Input::Button::MAX)];
+
+		float g_offsetX = 0.0f;
+		float g_offsetY = 0.0f;
+		float g_scaleX = 1.0f;
+		float g_scaleY = 1.0f;
 	}
 
 	void Input::Initialize(HWND hWnd)
@@ -80,6 +85,14 @@ namespace engine
 		g_mouse.SetMode(mode);
 	}
 
+	void Input::SetCoordinateTransform(float offsetX, float offsetY, float scaleX, float scaleY)
+	{
+		g_offsetX = offsetX;
+		g_offsetY = offsetY;
+		g_scaleX = scaleX;
+		g_scaleY = scaleY;
+	}
+
 	Vector2 Input::GetMouseDelta()
 	{
 		if (g_mouseState.positionMode == DirectX::Mouse::MODE_RELATIVE)
@@ -94,7 +107,9 @@ namespace engine
 	{
 		if (g_mouseState.positionMode == DirectX::Mouse::MODE_ABSOLUTE)
 		{
-			return { static_cast<float>(g_mouseState.x), static_cast<float>(g_mouseState.y) };
+			float x = (static_cast<float>(g_mouseState.x) - g_offsetX) / g_scaleX;
+			float y = (static_cast<float>(g_mouseState.y) - g_offsetY) / g_scaleY;
+			return { x, y };
 		}
 
 		return { 0.0f, 0.0f };

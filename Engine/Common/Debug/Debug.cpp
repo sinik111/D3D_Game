@@ -40,10 +40,12 @@ namespace engine
 				ToMultibyte(err.ErrorMessage())
 			);
 
-			OutputDebugStringA(std::format("[FATAL] {}\n", errorMsg).c_str());
+			std::wstring wideErrorMsg = ToWideChar(errorMsg);
+
+			OutputDebugStringW(std::format(L"[FATAL] {}\n", wideErrorMsg).c_str());
 
 			WriteToFile("[FATAL] ", errorMsg);
-			MessageBoxA(nullptr, errorMsg.c_str(), "Error", MB_ICONERROR | MB_OK);
+			MessageBoxW(nullptr, wideErrorMsg.c_str(), L"Error", MB_ICONERROR | MB_OK);
 
 			if (IsDebuggerPresent())
 			{
@@ -70,11 +72,13 @@ namespace engine
 				msg
 			);
 
-			OutputDebugStringA(std::format("[FATAL] {}\n", errorMsg).c_str());
+			std::wstring wideErrorMsg = ToWideChar(errorMsg);
+
+			OutputDebugStringW(std::format(L"[FATAL] {}\n", wideErrorMsg).c_str());
 
 			WriteToFile("[FATAL] ", errorMsg);
 
-			MessageBoxA(nullptr, errorMsg.c_str(), "Fatal Error", MB_ICONERROR | MB_OK);
+			MessageBoxW(nullptr, wideErrorMsg.c_str(), L"Fatal Error", MB_ICONERROR | MB_OK);
 
 			if (IsDebuggerPresent())
 			{

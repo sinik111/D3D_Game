@@ -3,7 +3,13 @@
 
 namespace game
 {
-	engine::WindowSettings g_default{ 1920, 1080, false, false, false, };
+	engine::WindowSettings g_default{
+		1920,
+		1080,
+		{ "1280x720", "1920x1080", "2560x1440", "3840x2160" },
+		false,
+		false
+	};
 
 	TestGameApp::TestGameApp()
 		: WinApp()

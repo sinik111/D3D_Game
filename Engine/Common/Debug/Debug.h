@@ -30,7 +30,7 @@ namespace engine
             {
                 std::string msg = std::format(fmt, std::forward<Args>(args)...);
                 std::string output = std::format("[INFO] {}\n", msg);
-                OutputDebugStringA(output.c_str());
+                OutputDebugStringW(ToWideChar(output).c_str());
 
                 WriteToFile("[INFO] ", msg);
             }
@@ -49,7 +49,7 @@ namespace engine
             {
                 std::string msg = std::format(fmt, std::forward<Args>(args)...);
                 std::string output = std::format("[PRINT] {}\n", msg);
-                OutputDebugStringA(output.c_str());
+                OutputDebugStringW(ToWideChar(output).c_str());
             }
             catch (std::format_error& e)
             {
@@ -66,11 +66,11 @@ namespace engine
             {
                 std::string msg = std::format(fmt, std::forward<Args>(args)...);
                 std::string output = std::format("[ERROR] {}\n", msg);
-                OutputDebugStringA(output.c_str());
+                OutputDebugStringA(ToWideChar(output).c_str());
 
                 WriteToFile("[ERROR] ", msg);
 
-                MessageBoxA(nullptr, msg.c_str(), "Engine Error", MB_ICONERROR | MB_OK);
+                MessageBoxW(nullptr, ToWideChar(msg).c_str(), "Engine Error", MB_ICONERROR | MB_OK);
             }
             catch (std::format_error& e)
             {

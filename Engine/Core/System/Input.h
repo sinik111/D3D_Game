@@ -30,6 +30,8 @@ namespace engine
 		static bool IsMouseReleased(Input::Button button);
 
 		static void SetMouseMode(DirectX::Mouse::Mode mode);
+		static void SetCoordinateTransform(float offsetX, float offsetY, float scaleX, float scaleY);
+
 		static Vector2 GetMouseDelta();
 		static Vector2 GetMousePosition();
 	};

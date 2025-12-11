@@ -150,6 +150,8 @@
     <ClCompile Include="Common\Utility\StringUtility.cpp" />
     <ClCompile Include="Core\App\ConfigLoader.cpp" />
     <ClCompile Include="Core\Graphics\Device\GraphicsDevice.cpp" />
+    <ClCompile Include="Core\Graphics\Geometry\GeometryGenerator.cpp" />
+    <ClCompile Include="Core\Graphics\Resource\Mesh.cpp" />
     <ClCompile Include="Core\System\Input.cpp" />
     <ClCompile Include="Core\System\MyTime.cpp" />
     <ClCompile Include="pch.cpp">
@@ -173,12 +175,22 @@
     <ClInclude Include="Common\Utility\StringUtility.h" />
     <ClInclude Include="Core\App\ConfigLoader.h" />
     <ClInclude Include="Core\Graphics\Device\GraphicsDevice.h" />
+    <ClInclude Include="Core\Graphics\Geometry\GeometryGenerator.h" />
+    <ClInclude Include="Core\Graphics\Resource\Mesh.h" />
     <ClInclude Include="Core\System\MyTime.h" />
     <ClInclude Include="Core\System\Input.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Core\App\WinApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shader\Pixel\DefaultPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\Vertex\DefaultVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="Shader\Pixel\Lambert_PS.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
