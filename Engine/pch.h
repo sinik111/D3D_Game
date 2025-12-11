@@ -17,6 +17,7 @@
 #include <format>
 #include <cassert>
 #include <array>
+#include <string_view>
 
 
 // d3d

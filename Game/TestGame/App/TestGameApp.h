@@ -9,6 +9,6 @@ namespace game
     {
     public:
         TestGameApp();
-        TestGameApp(const std::string& settingFilePath);
+        TestGameApp(const std::filesystem::path& settingFilePath);
     };
 }

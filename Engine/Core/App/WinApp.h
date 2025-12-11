@@ -1,18 +1,11 @@
 ﻿#pragma once
 
 #include "Core/Graphics/Device/GraphicsDevice.h"
+#include "Core/System/CoInitializer.h"
+#include "Core/App/WindowSettings.h"
 
 namespace engine
 {
-	struct WindowSettings
-	{
-		int resolutionWidth = 1280;
-		int resolutionHeight = 720;
-		std::vector<std::string> supportedResolutions{ "1280x720", "1920x1080", "2560x1440", "3840x2160" };
-		bool isFullScreen = false;
-		bool useVsync = true;
-	};
-
 	class WinApp
 	{
 	protected:
@@ -24,7 +17,7 @@ namespace engine
 
 		std::string m_className = "game123";
 		std::string m_windowName = "Default";
-		std::string m_settingFilePath;
+		std::filesystem::path m_settingFilePath;
 		WindowSettings m_settings;
 
 		UINT m_classStyle = 0;
@@ -34,10 +27,12 @@ namespace engine
 		int m_screenWidth = 0;
 		int m_screenHeight = 0;
 
+		CoInitializer m_coInitializer;
+
 		GraphicsDevice m_graphicsDevice;
 
 	protected:
-		WinApp(const std::string& settingFilePath = "config.json", const WindowSettings& defaultSetting = {});
+		WinApp(const std::filesystem::path& settingFilePath = "config.json", const WindowSettings& defaultSetting = {});
 		virtual ~WinApp();
 
 	public:

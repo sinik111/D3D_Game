@@ -39,8 +39,8 @@ namespace engine
 
 	LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	WinApp::WinApp(const std::string& settingFilePath, const WindowSettings& defaultSetting)
-		: m_settingFilePath{ settingFilePath },
+	WinApp::WinApp(const std::filesystem::path& settingFilePath, const WindowSettings& defaultSetting)
+		: m_settingFilePath{ std::move(settingFilePath) },
 		m_settings{ defaultSetting },
 		m_screenWidth{ GetSystemMetrics(SM_CXSCREEN) },
 		m_screenHeight{ GetSystemMetrics(SM_CYSCREEN) }

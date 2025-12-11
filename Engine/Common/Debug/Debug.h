@@ -34,10 +34,9 @@ namespace engine
 
                 WriteToFile("[INFO] ", msg);
             }
-            catch (std::format_error& e)
+            catch (const std::format_error& e)
             {
-                e;
-
+                (void)e;
                 OutputDebugStringA("[LOG ERROR] Formatting failed.\n");
             }
         }
@@ -51,10 +50,9 @@ namespace engine
                 std::string output = std::format("[PRINT] {}\n", msg);
                 OutputDebugStringW(ToWideChar(output).c_str());
             }
-            catch (std::format_error& e)
+            catch (const std::format_error& e)
             {
-                e;
-
+                (void)e;
                 OutputDebugStringA("[LOG ERROR] Formatting failed.\n");
             }
         }
@@ -66,16 +64,15 @@ namespace engine
             {
                 std::string msg = std::format(fmt, std::forward<Args>(args)...);
                 std::string output = std::format("[ERROR] {}\n", msg);
-                OutputDebugStringA(ToWideChar(output).c_str());
+                OutputDebugStringW(ToWideChar(output).c_str());
 
                 WriteToFile("[ERROR] ", msg);
 
                 MessageBoxW(nullptr, ToWideChar(msg).c_str(), "Engine Error", MB_ICONERROR | MB_OK);
             }
-            catch (std::format_error& e)
+            catch (const std::format_error& e)
             {
-                e;
-
+                (void)e;
                 OutputDebugStringA("[LOG ERROR] Formatting failed.\n");
             }
         }
@@ -84,7 +81,7 @@ namespace engine
         static void __CheckFatal(bool condition, std::string_view msg, const char* file, int line);
 
     private:
-        static void WriteToFile(const std::string& prefix, const std::string& msg);
+        static void WriteToFile(std::string_view prefix, std::string_view msg);
     };
 
     class LeakCheck

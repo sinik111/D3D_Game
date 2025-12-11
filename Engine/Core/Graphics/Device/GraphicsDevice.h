@@ -69,7 +69,7 @@ namespace engine
 
 	public:
 		static void CompileShaderFromFile(
-			const std::string& fileName,
+			const std::filesystem::path& fileName,
 			const std::string& entryPoint,
 			const std::string& shaderModel,
 			Microsoft::WRL::ComPtr<ID3DBlob>& blobOut);

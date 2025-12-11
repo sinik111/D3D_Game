@@ -1,13 +1,13 @@
 ﻿#pragma once
 
-#include "WinApp.h"
+#include "WindowSettings.h"
 
 namespace engine
 {
 	class ConfigLoader
 	{
 	public:
-		static void Load(const std::string& filePath, WindowSettings& outSettings);
-		static void Save(const std::string& filePath, const WindowSettings& settings);
+		static void Load(const std::filesystem::path& filePath, WindowSettings& outSettings);
+		static void Save(const std::filesystem::path& filePath, const WindowSettings& settings);
 	};
 }

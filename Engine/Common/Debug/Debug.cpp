@@ -91,7 +91,7 @@ namespace engine
 		}
 	}
 
-	void Debug::WriteToFile(const std::string& prefix, const std::string& msg)
+	void Debug::WriteToFile(std::string_view prefix, std::string_view msg)
 	{
 		//std::lock_guard<std::mutex> lock(s_mutex);
 

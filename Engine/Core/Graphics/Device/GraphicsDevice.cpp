@@ -293,7 +293,7 @@ namespace engine
     }
 
     void GraphicsDevice::CompileShaderFromFile(
-        const std::string& fileName,
+        const std::filesystem::path& fileName,
         const std::string& entryPoint,
         const std::string& shaderModel,
         Microsoft::WRL::ComPtr<ID3DBlob>& blobOut)
@@ -307,7 +307,7 @@ namespace engine
         Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 
         HR_CHECK(D3DCompileFromFile(
-            ToWideChar(fileName).c_str(),
+            (fileName).c_str(),
             nullptr,
             D3D_COMPILE_STANDARD_FILE_INCLUDE,
             entryPoint.c_str(),

@@ -16,7 +16,7 @@ namespace game
 	{
 	}
 
-	TestGameApp::TestGameApp(const std::string& settingFilePath)
+	TestGameApp::TestGameApp(const std::filesystem::path& settingFilePath)
 		: WinApp(settingFilePath, g_default)
 	{
 	}

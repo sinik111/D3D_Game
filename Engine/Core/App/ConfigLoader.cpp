@@ -15,7 +15,7 @@ namespace engine
 		isFullScreen,
 		useVsync)
 
-		void ConfigLoader::Load(const std::string& filePath, WindowSettings& outSettings)
+		void ConfigLoader::Load(const std::filesystem::path& filePath, WindowSettings& outSettings)
 	{
 		if (!std::filesystem::exists(filePath))
 		{
@@ -32,7 +32,7 @@ namespace engine
 				file >> j;
 				outSettings = j.get<WindowSettings>();
 			}
-			catch (nlohmann::json_abi_v3_12_0::detail::parse_error& e)
+			catch (json::parse_error& e)
 			{
 				e;
 
@@ -42,14 +42,12 @@ namespace engine
 		}
 	}
 
-	void ConfigLoader::Save(const std::string& filePath, const WindowSettings& settings)
+	void ConfigLoader::Save(const std::filesystem::path& filePath, const WindowSettings& settings)
 	{
-		std::filesystem::path path(filePath);
-
-		if (path.has_parent_path())
+		if (filePath.has_parent_path())
 		{
 			std::error_code ec;
-			std::filesystem::create_directories(path.parent_path(), ec);
+			std::filesystem::create_directories(filePath.parent_path(), ec);
 		}
 
 		std::ofstream file(filePath);
