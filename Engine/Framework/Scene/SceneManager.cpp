@@ -26,13 +26,16 @@ namespace engine
     {
         if (m_scenes.find(name.data()) == m_scenes.end())
         {
-            std::unique_ptr<Scene> newScene = std::make_unique<Scene>();
-            m_scenes.emplace(name, std::move(newScene));
+            m_scenes.emplace(name, std::make_unique<Scene>());
         }
     }
 
     void SceneManager::ChangeScene(std::string_view name)
     {
+        if (auto it = m_scenes.find(name.data()); it != m_scenes.end())
+        {
+            m_currentScene = it->second.get();
+        }
     }
 
     void SceneManager::CheckSceneChanged()
