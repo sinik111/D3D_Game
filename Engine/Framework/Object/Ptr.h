@@ -1,12 +1,13 @@
 ﻿#pragma once
 
-#include <concepts>
+#include <type_traits>
 
 #include "Framework/Object/Object.h"
 
 namespace engine
 {
-    template<typename T> requires std::derived_from<T, Object>
+    template<typename T>
+        requires std::is_base_of_v<Object, T>
     class Ptr
     {
     private:

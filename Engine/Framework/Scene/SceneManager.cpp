@@ -5,12 +5,8 @@
 
 namespace engine
 {
-    SceneManager& SceneManager::Get()
-    {
-        static SceneManager s_instance;
-
-        return s_instance;
-    }
+    SceneManager::SceneManager() = default;
+    SceneManager::~SceneManager() = default;
 
     void SceneManager::Shutdown()
     {

@@ -4,7 +4,8 @@ namespace engine
 {
     class Scene;
 
-    class SceneManager
+    class SceneManager :
+        public Singleton<SceneManager>
     {
     private:
         std::unordered_map<std::string, std::unique_ptr<Scene>> m_scenes;
@@ -13,15 +14,9 @@ namespace engine
         Scene* m_nextScene = nullptr;
 
     private:
-        SceneManager() = default;
-        ~SceneManager() = default;
-        SceneManager(const SceneManager&) = delete;
-        SceneManager& operator=(const SceneManager&) = delete;
-        SceneManager(SceneManager&&) = delete;
-        SceneManager& operator=(SceneManager&&) = delete;
-
-    public:
-        static SceneManager& Get();
+        SceneManager();
+        ~SceneManager();
+        friend class Singleton<SceneManager>;
 
     public:
         void Shutdown();

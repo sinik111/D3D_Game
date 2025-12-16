@@ -38,6 +38,8 @@ namespace engine
 }
 
 #include "Common/Utility/StringUtility.h"
+#include "Common/Utility/Singleton.h"
+#include "Framework/Object/Ptr.h"
 #include "Common/Debug/Debug.h"
 #include "Core/System/MyTime.h"
 #include "Core/System/Input.h"

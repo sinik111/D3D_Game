@@ -179,6 +179,7 @@
   <ItemGroup>
     <ClInclude Include="pch.h" />
     <ClInclude Include="App\TestGameApp.h" />
+    <ClInclude Include="Script\TestScript.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Engine\Engine.vcxproj">

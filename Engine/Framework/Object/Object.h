@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <queue>
 #include "Framework/Object/Handle.h"
 
 namespace engine

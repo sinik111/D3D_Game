@@ -3,5 +3,8 @@
 
 namespace engine
 {
-
+    GameObject::GameObject(const std::string& name)
+        : m_name{ name }
+    {
+    }
 }

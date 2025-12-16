@@ -6,6 +6,9 @@
 #include "ConfigLoader.h"
 #include "Common/Utility/Profiling.h"
 #include "Framework/Scene/SceneManager.h"
+#include "Framework/System/SystemManager.h"
+#include "Framework/System/ScriptSystem.h"
+
 
 namespace engine
 {
@@ -200,23 +203,10 @@ namespace engine
 		Time::Update();
 		Input::Update();
 
-		if (Input::IsKeyPressed(DirectX::Keyboard::Keys::F1))
-		{
-			SceneManager::Get().ChangeScene("SampleScene1");
-		}
-
-		if (Input::IsKeyPressed(DirectX::Keyboard::Keys::F2))
-		{
-			SceneManager::Get().ChangeScene("SampleScene2");
-		}
-
-		if (Input::IsMousePressed(Input::Button::LEFT))
-		{
-			auto pos = Input::GetMousePosition();
-			LOG_PRINT("{{{}, {}}}", pos.x, pos.y);
-		}
-
 		SceneManager::Get().CheckSceneChanged();
+
+		SystemManager::Get().Script().CallStart();
+		SystemManager::Get().Script().CallUpdate();
 	}
 
 	void WinApp::Render()
