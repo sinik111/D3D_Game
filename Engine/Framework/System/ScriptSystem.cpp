@@ -5,12 +5,12 @@ namespace engine
 {
     void ScriptSystem::Register(ScriptBase* script, std::uint32_t eventFlags)
     {
-        if (eventFlags & (1 << static_cast<int>(ScriptEvent::Start)))
+        if (eventFlags & (1U << static_cast<int>(ScriptEvent::Start)))
         {
             AddScript(m_startScripts, script, ScriptEvent::Start);
         }
 
-        if (eventFlags & (1 << static_cast<int>(ScriptEvent::Update)))
+        if (eventFlags & (1U << static_cast<int>(ScriptEvent::Update)))
         {
             AddScript(m_updateScripts, script, ScriptEvent::Update);
         }

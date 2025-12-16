@@ -10,10 +10,7 @@ namespace engine
     {
     }
 
-    SystemManager::~SystemManager()
-    {
-        int a = 0;
-    }
+    SystemManager::~SystemManager() = default;
 
     ScriptSystem& SystemManager::Script() const
     {

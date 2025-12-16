@@ -81,9 +81,6 @@
     <ClCompile Include="Framework\System\ScriptSystem.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Framework\System\System.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="Framework\Object\Component\Script.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>

@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "Framework/System/SystemManager.h"
 #include "Framework/Object/Component/Component.h"
 
 namespace engine
@@ -58,12 +57,12 @@ namespace engine
 
             if constexpr (IsFuncOverridden(&Script::Start, &T::Start))
             {
-                eventFlags |= 1 << static_cast<int>(ScriptEvent::Start);
+                eventFlags |= 1U << static_cast<int>(ScriptEvent::Start);
             }
 
             if constexpr (IsFuncOverridden(&Script::Update, &T::Update))
             {
-                eventFlags |= 1 << static_cast<int>(ScriptEvent::Update);
+                eventFlags |= 1U << static_cast<int>(ScriptEvent::Update);
             }
 
             RegisterScript(eventFlags);

@@ -21,7 +21,6 @@ namespace engine
         void CallUpdate();
 
     private:
-
         void AddScript(std::vector<ScriptBase*>& v, ScriptBase* script, ScriptEvent type);
         void RemoveScript(std::vector<ScriptBase*>& v, ScriptBase* script, ScriptEvent type);
     };

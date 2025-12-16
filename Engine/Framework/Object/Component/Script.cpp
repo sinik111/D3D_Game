@@ -15,6 +15,7 @@ namespace engine
     {
         SystemManager::Get().Script().Unregister(this);
     }
+
     void ScriptBase::RegisterScript(std::uint32_t eventFlags)
     {
         SystemManager::Get().Script().Register(this, eventFlags);
@@ -22,11 +23,16 @@ namespace engine
 
     void ScriptBase::Initialize()
     {
+        // game 프로젝트에서 구현
     }
+
     void ScriptBase::Start()
     {
+        // game 프로젝트에서 구현
     }
+
     void ScriptBase::Update()
     {
+        // game 프로젝트에서 구현
     }
 }
