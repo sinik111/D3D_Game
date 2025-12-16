@@ -22,23 +22,36 @@ namespace engine
         m_scenes.clear();
     }
 
-    void SceneManager::CreateScene(std::string_view name)
+    void SceneManager::CreateScene(const std::string& name)
     {
-        if (m_scenes.find(name.data()) == m_scenes.end())
+        if (m_scenes.find(name) == m_scenes.end())
         {
-            m_scenes.emplace(name, std::make_unique<Scene>());
+            m_scenes.emplace(name, std::make_unique<Scene>(name));
         }
     }
 
-    void SceneManager::ChangeScene(std::string_view name)
+    void SceneManager::ChangeScene(const std::string& name)
     {
-        if (auto it = m_scenes.find(name.data()); it != m_scenes.end())
+        if (auto it = m_scenes.find(name); it != m_scenes.end())
         {
-            m_currentScene = it->second.get();
+            m_nextScene = it->second.get();
         }
     }
 
     void SceneManager::CheckSceneChanged()
     {
+        if (m_nextScene != nullptr)
+        {
+            if (m_currentScene != nullptr)
+            {
+                m_currentScene->Exit();
+            }
+
+            m_currentScene = m_nextScene;
+
+            m_nextScene = nullptr;
+
+            m_currentScene->Enter();
+        }
     }
 }

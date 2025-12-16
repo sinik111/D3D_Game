@@ -5,6 +5,7 @@
 
 #include "ConfigLoader.h"
 #include "Common/Utility/Profiling.h"
+#include "Framework/Scene/SceneManager.h"
 
 namespace engine
 {
@@ -40,7 +41,7 @@ namespace engine
 	LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	WinApp::WinApp(const std::filesystem::path& settingFilePath, const WindowSettings& defaultSetting)
-		: m_settingFilePath{ std::move(settingFilePath) },
+		: m_settingFilePath{ settingFilePath },
 		m_settings{ defaultSetting },
 		m_screenWidth{ GetSystemMetrics(SM_CXSCREEN) },
 		m_screenHeight{ GetSystemMetrics(SM_CYSCREEN) }
@@ -201,18 +202,12 @@ namespace engine
 
 		if (Input::IsKeyPressed(DirectX::Keyboard::Keys::F1))
 		{
-			SetResolution(
-				m_settings.resolutionWidth,
-				m_settings.resolutionHeight,
-				false);
+			SceneManager::Get().ChangeScene("SampleScene1");
 		}
 
 		if (Input::IsKeyPressed(DirectX::Keyboard::Keys::F2))
 		{
-			SetResolution(
-				m_settings.resolutionWidth,
-				m_settings.resolutionHeight,
-				true);
+			SceneManager::Get().ChangeScene("SampleScene2");
 		}
 
 		if (Input::IsMousePressed(Input::Button::LEFT))
@@ -220,12 +215,15 @@ namespace engine
 			auto pos = Input::GetMousePosition();
 			LOG_PRINT("{{{}, {}}}", pos.x, pos.y);
 		}
+
+		SceneManager::Get().CheckSceneChanged();
 	}
 
 	void WinApp::Render()
 	{
 		// final
 		m_graphicsDevice.BeginDraw(Color(DirectX::Colors::AliceBlue));
+		m_graphicsDevice.BackBufferDraw();
 		m_graphicsDevice.EndDraw();
 	}
 

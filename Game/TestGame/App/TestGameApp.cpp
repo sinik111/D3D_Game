@@ -27,8 +27,9 @@ namespace game
 	{
 		engine::WinApp::Initialize();
 
-		engine::SceneManager::Get().CreateScene("SampleScene");
+		engine::SceneManager::Get().CreateScene("SampleScene1");
+		engine::SceneManager::Get().CreateScene("SampleScene2");
 
-		engine::SceneManager::Get().ChangeScene("SampleScene");
+		engine::SceneManager::Get().ChangeScene("SampleScene1");
 	}
 }

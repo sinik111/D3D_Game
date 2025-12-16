@@ -155,7 +155,8 @@
     <ClCompile Include="Core\System\CoInitializer.cpp" />
     <ClCompile Include="Core\System\Input.cpp" />
     <ClCompile Include="Core\System\MyTime.cpp" />
-    <ClCompile Include="Framework\GameObject\GameObject.cpp" />
+    <ClCompile Include="Framework\Object\GameObject\GameObject.cpp" />
+    <ClCompile Include="Framework\Object\Object.cpp" />
     <ClCompile Include="Framework\Scene\Scene.cpp" />
     <ClCompile Include="Framework\Scene\SceneManager.cpp" />
     <ClCompile Include="pch.cpp">
@@ -165,7 +166,7 @@
     <ClCompile Include="Core\App\WinApp.cpp" />
     <ClCompile Include="Core\Graphics\Resource\TestResource.cpp" />
     <ClCompile Include="Framework\Asset\TestAsset.cpp" />
-    <ClCompile Include="Framework\Component\TestComponent.cpp" />
+    <ClCompile Include="Framework\Object\Component\TestComponent.cpp" />
     <ClCompile Include="Framework\Physics\TestPhysics.cpp" />
     <ClCompile Include="Framework\Serializer\TestSerializer.cpp" />
     <ClCompile Include="Framework\System\Test2System.cpp" />
@@ -183,7 +184,10 @@
     <ClInclude Include="Core\System\CoInitializer.h" />
     <ClInclude Include="Core\System\MyTime.h" />
     <ClInclude Include="Core\System\Input.h" />
-    <ClInclude Include="Framework\GameObject\GameObject.h" />
+    <ClInclude Include="Framework\Object\GameObject\GameObject.h" />
+    <ClInclude Include="Framework\Object\Handle.h" />
+    <ClInclude Include="Framework\Object\Object.h" />
+    <ClInclude Include="Framework\Object\Ptr.h" />
     <ClInclude Include="Framework\Scene\Scene.h" />
     <ClInclude Include="Framework\Scene\SceneManager.h" />
     <ClInclude Include="pch.h" />

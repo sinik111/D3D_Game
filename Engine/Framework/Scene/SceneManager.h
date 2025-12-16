@@ -27,8 +27,8 @@ namespace engine
         void Shutdown();
 
     public:
-        void CreateScene(std::string_view name);
-        void ChangeScene(std::string_view name);
+        void CreateScene(const std::string& name);
+        void ChangeScene(const std::string& name);
         void CheckSceneChanged();
     };
 }

@@ -4,6 +4,7 @@
 #include "Core/Graphics/Geometry/GeometryGenerator.h"
 
 #include <dxgi1_5.h>
+#include <dxgi1_6.h>
 #include <d3dcompiler.h>
 
 #include "Common/Utility/Profiling.h"
@@ -27,37 +28,7 @@ namespace engine
         m_isFullScreen = isFullScreen;
         SetVsync(useVsync);
 
-        // create device, device context
-        {
-            UINT d3dCreationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-#ifdef _DEBUG
-            d3dCreationFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif // _DBUG
-
-            const D3D_FEATURE_LEVEL featureLevels[]{
-                D3D_FEATURE_LEVEL_12_2,
-                D3D_FEATURE_LEVEL_12_1,
-                D3D_FEATURE_LEVEL_12_0,
-                D3D_FEATURE_LEVEL_11_1,
-                D3D_FEATURE_LEVEL_11_0
-            };
-
-            D3D_FEATURE_LEVEL actualFeatureLevel;
-
-            HR_CHECK(D3D11CreateDevice(
-                nullptr,
-                D3D_DRIVER_TYPE_HARDWARE,
-                nullptr,
-                d3dCreationFlags,
-                featureLevels,
-                ARRAYSIZE(featureLevels),
-                D3D11_SDK_VERSION,
-                &m_device,
-                &actualFeatureLevel,
-                &m_deviceContext));
-        }
-
-        // swap chain
+        // create device, device context, swap chain
         {
             UINT dxgiFactoryCreationFlags = 0;
 #ifdef _DEBUG
@@ -67,39 +38,81 @@ namespace engine
             Microsoft::WRL::ComPtr<IDXGIFactory5> dxgiFactory;
             HR_CHECK(CreateDXGIFactory2(dxgiFactoryCreationFlags, IID_PPV_ARGS(&dxgiFactory)));
 
-            BOOL allowTearing = FALSE;
-            HR_CHECK(dxgiFactory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing)));
-
-            if (allowTearing)
+            // create device, device context
             {
-                m_tearingSupport = true;
+                Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter = GetHighPerformanceAdapter(dxgiFactory);
+
+                UINT d3dCreationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+#ifdef _DEBUG
+                d3dCreationFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif // _DBUG
+
+                const D3D_FEATURE_LEVEL featureLevels[]{
+                    D3D_FEATURE_LEVEL_12_2,
+                    D3D_FEATURE_LEVEL_12_1,
+                    D3D_FEATURE_LEVEL_12_0,
+                    D3D_FEATURE_LEVEL_11_1,
+                    D3D_FEATURE_LEVEL_11_0
+                };
+
+                D3D_FEATURE_LEVEL actualFeatureLevel;
+
+                HR_CHECK(D3D11CreateDevice(
+                    adapter.Get(),
+                    D3D_DRIVER_TYPE_UNKNOWN,
+                    nullptr,
+                    d3dCreationFlags,
+                    featureLevels,
+                    ARRAYSIZE(featureLevels),
+                    D3D11_SDK_VERSION,
+                    &m_device,
+                    &actualFeatureLevel,
+                    &m_deviceContext));
             }
 
-            DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-            swapChainDesc.Width = m_isFullScreen ? m_screenWidth : m_resolutionWidth;
-            swapChainDesc.Height = m_isFullScreen ? m_screenHeight : m_resolutionHeight;
-            swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            swapChainDesc.SampleDesc.Count = 1;
-            swapChainDesc.SampleDesc.Quality = 0;
-            swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-            swapChainDesc.BufferCount = 2;
-            swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-            swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-            swapChainDesc.Scaling = DXGI_SCALING_NONE;
-            swapChainDesc.Stereo = FALSE;
-            swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-            if (m_tearingSupport)
+            // create swap chain
             {
-                swapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-            }
+                BOOL allowTearing = FALSE;
+                HR_CHECK(dxgiFactory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing)));
 
-            HR_CHECK(dxgiFactory->CreateSwapChainForHwnd(
-                m_device.Get(),
-                m_hWnd,
-                &swapChainDesc,
-                nullptr,
-                nullptr,
-                &m_swapChain));
+                if (allowTearing)
+                {
+                    m_tearingSupport = true;
+                }
+
+                DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
+                swapChainDesc.Width = m_isFullScreen ? m_screenWidth : m_resolutionWidth;
+                swapChainDesc.Height = m_isFullScreen ? m_screenHeight : m_resolutionHeight;
+                swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                swapChainDesc.SampleDesc.Count = 1;
+                swapChainDesc.SampleDesc.Quality = 0;
+                swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+                swapChainDesc.BufferCount = 2;
+                swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+                swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
+                swapChainDesc.Scaling = DXGI_SCALING_NONE;
+                swapChainDesc.Stereo = FALSE;
+                swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+                if (m_tearingSupport)
+                {
+                    swapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+                }
+
+                HR_CHECK(dxgiFactory->CreateSwapChainForHwnd(
+                    m_device.Get(),
+                    m_hWnd,
+                    &swapChainDesc,
+                    nullptr,
+                    nullptr,
+                    &m_swapChain));
+            }
+        }
+
+        // directx alt+enter 전체화면 전환 해제
+        if (Microsoft::WRL::ComPtr<IDXGIFactory1> factory;
+            SUCCEEDED(m_swapChain->GetParent(__uuidof (IDXGIFactory1), &factory)))
+        {
+            factory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
         }
 
         CreateSizeDependentResources();
@@ -207,7 +220,7 @@ namespace engine
         m_deviceContext->RSSetViewports(1, &m_gameViewport);
     }
 
-    void GraphicsDevice::EndDraw()
+    void GraphicsDevice::BackBufferDraw()
     {
         m_deviceContext->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), nullptr);
 
@@ -236,7 +249,10 @@ namespace engine
             ID3D11ShaderResourceView* nullSRV = nullptr;
             m_deviceContext->PSSetShaderResources(0, 1, &nullSRV);
         }
+    }
 
+    void GraphicsDevice::EndDraw()
+    {
         m_swapChain->Present(m_syncInterval, m_presentFlags);
 
         // vram usage
@@ -412,5 +428,74 @@ namespace engine
             m_backBufferViewport.Width = static_cast<float>(m_resolutionWidth);
             m_backBufferViewport.Height = static_cast<float>(m_resolutionHeight);
         }
+    }
+
+    Microsoft::WRL::ComPtr<IDXGIAdapter1> GraphicsDevice::GetHighPerformanceAdapter(Microsoft::WRL::ComPtr<IDXGIFactory5> factory)
+    {
+        Microsoft::WRL::ComPtr<IDXGIFactory6> factory6;
+        HRESULT hr = factory.As(&factory6);
+
+        Microsoft::WRL::ComPtr<IDXGIAdapter1> adapter;
+
+        if (SUCCEEDED(hr))
+        {
+            for (UINT i = 0;
+                factory6->EnumAdapterByGpuPreference(
+                    i,
+                    DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, // 핵심: 고성능 GPU 요청
+                    IID_PPV_ARGS(&adapter)) != DXGI_ERROR_NOT_FOUND;
+                    ++i)
+            {
+                DXGI_ADAPTER_DESC1 desc;
+                adapter->GetDesc1(&desc);
+
+                if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+                {
+                    continue;
+                }
+
+                if (SUCCEEDED(D3D11CreateDevice(
+                    adapter.Get(),
+                    D3D_DRIVER_TYPE_UNKNOWN,
+                    nullptr,
+                    0,
+                    nullptr,
+                    0,
+                    D3D11_SDK_VERSION,
+                    nullptr, nullptr, nullptr)))
+                {
+                    break;
+                }
+            }
+        }
+
+        if (adapter == nullptr)
+        {
+            for (UINT i = 0; factory->EnumAdapters1(i, &adapter) != DXGI_ERROR_NOT_FOUND; ++i)
+            {
+                DXGI_ADAPTER_DESC1 desc;
+                adapter->GetDesc1(&desc);
+
+                if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+                {
+                    continue;
+                }
+
+                if (SUCCEEDED(D3D11CreateDevice(
+                    adapter.Get(),
+                    D3D_DRIVER_TYPE_UNKNOWN,
+                    nullptr,
+                    0,
+                    nullptr,
+                    0,
+                    D3D11_SDK_VERSION,
+                    nullptr, nullptr, nullptr)))
+                {
+                    break;
+                }
+            }
+        }
+
+        return adapter;
     }
 }

@@ -56,6 +56,7 @@ namespace engine
 			UINT screenHeight,
 			bool isFullScreen);
 		void BeginDraw(const Color& clearColor = {});
+		void BackBufferDraw();
 		void EndDraw();
 
 		const Microsoft::WRL::ComPtr<ID3D11Device>& GetDevice() const;
@@ -76,5 +77,6 @@ namespace engine
 
 	private:
 		void CreateSizeDependentResources();
+		Microsoft::WRL::ComPtr<IDXGIAdapter1> GetHighPerformanceAdapter(Microsoft::WRL::ComPtr<IDXGIFactory5> factory);
 	};
 }
