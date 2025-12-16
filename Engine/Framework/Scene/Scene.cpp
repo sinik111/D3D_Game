@@ -3,8 +3,8 @@
 
 namespace engine
 {
-    Scene::Scene(const std::string& name)
-        : m_name{ name }
+    Scene::Scene(const std::string& name, std::function<void()>&& onEnter)
+        : m_name{ name }, m_onEnter{ std::move(onEnter) }
     {
 
     }
@@ -12,6 +12,7 @@ namespace engine
     void Scene::Enter()
     {
         LOG_PRINT("{} scene enter", m_name);
+        m_onEnter();
     }
 
     void Scene::Exit()

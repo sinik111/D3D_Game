@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Common\Debug\Debug.cpp" />
+    <ClCompile Include="Common\Math\MathUtility.cpp" />
     <ClCompile Include="Common\Utility\Profiling.cpp" />
     <ClCompile Include="Common\Utility\StringUtility.cpp" />
     <ClCompile Include="Core\App\ConfigLoader.cpp" />
@@ -157,6 +158,7 @@
     <ClCompile Include="Core\System\MyTime.cpp" />
     <ClCompile Include="Framework\Object\Component\Component.cpp" />
     <ClCompile Include="Framework\Object\Component\Script.cpp" />
+    <ClCompile Include="Framework\Object\Component\Transform.cpp" />
     <ClCompile Include="Framework\Object\GameObject\GameObject.cpp" />
     <ClCompile Include="Framework\Object\Object.cpp" />
     <ClCompile Include="Framework\Scene\Scene.cpp" />
@@ -189,6 +191,7 @@
     <ClInclude Include="Core\System\Input.h" />
     <ClInclude Include="Framework\Object\Component\Component.h" />
     <ClInclude Include="Framework\Object\Component\Script.h" />
+    <ClInclude Include="Framework\Object\Component\Transform.h" />
     <ClInclude Include="Framework\Object\GameObject\GameObject.h" />
     <ClInclude Include="Framework\Object\Handle.h" />
     <ClInclude Include="Framework\Object\Object.h" />

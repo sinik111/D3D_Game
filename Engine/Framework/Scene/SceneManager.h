@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <functional>
+
 namespace engine
 {
     class Scene;
@@ -22,7 +24,7 @@ namespace engine
         void Shutdown();
 
     public:
-        void CreateScene(const std::string& name);
+        void CreateScene(const std::string& name, std::function<void()>&& onEnter);
         void ChangeScene(const std::string& name);
         void CheckSceneChanged();
         Scene* GetCurrentScene() const;

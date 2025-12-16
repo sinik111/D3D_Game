@@ -26,7 +26,7 @@ namespace engine
 
     public:
         ScriptBase();
-        virtual ~ScriptBase();
+        ~ScriptBase();
 
     protected:
         void RegisterScript(std::uint32_t eventFlags);
@@ -68,6 +68,6 @@ namespace engine
             RegisterScript(eventFlags);
         }
 
-        virtual ~Script() = default;
+        ~Script() = default;
     };
 }

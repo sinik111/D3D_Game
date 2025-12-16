@@ -6,6 +6,7 @@
 namespace engine
 {
     class Component;
+    class Transform;
 
     class GameObject :
         public Object
@@ -13,10 +14,14 @@ namespace engine
     private:
         std::string m_name;
         std::vector<std::unique_ptr<Component>> m_components;
+        Transform* m_transform;
 
     public:
         GameObject(const std::string& name = "GameObject");
         ~GameObject() = default;
+
+    public:
+        Transform* GetTransform() const;
 
     public:
         template<std::derived_from<Component> T, typename... Args>

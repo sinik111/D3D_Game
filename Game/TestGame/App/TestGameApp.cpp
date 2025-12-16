@@ -30,21 +30,16 @@ namespace game
 	{
 		engine::WinApp::Initialize();
 
-		engine::SceneManager::Get().CreateScene("SampleScene1");
+		auto OnEnter = []()
+			{
+				engine::Scene* scene = engine::SceneManager::Get().GetCurrentScene();
+
+				engine::Ptr<engine::GameObject> gameObject = scene->CreateGameObject("TestGameObject");
+				engine::Ptr<TestScript> testScript = gameObject->AddComponent<TestScript>();
+			};
+
+		engine::SceneManager::Get().CreateScene("SampleScene1", OnEnter);
 
 		engine::SceneManager::Get().ChangeScene("SampleScene1");
-	}
-
-	void TestGameApp::OnUpdate()
-	{
-		static bool once = true;
-		if (once)
-		{
-			once = false;
-			engine::Scene* scene = engine::SceneManager::Get().GetCurrentScene();
-
-			engine::Ptr<engine::GameObject> gameObject = scene->CreateGameObject("TestGameObject");
-			engine::Ptr<TestScript> testScript = gameObject->AddComponent<TestScript>();
-		}
 	}
 }

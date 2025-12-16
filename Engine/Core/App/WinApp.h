@@ -40,8 +40,6 @@ namespace engine
 		virtual void Shutdown();
 		void Run();
 
-		virtual void OnUpdate() = 0; // 테스트용 함수
-
 	private:
 		void Update();
 		void Render();

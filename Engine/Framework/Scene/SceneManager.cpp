@@ -18,11 +18,11 @@ namespace engine
         m_scenes.clear();
     }
 
-    void SceneManager::CreateScene(const std::string& name)
+    void SceneManager::CreateScene(const std::string& name, std::function<void()>&& onEnter)
     {
         if (m_scenes.find(name) == m_scenes.end())
         {
-            m_scenes.emplace(name, std::make_unique<Scene>(name));
+            m_scenes.emplace(name, std::make_unique<Scene>(name, std::move(onEnter)));
         }
     }
 

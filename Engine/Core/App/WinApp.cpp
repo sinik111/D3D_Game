@@ -203,8 +203,6 @@ namespace engine
 
 		SystemManager::Get().Script().CallStart();
 		SystemManager::Get().Script().CallUpdate();
-
-		OnUpdate(); // 테스트용 함수
 	}
 
 	void WinApp::Render()
