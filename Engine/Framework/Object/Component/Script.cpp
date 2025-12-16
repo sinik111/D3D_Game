@@ -6,25 +6,27 @@
 
 namespace engine
 {
-    Script::Script()
+    ScriptBase::ScriptBase()
     {
-        SystemManager::Get().Script().Register(this);
+        m_systemIndices.fill(-1);
     }
 
-    Script::~Script()
+    ScriptBase::~ScriptBase()
     {
         SystemManager::Get().Script().Unregister(this);
     }
-
-    void Script::Initialize()
+    void ScriptBase::RegisterScript(std::uint32_t eventFlags)
     {
+        SystemManager::Get().Script().Register(this, eventFlags);
     }
 
-    void Script::Start()
+    void ScriptBase::Initialize()
     {
     }
-
-    void Script::Update()
+    void ScriptBase::Start()
+    {
+    }
+    void ScriptBase::Update()
     {
     }
 }

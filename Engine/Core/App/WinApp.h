@@ -33,12 +33,14 @@ namespace engine
 
 	protected:
 		WinApp(const std::filesystem::path& settingFilePath = "config.json", const WindowSettings& defaultSetting = {});
-		virtual ~WinApp();
+		virtual ~WinApp() = default;
 
 	public:
 		virtual void Initialize();
 		virtual void Shutdown();
 		void Run();
+
+		virtual void OnUpdate() = 0; // 테스트용 함수
 
 	private:
 		void Update();

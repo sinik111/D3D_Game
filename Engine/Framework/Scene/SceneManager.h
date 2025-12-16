@@ -25,5 +25,6 @@ namespace engine
         void CreateScene(const std::string& name);
         void ChangeScene(const std::string& name);
         void CheckSceneChanged();
+        Scene* GetCurrentScene() const;
     };
 }

@@ -3,7 +3,20 @@
 
 namespace engine
 {
-    void ScriptSystem::Unregister(Script* script)
+    void ScriptSystem::Register(ScriptBase* script, std::uint32_t eventFlags)
+    {
+        if (eventFlags & (1 << static_cast<int>(ScriptEvent::Start)))
+        {
+            AddScript(m_startScripts, script, ScriptEvent::Start);
+        }
+
+        if (eventFlags & (1 << static_cast<int>(ScriptEvent::Update)))
+        {
+            AddScript(m_updateScripts, script, ScriptEvent::Update);
+        }
+    }
+
+    void ScriptSystem::Unregister(ScriptBase* script)
     {
         RemoveScript(m_startScripts, script, ScriptEvent::Start);
         RemoveScript(m_updateScripts, script, ScriptEvent::Update);
@@ -28,7 +41,7 @@ namespace engine
         }
     }
 
-    void ScriptSystem::AddScript(std::vector<Script*>& v, Script* script, ScriptEvent type)
+    void ScriptSystem::AddScript(std::vector<ScriptBase*>& v, ScriptBase* script, ScriptEvent type)
     {
         if (script->m_systemIndices[static_cast<size_t>(type)] != -1)
         {
@@ -39,15 +52,20 @@ namespace engine
         v.push_back(script);
     }
 
-    void ScriptSystem::RemoveScript(std::vector<Script*>& v, Script* script, ScriptEvent type)
+    void ScriptSystem::RemoveScript(std::vector<ScriptBase*>& v, ScriptBase* script, ScriptEvent type)
     {
+        if (v.empty())
+        {
+            return;
+        }
+
         std::int32_t index = script->m_systemIndices[static_cast<size_t>(type)];
         if (index < 0)
         {
             return; // 등록 안됨
         }
-
-        Script* back = v.back();
+        
+        ScriptBase* back = v.back();
         v[index] = back;
         v.pop_back();
         

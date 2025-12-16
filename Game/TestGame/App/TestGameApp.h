@@ -13,5 +13,7 @@ namespace game
 
     public:
         void Initialize() override;
+
+        void OnUpdate() override;
     };
 }

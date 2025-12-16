@@ -50,7 +50,7 @@ namespace engine
         return nullptr;
     }
 
-    Handle Object::RegisterObject(Object* object)
+    void Object::RegisterObject(Object* object)
     {
         std::uint32_t index = 0;
         std::uint32_t generation = 0;
@@ -73,7 +73,7 @@ namespace engine
         g_objects[index].generation = generation;
         g_objects[index].active = true;
 
-        return { index, generation };
+        m_handle = { index, generation };
     }
 
     void Object::UnregisterObject(Object* object)

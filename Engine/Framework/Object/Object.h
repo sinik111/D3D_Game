@@ -18,7 +18,7 @@ namespace engine
 		static Object* GetObjectFromHandle(Handle handle);
 
 	private:
-		static Handle RegisterObject(Object* object);
-		static void UnregisterObject(Object* object);
+		void RegisterObject(Object* object);
+		void UnregisterObject(Object* object);
 	};
 }

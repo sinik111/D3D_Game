@@ -50,4 +50,9 @@ namespace engine
             m_currentScene->Enter();
         }
     }
+
+    Scene* SceneManager::GetCurrentScene() const
+    {
+        return m_currentScene;
+    }
 }

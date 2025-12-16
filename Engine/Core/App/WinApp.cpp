@@ -51,12 +51,7 @@ namespace engine
 	{
 		ValidateSettings();
 	}
-
-	WinApp::~WinApp()
-	{
-		Shutdown();
-	}
-
+	
 	void WinApp::Initialize()
 	{
 		SetWindowMode(m_settings.isFullScreen);
@@ -171,6 +166,7 @@ namespace engine
 
 	void WinApp::Shutdown()
 	{
+		SceneManager::Get().Shutdown();
 	}
 
 	void WinApp::Run()
@@ -207,6 +203,8 @@ namespace engine
 
 		SystemManager::Get().Script().CallStart();
 		SystemManager::Get().Script().CallUpdate();
+
+		OnUpdate(); // 테스트용 함수
 	}
 
 	void WinApp::Render()
