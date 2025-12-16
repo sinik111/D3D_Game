@@ -23,6 +23,8 @@ namespace engine
 
 	float Time::DeltaTime(size_t scaleSlot)
 	{
+		assert(scaleSlot < g_timeScales.size());
+
 		return g_deltaTime * g_timeScales[scaleSlot];
 	}
 
@@ -38,9 +40,9 @@ namespace engine
 
 	void Time::SetTimeScale(size_t scaleSlot, float timeScale)
 	{
-		if (g_timeScales.size() - 1 < scaleSlot)
+		if (g_timeScales.size() <= scaleSlot)
 		{
-			g_timeScales.resize(scaleSlot);
+			g_timeScales.resize(scaleSlot + 1, 1.0f);
 		}
 
 		g_timeScales[scaleSlot] = timeScale;

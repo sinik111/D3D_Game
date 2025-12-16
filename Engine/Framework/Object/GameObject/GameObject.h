@@ -27,7 +27,7 @@ namespace engine
         template<std::derived_from<Component> T, typename... Args>
         T* AddComponent(Args&&... args)
         {
-            std::unique_ptr<T> component = std::make_unique<T>(std::forward(args)...);
+            std::unique_ptr<T> component = std::make_unique<T>(std::forward<Args>(args)...);
 
             T* ptr = component.get();
 

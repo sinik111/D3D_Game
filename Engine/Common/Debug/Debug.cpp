@@ -114,6 +114,10 @@ namespace engine
 	LeakCheck::~LeakCheck()
 	{
 #ifdef _DEBUG
+		// std::chrono::current_zone() 사용 후에
+		// 메모리 누수 리포트 제거용
+		// 실제 누수는 아닌데 그냥 보기 싫어서 해둠
+		// 정상적인 방법 필요
 		std::chrono::get_tzdb_list().~tzdb_list();
 		IDXGIDebug1* pDebug = nullptr;
 

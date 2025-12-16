@@ -68,7 +68,7 @@ namespace engine
 
                 WriteToFile("[ERROR] ", msg);
 
-                MessageBoxW(nullptr, ToWideChar(msg).c_str(), "Engine Error", MB_ICONERROR | MB_OK);
+                MessageBoxW(nullptr, ToWideChar(msg).c_str(), L"Error", MB_ICONERROR | MB_OK);
             }
             catch (const std::format_error& e)
             {

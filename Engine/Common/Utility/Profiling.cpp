@@ -70,7 +70,7 @@ namespace engine
 		return g_dramUsage;
 	}
 
-	UINT64 Profiling::GEtPageFileUsage()
+	UINT64 Profiling::GetPageFileUsage()
 	{
 		return g_pageFileUsage;
 	}

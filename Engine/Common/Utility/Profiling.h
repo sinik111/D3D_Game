@@ -12,6 +12,6 @@ namespace engine
 		static int GetLastFPS();
 		static UINT64 GetVRAMUsage();
 		static UINT64 GetDRAMUsage();
-		static UINT64 GEtPageFileUsage();
+		static UINT64 GetPageFileUsage();
 	};
 }

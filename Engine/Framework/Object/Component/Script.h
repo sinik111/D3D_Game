@@ -55,12 +55,12 @@ namespace engine
             // 컴파일 타임에 해당 이벤트 함수들 구현되었는지 확인 후
             // 오버라이드 된 함수들만 플래그 켜줌
 
-            if constexpr (IsFuncOverridden(&Script::Start, &T::Start))
+            if constexpr (IsFuncOverridden(&ScriptBase::Start, &T::Start))
             {
                 eventFlags |= 1U << static_cast<int>(ScriptEvent::Start);
             }
 
-            if constexpr (IsFuncOverridden(&Script::Update, &T::Update))
+            if constexpr (IsFuncOverridden(&ScriptBase::Update, &T::Update))
             {
                 eventFlags |= 1U << static_cast<int>(ScriptEvent::Update);
             }

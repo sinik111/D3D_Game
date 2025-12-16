@@ -44,10 +44,10 @@ namespace engine
         if (const auto& entry = g_objects[handle.index];
             (entry.generation == handle.generation) && entry.active)
         {
-            return entry.object; // 이미 삭제되었거나 재사용된 객체임
+            return entry.object;
         }
 
-        return nullptr;
+        return nullptr; // 이미 삭제되었거나 재사용된 객체임
     }
 
     void Object::RegisterObject(Object* object)

@@ -26,7 +26,6 @@ namespace engine
         m_screenWidth = screenWidth;
         m_screenHeight = screenHeight;
         m_isFullScreen = isFullScreen;
-        SetVsync(useVsync);
 
         // create device, device context, swap chain
         {
@@ -45,7 +44,7 @@ namespace engine
                 UINT d3dCreationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #ifdef _DEBUG
                 d3dCreationFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif // _DBUG
+#endif // _DEBUG
 
                 const D3D_FEATURE_LEVEL featureLevels[]{
                     D3D_FEATURE_LEVEL_12_2,
@@ -97,6 +96,8 @@ namespace engine
                 {
                     swapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
                 }
+
+                SetVsync(useVsync);
 
                 HR_CHECK(dxgiFactory->CreateSwapChainForHwnd(
                     m_device.Get(),
@@ -296,12 +297,12 @@ namespace engine
     void GraphicsDevice::SetVsync(bool useVsync)
     {
         m_useVsync = useVsync;
-        if (m_useVsync)
+        if (m_useVsync || !m_tearingSupport)
         {
             m_syncInterval = 1;
             m_presentFlags = 0;
         }
-        else
+        else if (m_tearingSupport)
         {
             m_syncInterval = 0;
             m_presentFlags = DXGI_PRESENT_ALLOW_TEARING;

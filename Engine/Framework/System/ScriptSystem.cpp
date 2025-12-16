@@ -69,7 +69,7 @@ namespace engine
         v[index] = back;
         v.pop_back();
         
-        back->m_systemIndices[(int)type] = index;
-        script->m_systemIndices[(int)type] = -1;
+        back->m_systemIndices[static_cast<size_t>(type)] = index;
+        script->m_systemIndices[static_cast<size_t>(type)] = -1;
     }
 }
