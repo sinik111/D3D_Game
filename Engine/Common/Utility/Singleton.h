@@ -2,7 +2,7 @@
 
 namespace engine
 {
-    template<typename T>
+    template <typename T>
     class Singleton
     {
     protected:

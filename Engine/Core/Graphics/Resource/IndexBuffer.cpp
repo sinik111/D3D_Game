@@ -1,0 +1,28 @@
+﻿#include "pch.h"
+#include "IndexBuffer.h"
+
+namespace engine
+{
+    void IndexBuffer::Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, const std::vector<DWORD>& indices)
+    {
+        D3D11_BUFFER_DESC indexBufferDesc{};
+        indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(DWORD) * indices.size());
+        indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+
+        D3D11_SUBRESOURCE_DATA indexBufferData{};
+        indexBufferData.pSysMem = indices.data();
+
+        device->CreateBuffer(&indexBufferDesc, &indexBufferData, &m_buffer);
+    }
+
+    const Microsoft::WRL::ComPtr<ID3D11Buffer>& IndexBuffer::GetBuffer() const
+    {
+        return m_buffer;
+    }
+
+    ID3D11Buffer* IndexBuffer::GetRawBuffer() const
+    {
+        return m_buffer.Get();
+    }
+}

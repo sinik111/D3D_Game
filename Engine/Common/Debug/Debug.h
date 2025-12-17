@@ -23,7 +23,7 @@ namespace engine
     class Debug
     {
     public:
-        template<typename... Args>
+        template <typename... Args>
         static void __Log(std::format_string<Args...> fmt, Args&&... args)
         {
             try
@@ -41,7 +41,7 @@ namespace engine
             }
         }
 
-        template<typename... Args>
+        template <typename... Args>
         static void __Print(std::format_string<Args...> fmt, Args&&... args)
         {
             try
@@ -57,7 +57,7 @@ namespace engine
             }
         }
 
-        template<typename... Args>
+        template <typename... Args>
         static void __LogError(std::format_string<Args...> fmt, Args&&... args)
         {
             try

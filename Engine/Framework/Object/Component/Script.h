@@ -43,7 +43,7 @@ namespace engine
         return baseFunc != static_cast<void (Base::*)()>(derivedFunc);
     }
 
-    template<typename T>
+    template <typename T>
     class Script :
         public ScriptBase
     {

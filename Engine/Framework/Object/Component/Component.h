@@ -10,7 +10,7 @@ namespace engine
         public Object
     {
     private:
-        template<std::derived_from<Component> T> friend class System;
+        template <std::derived_from<Component> T> friend class System;
 
         std::int32_t m_systemIndex = -1;
     };

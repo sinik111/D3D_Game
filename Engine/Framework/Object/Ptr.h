@@ -6,7 +6,7 @@
 
 namespace engine
 {
-    template<typename T>
+    template <typename T>
         requires std::is_base_of_v<Object, T>
     class Ptr
     {

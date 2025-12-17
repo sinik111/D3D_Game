@@ -71,6 +71,8 @@ namespace engine
                 D3D11_INPUT_ELEMENT_DESC{ "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 44, D3D11_INPUT_PER_VERTEX_DATA, 0 }
             };
         };
+
+        static constexpr VertexFormat vertexFormat = VertexFormat::Common;
     };
 
     struct PositionVertex
@@ -84,6 +86,8 @@ namespace engine
                 D3D11_INPUT_ELEMENT_DESC{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
             };
         };
+
+        static constexpr VertexFormat vertexFormat = VertexFormat::Position;
     };
 
     struct PositionNormalVertex
@@ -99,6 +103,8 @@ namespace engine
                 D3D11_INPUT_ELEMENT_DESC{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
             };
         };
+
+        static constexpr VertexFormat vertexFormat = VertexFormat::PositionNormal;
     };
 
     struct PositionColorVertex
@@ -114,6 +120,8 @@ namespace engine
                 D3D11_INPUT_ELEMENT_DESC{ "COLOR",   0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
             };
         };
+
+        static constexpr VertexFormat vertexFormat = VertexFormat::PositionColor;
     };
 
     struct PositionTexCoordVertex
@@ -129,6 +137,8 @@ namespace engine
                 D3D11_INPUT_ELEMENT_DESC{ "TEXCOORD",   0, DXGI_FORMAT_R32G32_FLOAT, 0, 12,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
             };
         };
+
+        static constexpr VertexFormat vertexFormat = VertexFormat::PositionTexCoord;
     };
 
     struct BoneWeightVertex
@@ -205,5 +215,7 @@ namespace engine
                 D3D11_INPUT_ELEMENT_DESC{ "BLENDWEIGHT",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 72, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             };
         };
+
+        static constexpr VertexFormat vertexFormat = VertexFormat::BoneWeight;
     };
 }

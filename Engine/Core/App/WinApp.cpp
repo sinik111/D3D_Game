@@ -5,6 +5,7 @@
 
 #include "ConfigLoader.h"
 #include "Common/Utility/Profiling.h"
+#include "Core/Graphics/Resource/ResourceManager.h"
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/System/SystemManager.h"
 #include "Framework/System/ScriptSystem.h"
@@ -167,6 +168,7 @@ namespace engine
 	void WinApp::Shutdown()
 	{
 		SceneManager::Get().Shutdown();
+		ResourceManager::Get().Cleanup();
 	}
 
 	void WinApp::Run()

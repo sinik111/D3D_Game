@@ -24,7 +24,7 @@ namespace engine
         Transform* GetTransform() const;
 
     public:
-        template<std::derived_from<Component> T, typename... Args>
+        template <std::derived_from<Component> T, typename... Args>
         T* AddComponent(Args&&... args)
         {
             std::unique_ptr<T> component = std::make_unique<T>(std::forward<Args>(args)...);
@@ -36,7 +36,7 @@ namespace engine
             return ptr;
         }
 
-        template<std::derived_from<Component> T>
+        template <std::derived_from<Component> T>
         T* GetComponent()
         {
             for (const auto& component : m_components)

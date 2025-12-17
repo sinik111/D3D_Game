@@ -7,7 +7,7 @@
 
 namespace engine
 {
-    template<std::derived_from<Component> T>
+    template <std::derived_from<Component> T>
     class System
     {
     protected:
