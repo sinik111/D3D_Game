@@ -6,8 +6,6 @@
 #include <Windows.h>
 
 // common
-#include <fstream>
-#include <filesystem>
 #include <string>
 #include <vector>
 #include <memory>
@@ -17,7 +15,6 @@
 #include <format>
 #include <cassert>
 #include <array>
-#include <string_view>
 
 
 // d3d
@@ -29,6 +26,7 @@ namespace engine
 {
 	using Vector2 = DirectX::SimpleMath::Vector2;
 	using Vector3 = DirectX::SimpleMath::Vector3;
+	using Vector4 = DirectX::SimpleMath::Vector4;
 	using Matrix = DirectX::SimpleMath::Matrix;
 	using Quaternion = DirectX::SimpleMath::Quaternion;
 	using Color = DirectX::SimpleMath::Color;
@@ -38,7 +36,6 @@ namespace engine
 }
 
 #include "Common/Utility/StringUtility.h"
-#include "Common/Utility/Singleton.h"
 #include "Framework/Object/Ptr.h"
 #include "Common/Debug/Debug.h"
 #include "Core/System/MyTime.h"

@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <filesystem>
+
 #include "Core/Graphics/Device/GraphicsDevice.h"
 #include "Core/System/CoInitializer.h"
 #include "Core/App/WindowSettings.h"

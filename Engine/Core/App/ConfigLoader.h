@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <filesystem>
+
 #include "WindowSettings.h"
 
 namespace engine

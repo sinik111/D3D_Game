@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <filesystem>
+
 #include "Core/Graphics/Resource/Mesh.h"
 
 namespace engine

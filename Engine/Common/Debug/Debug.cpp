@@ -13,6 +13,7 @@
 
 #include <mutex>
 #include <comdef.h>
+#include <fstream>
 
 namespace engine
 {

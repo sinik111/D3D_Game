@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "Common/Utility/Singleton.h"
+
 namespace engine
 {
     class ScriptSystem;
@@ -11,11 +13,13 @@ namespace engine
         std::unique_ptr<ScriptSystem> m_scriptSystem;
 
     private:
-        friend class Singleton<SystemManager>;
         SystemManager();
         ~SystemManager();
 
     public:
         ScriptSystem& Script() const;
+
+    private:
+        friend class Singleton<SystemManager>;
     };
 }

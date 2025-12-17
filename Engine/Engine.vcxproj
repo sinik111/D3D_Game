@@ -156,6 +156,13 @@
     <ClCompile Include="Core\System\CoInitializer.cpp" />
     <ClCompile Include="Core\System\Input.cpp" />
     <ClCompile Include="Core\System\MyTime.cpp" />
+    <ClCompile Include="Framework\Asset\AnimationData.cpp" />
+    <ClCompile Include="Framework\Asset\AssetManager.cpp" />
+    <ClCompile Include="Framework\Asset\FBXData.cpp" />
+    <ClCompile Include="Framework\Asset\SkeletalMeshData.cpp" />
+    <ClCompile Include="Framework\Asset\SkeletonData.cpp" />
+    <ClCompile Include="Framework\Asset\StaticMeshData.cpp" />
+    <ClCompile Include="Framework\Asset\MaterialData.cpp" />
     <ClCompile Include="Framework\Object\Component\Component.cpp" />
     <ClCompile Include="Framework\Object\Component\Script.cpp" />
     <ClCompile Include="Framework\Object\Component\Transform.cpp" />
@@ -171,7 +178,6 @@
     </ClCompile>
     <ClCompile Include="Core\App\WinApp.cpp" />
     <ClCompile Include="Core\Graphics\Resource\TestResource.cpp" />
-    <ClCompile Include="Framework\Asset\TestAsset.cpp" />
     <ClCompile Include="Framework\Physics\TestPhysics.cpp" />
     <ClCompile Include="Framework\Serializer\TestSerializer.cpp" />
   </ItemGroup>
@@ -183,12 +189,21 @@
     <ClInclude Include="Common\Utility\StringUtility.h" />
     <ClInclude Include="Core\App\ConfigLoader.h" />
     <ClInclude Include="Core\App\WindowSettings.h" />
+    <ClInclude Include="Core\Graphics\Data\Vertex.h" />
     <ClInclude Include="Core\Graphics\Device\GraphicsDevice.h" />
     <ClInclude Include="Core\Graphics\Geometry\GeometryGenerator.h" />
     <ClInclude Include="Core\Graphics\Resource\Mesh.h" />
     <ClInclude Include="Core\System\CoInitializer.h" />
     <ClInclude Include="Core\System\MyTime.h" />
     <ClInclude Include="Core\System\Input.h" />
+    <ClInclude Include="Framework\Asset\AnimationData.h" />
+    <ClInclude Include="Framework\Asset\AssetData.h" />
+    <ClInclude Include="Framework\Asset\AssetManager.h" />
+    <ClInclude Include="Framework\Asset\FBXData.h" />
+    <ClInclude Include="Framework\Asset\MaterialData.h" />
+    <ClInclude Include="Framework\Asset\SkeletalMeshData.h" />
+    <ClInclude Include="Framework\Asset\SkeletonData.h" />
+    <ClInclude Include="Framework\Asset\StaticMeshData.h" />
     <ClInclude Include="Framework\Object\Component\Component.h" />
     <ClInclude Include="Framework\Object\Component\Script.h" />
     <ClInclude Include="Framework\Object\Component\Transform.h" />

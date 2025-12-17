@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include "Common/Utility/Singleton.h"
+
 namespace engine
 {
     class Scene;
@@ -18,7 +20,6 @@ namespace engine
     private:
         SceneManager();
         ~SceneManager();
-        friend class Singleton<SceneManager>;
 
     public:
         void Shutdown();
@@ -28,5 +29,8 @@ namespace engine
         void ChangeScene(const std::string& name);
         void CheckSceneChanged();
         Scene* GetCurrentScene() const;
+
+    private:
+        friend class Singleton<SceneManager>;
     };
 }
