@@ -1,0 +1,25 @@
+﻿#include "pch.h"
+#include "ConstantBuffer.h"
+
+namespace engine
+{
+    void ConstantBuffer::Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, UINT byteWidth)
+    {
+        D3D11_BUFFER_DESC constantBufferDesc{};
+        constantBufferDesc.ByteWidth = byteWidth;
+        constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        constantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+
+        device->CreateBuffer(&constantBufferDesc, nullptr, &m_buffer);
+    }
+
+    const Microsoft::WRL::ComPtr<ID3D11Buffer>& ConstantBuffer::GetBuffer() const
+    {
+        return m_buffer;
+    }
+
+    ID3D11Buffer* ConstantBuffer::GetRawBuffer() const
+    {
+        return m_buffer.Get();
+    }
+}

@@ -3,6 +3,9 @@
 
 #include "Core/Graphics/Resource/IndexBuffer.h"
 #include "Core/Graphics/Resource/Texture.h"
+#include "Core/Graphics/Resource/ConstantBuffer.h"
+#include "Core/Graphics/Resource/VertexShader.h"
+#include "Core/Graphics/Resource/PixelShader.h"
 
 namespace engine
 {
@@ -122,5 +125,59 @@ namespace engine
     std::shared_ptr<Texture> ResourceManager::GetDefaultTexture(DefaultTextureType type)
     {
         return g_defaultTextures[static_cast<size_t>(type)];
+    }
+
+    std::shared_ptr<ConstantBuffer> ResourceManager::GetOrCreateConstantBuffer(const std::string& name, UINT byteWidth)
+    {
+        if (auto find = m_constantBuffers.find(name); find != m_constantBuffers.end())
+        {
+            if (!find->second.expired())
+            {
+                return find->second.lock();
+            }
+        }
+
+        auto constantBuffer = std::make_shared<ConstantBuffer>();
+        constantBuffer->Create(m_graphicsDevice->GetDevice(), byteWidth);
+
+        m_constantBuffers[name] = constantBuffer;
+
+        return constantBuffer;
+    }
+
+    std::shared_ptr<VertexShader> ResourceManager::GetOrCreateVertexShader(const std::string& filePath)
+    {
+        if (auto find = m_vertexShaders.find(filePath); find != m_vertexShaders.end())
+        {
+            if (!find->second.expired())
+            {
+                return find->second.lock();
+            }
+        }
+
+        auto vertexShader = std::make_shared<VertexShader>();
+        vertexShader->Create(m_graphicsDevice->GetDevice(), filePath);
+
+        m_vertexShaders[filePath] = vertexShader;
+
+        return vertexShader;
+    }
+
+    std::shared_ptr<PixelShader> ResourceManager::GetOrCreatePixelShader(const std::string& filePath)
+    {
+        if (auto find = m_pixelShaders.find(filePath); find != m_pixelShaders.end())
+        {
+            if (!find->second.expired())
+            {
+                return find->second.lock();
+            }
+        }
+
+        auto pixelShader = std::make_shared<PixelShader>();
+        pixelShader->Create(m_graphicsDevice->GetDevice(), filePath);
+
+        m_pixelShaders[filePath] = pixelShader;
+
+        return pixelShader;
     }
 }

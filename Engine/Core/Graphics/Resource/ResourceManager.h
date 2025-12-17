@@ -11,6 +11,9 @@ namespace engine
     class VertexBuffer;
     class IndexBuffer;
     class Texture;
+    class ConstantBuffer;
+    class VertexShader;
+    class PixelShader;
 
     template <typename T>
     concept IsVertex = requires { T::vertexFormat; };
@@ -30,6 +33,9 @@ namespace engine
         std::unordered_map<VertexBufferKey, std::weak_ptr<VertexBuffer>> m_vertexBuffers;
         std::unordered_map<std::string, std::weak_ptr<IndexBuffer>> m_indexBuffers;
         std::unordered_map<std::string, std::weak_ptr<Texture>> m_textures;
+        std::unordered_map<std::string, std::weak_ptr<ConstantBuffer>> m_constantBuffers;
+        std::unordered_map<std::string, std::weak_ptr<VertexShader>> m_vertexShaders;
+        std::unordered_map<std::string, std::weak_ptr<PixelShader>> m_pixelShaders;
 
         const GraphicsDevice* m_graphicsDevice = nullptr;
 
@@ -80,6 +86,9 @@ namespace engine
             DXGI_FORMAT dsvFormat = DXGI_FORMAT_UNKNOWN);
 
         std::shared_ptr<Texture> GetDefaultTexture(DefaultTextureType type);
+        std::shared_ptr<ConstantBuffer> GetOrCreateConstantBuffer(const std::string& name, UINT byteWidth);
+        std::shared_ptr<VertexShader> GetOrCreateVertexShader(const std::string& filePath);
+        std::shared_ptr<PixelShader> GetOrCreatePixelShader(const std::string& filePath);
 
     private:
         friend class Singleton<ResourceManager>;

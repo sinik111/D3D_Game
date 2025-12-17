@@ -120,6 +120,18 @@
     <ClCompile Include="Core\Graphics\Resource\Texture.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Graphics\Resource\ConstantBuffer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Graphics\Resource\VertexShader.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Graphics\Resource\PixelShader.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Graphics\Resource\InputLayout.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App\WinApp.h">
@@ -246,6 +258,18 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Core\Graphics\Resource\Texture.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Graphics\Resource\ConstantBuffer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Graphics\Resource\VertexShader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Graphics\Resource\PixelShader.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Graphics\Resource\InputLayout.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
