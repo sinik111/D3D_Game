@@ -10,7 +10,7 @@ namespace engine
         constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         constantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 
-        device->CreateBuffer(&constantBufferDesc, nullptr, &m_buffer);
+        HR_CHECK(device->CreateBuffer(&constantBufferDesc, nullptr, &m_buffer));
     }
 
     const Microsoft::WRL::ComPtr<ID3D11Buffer>& ConstantBuffer::GetBuffer() const

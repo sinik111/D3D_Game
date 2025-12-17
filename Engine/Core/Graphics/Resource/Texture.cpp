@@ -10,7 +10,7 @@ namespace engine
 {
     namespace
     {
-        const D3D11_TEXTURE2D_DESC g_defaulTexDesc{
+        const D3D11_TEXTURE2D_DESC g_defaultTexDesc{
             1, 1, 1, 1,
             DXGI_FORMAT_R8G8B8A8_UNORM,
             { 1, 0 },
@@ -31,9 +31,14 @@ namespace engine
         if (extension == ".tga" || extension == ".TGA")
         {
             DirectX::ScratchImage image;
-            LoadFromTGAFile(path.c_str(), nullptr, image);
+            HR_CHECK(LoadFromTGAFile(path.c_str(), nullptr, image));
 
-            CreateShaderResourceView(device.Get(), image.GetImages(), image.GetImageCount(), image.GetMetadata(), &m_srv);
+            HR_CHECK(CreateShaderResourceView(
+                device.Get(),
+                image.GetImages(),
+                image.GetImageCount(),
+                image.GetMetadata(),
+                &m_srv));
         }
         //// exr 파일 쓰면 활성화 및 라이브러리 설치 필요함
         //else if (extension == ".exr" || extension == ".EXR")
@@ -95,11 +100,11 @@ namespace engine
         //}
         else if (extension == ".dds" || extension == ".DDS")
         {
-            DirectX::CreateDDSTextureFromFile(device.Get(), path.c_str(), nullptr, &m_srv);
+            HR_CHECK(DirectX::CreateDDSTextureFromFile(device.Get(), path.c_str(), nullptr, &m_srv));
         }
         else
         {
-            DirectX::CreateWICTextureFromFile(device.Get(), path.c_str(), nullptr, &m_srv);
+            HR_CHECK(DirectX::CreateWICTextureFromFile(device.Get(), path.c_str(), nullptr, &m_srv));
         }
     }
 
@@ -131,7 +136,7 @@ namespace engine
         DXGI_FORMAT dsvFormat)
     {
         m_desc = desc;
-        device->CreateTexture2D(&desc, nullptr, &m_texture);
+        HR_CHECK(device->CreateTexture2D(&desc, nullptr, &m_texture));
 
         if (m_desc.BindFlags & D3D11_BIND_SHADER_RESOURCE)
         {
@@ -140,25 +145,25 @@ namespace engine
             srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Texture2D.MipLevels = m_desc.MipLevels;
 
-            device->CreateShaderResourceView(m_texture.Get(), &srvDesc, &m_srv);
+            HR_CHECK(device->CreateShaderResourceView(m_texture.Get(), &srvDesc, &m_srv));
         }
 
         if (m_desc.BindFlags & D3D11_BIND_RENDER_TARGET)
         {
             D3D11_RENDER_TARGET_VIEW_DESC rtvDesc{};
-            rtvDesc.Format = (srvFormat != DXGI_FORMAT_UNKNOWN) ? rtvFormat : desc.Format;
+            rtvDesc.Format = (rtvFormat != DXGI_FORMAT_UNKNOWN) ? rtvFormat : desc.Format;
             rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-            device->CreateRenderTargetView(m_texture.Get(), &rtvDesc, &m_rtv);
+            HR_CHECK(device->CreateRenderTargetView(m_texture.Get(), &rtvDesc, &m_rtv));
         }
 
         if (m_desc.BindFlags & D3D11_BIND_DEPTH_STENCIL)
         {
             D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
-            dsvDesc.Format = (srvFormat != DXGI_FORMAT_UNKNOWN) ? srvFormat : desc.Format;
+            dsvDesc.Format = (dsvFormat != DXGI_FORMAT_UNKNOWN) ? dsvFormat : desc.Format;
             dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 
-            device->CreateDepthStencilView(m_texture.Get(), &dsvDesc, &m_dsv);
+            HR_CHECK(device->CreateDepthStencilView(m_texture.Get(), &dsvDesc, &m_dsv));
         }
     }
 
@@ -170,15 +175,15 @@ namespace engine
         subData.pSysMem = color.data();
         subData.SysMemPitch = static_cast<UINT>(color.size());
 
-        device->CreateTexture2D(&g_defaulTexDesc, &subData, &m_texture);
+        HR_CHECK(device->CreateTexture2D(&g_defaultTexDesc, &subData, &m_texture));
 
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-        srvDesc.Format = g_defaulTexDesc.Format;
+        srvDesc.Format = g_defaultTexDesc.Format;
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
         srvDesc.Texture2D.MipLevels = 1;
         srvDesc.Texture2D.MostDetailedMip = 0;
 
-        device->CreateShaderResourceView(m_texture.Get(), &srvDesc, &m_srv);
+        HR_CHECK(device->CreateShaderResourceView(m_texture.Get(), &srvDesc, &m_srv));
     }
 
     const Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& Texture::GetSRV() const

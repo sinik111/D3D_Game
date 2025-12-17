@@ -38,6 +38,8 @@ namespace engine
             aiProcess_ConvertToLeftHanded;
 
         const aiScene* scene = importer.ReadFile(filePath, importFlags);
+
+        Create(scene);
     }
 
     void SkeletonData::Create(const aiScene* scene)

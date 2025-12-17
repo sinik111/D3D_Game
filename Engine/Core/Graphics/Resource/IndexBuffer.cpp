@@ -13,7 +13,7 @@ namespace engine
         D3D11_SUBRESOURCE_DATA indexBufferData{};
         indexBufferData.pSysMem = indices.data();
 
-        device->CreateBuffer(&indexBufferDesc, &indexBufferData, &m_buffer);
+        HR_CHECK(device->CreateBuffer(&indexBufferDesc, &indexBufferData, &m_buffer));
     }
 
     const Microsoft::WRL::ComPtr<ID3D11Buffer>& IndexBuffer::GetBuffer() const

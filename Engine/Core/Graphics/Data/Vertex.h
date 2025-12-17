@@ -127,7 +127,7 @@ namespace engine
     struct PositionTexCoordVertex
     {
         Vector3 position;
-        Vector4 texCoord;
+        Vector2 texCoord;
 
         static constexpr std::array<D3D11_INPUT_ELEMENT_DESC, 2> GetLayout()
         {

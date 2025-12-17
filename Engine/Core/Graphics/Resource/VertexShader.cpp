@@ -26,11 +26,11 @@ namespace engine
 			&vertexShaderBuffer,
 			nullptr));
 
-		device->CreateVertexShader(
+		HR_CHECK(device->CreateVertexShader(
 			vertexShaderBuffer->GetBufferPointer(),
 			vertexShaderBuffer->GetBufferSize(),
 			nullptr,
-			&m_vertexShader);
+			&m_vertexShader));
     }
 
     const Microsoft::WRL::ComPtr<ID3D11VertexShader>& VertexShader::GetShader() const

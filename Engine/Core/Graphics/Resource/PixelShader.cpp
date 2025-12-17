@@ -26,11 +26,11 @@ namespace engine
 			&pixelShaderBuffer,
 			nullptr));
 
-		device->CreatePixelShader(
+		HR_CHECK(device->CreatePixelShader(
 			pixelShaderBuffer->GetBufferPointer(),
 			pixelShaderBuffer->GetBufferSize(),
 			nullptr,
-			&m_pixelShader);
+			&m_pixelShader));
     }
 
     const Microsoft::WRL::ComPtr<ID3D11PixelShader>& PixelShader::GetShader() const
