@@ -3,31 +3,17 @@
 #include <filesystem>
 
 #include "Core/Graphics/Resource/Mesh.h"
+#include "Common/Utility/Singleton.h"
 
 namespace engine
 {
-	class GraphicsDevice
+	struct DeviceResources;
+
+	class GraphicsDevice :
+		public Singleton<GraphicsDevice>
 	{
 	private:
-		Microsoft::WRL::ComPtr<ID3D11Device> m_device;
-		Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_deviceContext;
-		Microsoft::WRL::ComPtr<IDXGISwapChain1> m_swapChain;
-
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_gameRTV;
-		// 나중에 여러장을 gameRTV에 그리게 되면 DSV는 필요없어 질 수도..
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_gameDSV;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_gameSRV;
-
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_backBufferRTV;
-
-		Microsoft::WRL::ComPtr<IDXGIAdapter3> m_dxgiAdapter;
-
-		// Resources for Blit
-		std::unique_ptr<Mesh> m_fullscreenQuadMesh;
-		Microsoft::WRL::ComPtr<ID3D11VertexShader> m_defaultVS;
-		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_defaultPS;
-		Microsoft::WRL::ComPtr<ID3D11InputLayout> m_defaultInputLayout;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_defaultSamplerState;
+		std::unique_ptr<DeviceResources> m_resource;
 
 		HWND m_hWnd = nullptr;
 		UINT m_resolutionWidth = 0;
@@ -43,6 +29,10 @@ namespace engine
 		bool m_tearingSupport = false;
 		bool m_isFullScreen = false;
 
+	private:
+		GraphicsDevice();
+		~GraphicsDevice();
+
 	public:
 		void Initialize(
 			HWND hWnd,
@@ -52,6 +42,9 @@ namespace engine
 			UINT screenHeight,
 			bool isFullScreen,
 			bool useVsync);
+		void Shutdown();
+
+	public:
 		bool Resize(UINT resolutionWidth,
 			UINT resolutionHeight,
 			UINT screenWidth,
@@ -80,5 +73,8 @@ namespace engine
 	private:
 		void CreateSizeDependentResources();
 		Microsoft::WRL::ComPtr<IDXGIAdapter1> GetHighPerformanceAdapter(Microsoft::WRL::ComPtr<IDXGIFactory5> factory);
+
+	private:
+		friend class Singleton<GraphicsDevice>;
 	};
 }

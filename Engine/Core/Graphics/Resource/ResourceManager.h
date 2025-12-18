@@ -37,14 +37,12 @@ namespace engine
         std::unordered_map<std::string, std::weak_ptr<VertexShader>> m_vertexShaders;
         std::unordered_map<std::string, std::weak_ptr<PixelShader>> m_pixelShaders;
 
-        const GraphicsDevice* m_graphicsDevice = nullptr;
-
     private:
         ResourceManager() = default;
         ~ResourceManager();
 
     public:
-        void Initialize(const GraphicsDevice* graphicsDevice);
+        void Initialize();
         void Cleanup();
 
     public:
@@ -62,7 +60,7 @@ namespace engine
             }
 
             std::shared_ptr<VertexBuffer> vertexBuffer = std::make_shared<VertexBuffer>();
-            vertexBuffer->Create(m_graphicsDevice->GetDevice(), vertices);
+            vertexBuffer->Create(GraphicsDevice::Get().GetDevice(), vertices);
 
             m_vertexBuffers[key] = vertexBuffer;
 

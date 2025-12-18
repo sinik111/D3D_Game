@@ -11,7 +11,7 @@ namespace engine
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_buffer;
 
     public:
-        void Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, const std::vector<DWORD>& indices);
+        void Create(const std::vector<DWORD>& indices);
 
     public:
         const Microsoft::WRL::ComPtr<ID3D11Buffer>& GetBuffer() const;

@@ -13,7 +13,7 @@ namespace engine
 
     public:
         template <typename T>
-        void Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, const std::vector<T>& vertices)
+        void Create(const std::vector<T>& vertices)
         {
             m_bufferStride = sizeof(T);
 
@@ -26,7 +26,7 @@ namespace engine
             D3D11_SUBRESOURCE_DATA data{};
             data.pSysMem = vertices.data();
 
-            HR_CHECK(device->CreateBuffer(&desc, &data, &m_buffer));
+            HR_CHECK(GraphicsDevice::Get().GetDevice()->CreateBuffer(&desc, &data, &m_buffer));
         }
 
     public:

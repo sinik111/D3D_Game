@@ -11,7 +11,7 @@ namespace engine
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
 
     public:
-        void Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, const std::string& filePath);
+        void Create(const std::string& filePath);
 
     public:
         const Microsoft::WRL::ComPtr<ID3D11PixelShader>& GetShader() const;

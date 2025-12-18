@@ -11,7 +11,7 @@ namespace engine
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_buffer;
 
     public:
-        void Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, UINT byteWidth);
+        void Create(UINT byteWidth);
 
     public:
         const Microsoft::WRL::ComPtr<ID3D11Buffer>& GetBuffer() const;

@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Mesh.h"
 
 namespace engine
@@ -23,7 +23,7 @@ namespace engine
 		vertexData.SysMemPitch = 0;
 		vertexData.SysMemSlicePitch = 0;
 
-		HR_CHECK(device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer));
+		HR_CHECK(GraphicsDevice::Get().GetDevice()->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer));
 
 		D3D11_BUFFER_DESC indexBufferDesc{};
 		indexBufferDesc.ByteWidth = sizeof(uint32_t) * m_indexCount;
@@ -38,7 +38,7 @@ namespace engine
 		indexData.SysMemPitch = 0;
 		indexData.SysMemSlicePitch = 0;
 
-		HR_CHECK(device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer));
+		HR_CHECK(GraphicsDevice::Get().GetDevice()->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer));
 	}
 
 	void Mesh::Render(const Microsoft::WRL::ComPtr<ID3D11DeviceContext>& deviceContext)

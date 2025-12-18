@@ -3,16 +3,6 @@
 
 namespace engine
 {
-    float ToRadian(float degree)
-    {
-        return DirectX::XMConvertToRadians(degree);
-    }
-
-    float ToDegree(float radian)
-    {
-        return DirectX::XMConvertToDegrees(radian);
-    }
-
     Vector3 ToEulerAngles(const Quaternion& q)
     {
         Vector3 angles;

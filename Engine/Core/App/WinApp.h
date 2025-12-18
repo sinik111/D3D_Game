@@ -2,7 +2,6 @@
 
 #include <filesystem>
 
-#include "Core/Graphics/Device/GraphicsDevice.h"
 #include "Core/System/CoInitializer.h"
 #include "Core/App/WindowSettings.h"
 
@@ -30,8 +29,6 @@ namespace engine
 		int m_screenHeight = 0;
 
 		CoInitializer m_coInitializer;
-
-		GraphicsDevice m_graphicsDevice;
 
 	protected:
 		WinApp(const std::filesystem::path& settingFilePath = "config.json", const WindowSettings& defaultSetting = {});

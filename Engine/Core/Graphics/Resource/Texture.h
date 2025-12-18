@@ -15,7 +15,7 @@ namespace engine
         D3D11_TEXTURE2D_DESC m_desc{};
 
     public:
-        void Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, const std::string& filePath);
+        void Create(const std::string& filePath);
         void Create(
             const Microsoft::WRL::ComPtr<ID3D11Device>& device,
             UINT width,

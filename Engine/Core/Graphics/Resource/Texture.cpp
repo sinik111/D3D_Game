@@ -20,13 +20,15 @@ namespace engine
         };
     }
 
-    void Texture::Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, const std::string& filePath)
+    void Texture::Create(const std::string& filePath)
     {
         namespace fs = std::filesystem;
 
         auto path = fs::path(filePath);
 
         auto extension = path.extension();
+
+        const auto& device = GraphicsDevice::Get().GetDevice();
 
         if (extension == ".tga" || extension == ".TGA")
         {

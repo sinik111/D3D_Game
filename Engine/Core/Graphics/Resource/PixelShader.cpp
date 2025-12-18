@@ -5,7 +5,7 @@
 
 namespace engine
 {
-    void PixelShader::Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, const std::string& filePath)
+    void PixelShader::Create(const std::string& filePath)
     {
 		DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
@@ -26,7 +26,7 @@ namespace engine
 			&pixelShaderBuffer,
 			nullptr));
 
-		HR_CHECK(device->CreatePixelShader(
+		HR_CHECK(GraphicsDevice::Get().GetDevice()->CreatePixelShader(
 			pixelShaderBuffer->GetBufferPointer(),
 			pixelShaderBuffer->GetBufferSize(),
 			nullptr,

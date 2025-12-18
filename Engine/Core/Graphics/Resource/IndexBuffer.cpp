@@ -3,7 +3,7 @@
 
 namespace engine
 {
-    void IndexBuffer::Create(const Microsoft::WRL::ComPtr<ID3D11Device>& device, const std::vector<DWORD>& indices)
+    void IndexBuffer::Create(const std::vector<DWORD>& indices)
     {
         D3D11_BUFFER_DESC indexBufferDesc{};
         indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(DWORD) * indices.size());
@@ -13,7 +13,7 @@ namespace engine
         D3D11_SUBRESOURCE_DATA indexBufferData{};
         indexBufferData.pSysMem = indices.data();
 
-        HR_CHECK(device->CreateBuffer(&indexBufferDesc, &indexBufferData, &m_buffer));
+        HR_CHECK(GraphicsDevice::Get().GetDevice()->CreateBuffer(&indexBufferDesc, &indexBufferData, &m_buffer));
     }
 
     const Microsoft::WRL::ComPtr<ID3D11Buffer>& IndexBuffer::GetBuffer() const

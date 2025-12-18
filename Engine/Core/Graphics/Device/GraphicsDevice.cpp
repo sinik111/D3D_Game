@@ -11,6 +11,35 @@
 
 namespace engine
 {
+    struct DeviceResources
+    {
+        Microsoft::WRL::ComPtr<ID3D11Device> device;
+        Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
+        Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain;
+
+        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gameRTV;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> gameDSV;
+        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> gameSRV;
+
+        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> backBufferRTV;
+
+        Microsoft::WRL::ComPtr<IDXGIAdapter3> dxgiAdapter;
+
+        // Resources for Blit
+        std::unique_ptr<Mesh> fullscreenQuadMesh;
+        Microsoft::WRL::ComPtr<ID3D11VertexShader> defaultVS;
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> defaultPS;
+        Microsoft::WRL::ComPtr<ID3D11InputLayout> defaultInputLayout;
+        Microsoft::WRL::ComPtr<ID3D11SamplerState> defaultSamplerState;
+    };
+
+    GraphicsDevice::GraphicsDevice()
+        : m_resource{ std::make_unique<DeviceResources>() }
+    {
+    }
+
+    GraphicsDevice::~GraphicsDevice() = default;
+
     void GraphicsDevice::Initialize(
         HWND hWnd,
         UINT resolutionWidth,
@@ -64,9 +93,9 @@ namespace engine
                     featureLevels,
                     ARRAYSIZE(featureLevels),
                     D3D11_SDK_VERSION,
-                    &m_device,
+                    &m_resource->device,
                     &actualFeatureLevel,
-                    &m_deviceContext));
+                    &m_resource->deviceContext));
             }
 
             // create swap chain
@@ -100,18 +129,18 @@ namespace engine
                 SetVsync(useVsync);
 
                 HR_CHECK(dxgiFactory->CreateSwapChainForHwnd(
-                    m_device.Get(),
+                    m_resource->device.Get(),
                     m_hWnd,
                     &swapChainDesc,
                     nullptr,
                     nullptr,
-                    &m_swapChain));
+                    &m_resource->swapChain));
             }
         }
 
         // directx alt+enter 전체화면 전환 해제
         if (Microsoft::WRL::ComPtr<IDXGIFactory1> factory;
-            SUCCEEDED(m_swapChain->GetParent(__uuidof (IDXGIFactory1), &factory)))
+            SUCCEEDED(m_resource->swapChain->GetParent(__uuidof (IDXGIFactory1), &factory)))
         {
             factory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
         }
@@ -120,22 +149,22 @@ namespace engine
 
         Microsoft::WRL::ComPtr<IDXGIAdapter> dxgiAdapter;
         Microsoft::WRL::ComPtr<IDXGIDevice3> dxgiDevice;
-        m_device.As(&dxgiDevice);
+        m_resource->device.As(&dxgiDevice);
         dxgiDevice->GetAdapter(dxgiAdapter.GetAddressOf());
-        dxgiAdapter.As(&m_dxgiAdapter);
+        dxgiAdapter.As(&m_resource->dxgiAdapter);
 
         // Create Fullscreen Quad Mesh
         {
             MeshData quadData = GeometryGenerator::CreateFullscreenQuad();
-            m_fullscreenQuadMesh = std::make_unique<Mesh>();
-            m_fullscreenQuadMesh->Initialize(m_device, quadData);
+            m_resource->fullscreenQuadMesh = std::make_unique<Mesh>();
+            m_resource->fullscreenQuadMesh->Initialize(m_resource->device, quadData);
         }
 
         // Create Default Shaders & Layout
         {
             Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
             CompileShaderFromFile("Shader/Vertex/DefaultVertexShader.hlsl", "main", "vs_5_0", vsBlob);
-            HR_CHECK(m_device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_defaultVS));
+            HR_CHECK(m_resource->device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_resource->defaultVS));
 
             D3D11_INPUT_ELEMENT_DESC layout[] =
             {
@@ -143,11 +172,11 @@ namespace engine
                 { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
                 { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
             };
-            HR_CHECK(m_device->CreateInputLayout(layout, ARRAYSIZE(layout), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_defaultInputLayout));
+            HR_CHECK(m_resource->device->CreateInputLayout(layout, ARRAYSIZE(layout), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_resource->defaultInputLayout));
 
             Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
             CompileShaderFromFile("Shader/Pixel/DefaultPixelShader.hlsl", "main", "ps_5_0", psBlob);
-            HR_CHECK(m_device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_defaultPS));
+            HR_CHECK(m_resource->device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_resource->defaultPS));
         }
 
         // Create Sampler State
@@ -161,8 +190,13 @@ namespace engine
             samplerDesc.MinLOD = 0;
             samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-            HR_CHECK(m_device->CreateSamplerState(&samplerDesc, &m_defaultSamplerState));
+            HR_CHECK(m_resource->device->CreateSamplerState(&samplerDesc, &m_resource->defaultSamplerState));
         }
+    }
+
+    void GraphicsDevice::Shutdown()
+    {
+        m_resource.reset();
     }
 
     bool GraphicsDevice::Resize(
@@ -188,18 +222,18 @@ namespace engine
         m_resolutionHeight = resolutionHeight;
         m_isFullScreen = isFullScreen;
 
-        m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-        m_backBufferRTV.Reset();
-        m_gameRTV.Reset();
-        m_gameDSV.Reset();
-        m_gameSRV.Reset();
+        m_resource->deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+        m_resource->backBufferRTV.Reset();
+        m_resource->gameRTV.Reset();
+        m_resource->gameDSV.Reset();
+        m_resource->gameSRV.Reset();
 
         UINT swapChainFlags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
         if (m_tearingSupport)
         {
             swapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
         }
-        HR_CHECK(m_swapChain->ResizeBuffers(
+        HR_CHECK(m_resource->swapChain->ResizeBuffers(
             0,
             m_isFullScreen ? m_screenWidth : m_resolutionWidth,
             m_isFullScreen ? m_screenHeight : m_resolutionHeight,
@@ -213,80 +247,80 @@ namespace engine
 
     void GraphicsDevice::BeginDraw(const Color& clearColor)
     {
-        m_deviceContext->OMSetRenderTargets(1, m_gameRTV.GetAddressOf(), m_gameDSV.Get());
+        m_resource->deviceContext->OMSetRenderTargets(1, m_resource->gameRTV.GetAddressOf(), m_resource->gameDSV.Get());
 
-        m_deviceContext->ClearRenderTargetView(m_gameRTV.Get(), clearColor);
-        m_deviceContext->ClearDepthStencilView(m_gameDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+        m_resource->deviceContext->ClearRenderTargetView(m_resource->gameRTV.Get(), clearColor);
+        m_resource->deviceContext->ClearDepthStencilView(m_resource->gameDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-        m_deviceContext->RSSetViewports(1, &m_gameViewport);
+        m_resource->deviceContext->RSSetViewports(1, &m_gameViewport);
     }
 
     void GraphicsDevice::BackBufferDraw()
     {
-        m_deviceContext->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), nullptr);
+        m_resource->deviceContext->OMSetRenderTargets(1, m_resource->backBufferRTV.GetAddressOf(), nullptr);
 
-        m_deviceContext->ClearRenderTargetView(m_backBufferRTV.Get(), Color(0.0f, 0.0f, 0.0f, 1.0f));
+        m_resource->deviceContext->ClearRenderTargetView(m_resource->backBufferRTV.Get(), Color(0.0f, 0.0f, 0.0f, 1.0f));
 
-        m_deviceContext->RSSetViewports(1, &m_backBufferViewport);
+        m_resource->deviceContext->RSSetViewports(1, &m_backBufferViewport);
 
         // Blit
         {
             // Input Assembler
-            m_deviceContext->IASetInputLayout(m_defaultInputLayout.Get());
-            m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            m_resource->deviceContext->IASetInputLayout(m_resource->defaultInputLayout.Get());
+            m_resource->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
             // Shaders
-            m_deviceContext->VSSetShader(m_defaultVS.Get(), nullptr, 0);
-            m_deviceContext->PSSetShader(m_defaultPS.Get(), nullptr, 0);
+            m_resource->deviceContext->VSSetShader(m_resource->defaultVS.Get(), nullptr, 0);
+            m_resource->deviceContext->PSSetShader(m_resource->defaultPS.Get(), nullptr, 0);
 
             // Resources
-            m_deviceContext->PSSetShaderResources(0, 1, m_gameSRV.GetAddressOf());
-            m_deviceContext->PSSetSamplers(0, 1, m_defaultSamplerState.GetAddressOf());
+            m_resource->deviceContext->PSSetShaderResources(0, 1, m_resource->gameSRV.GetAddressOf());
+            m_resource->deviceContext->PSSetSamplers(0, 1, m_resource->defaultSamplerState.GetAddressOf());
 
             // Draw
-            m_fullscreenQuadMesh->Render(m_deviceContext);
+            m_resource->fullscreenQuadMesh->Render(m_resource->deviceContext);
 
             // Unbind
             ID3D11ShaderResourceView* nullSRV = nullptr;
-            m_deviceContext->PSSetShaderResources(0, 1, &nullSRV);
+            m_resource->deviceContext->PSSetShaderResources(0, 1, &nullSRV);
         }
     }
 
     void GraphicsDevice::EndDraw()
     {
-        m_swapChain->Present(m_syncInterval, m_presentFlags);
+        m_resource->swapChain->Present(m_syncInterval, m_presentFlags);
 
         // vram usage
         {
             DXGI_QUERY_VIDEO_MEMORY_INFO memInfo{};
-            m_dxgiAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memInfo);
+            m_resource->dxgiAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memInfo);
             Profiling::UpdateVRAMUsage(memInfo.CurrentUsage);
         }
     }
 
     const Microsoft::WRL::ComPtr<ID3D11Device>& GraphicsDevice::GetDevice() const
     {
-        return m_device;
+        return m_resource->device;
     }
 
     const Microsoft::WRL::ComPtr<ID3D11DeviceContext>& GraphicsDevice::GetDeviceContext() const
     {
-        return m_deviceContext;
+        return m_resource->deviceContext;
     }
 
     const Microsoft::WRL::ComPtr<IDXGISwapChain1>& GraphicsDevice::GetSwapChain() const
     {
-        return m_swapChain;
+        return m_resource->swapChain;
     }
 
     const Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& GraphicsDevice::GetRenderTargetView() const
     {
-        return m_gameRTV;
+        return m_resource->gameRTV;
     }
 
     const Microsoft::WRL::ComPtr<ID3D11DepthStencilView>& GraphicsDevice::GetDepthStencilView() const
     {
-        return m_gameDSV;
+        return m_resource->gameDSV;
     }
 
     const D3D11_VIEWPORT& GraphicsDevice::GetViewport() const
@@ -338,8 +372,8 @@ namespace engine
     void GraphicsDevice::CreateSizeDependentResources()
     {
         Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
-        HR_CHECK(m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
-        HR_CHECK(m_device->CreateRenderTargetView(backBuffer.Get(), nullptr, &m_backBufferRTV));
+        HR_CHECK(m_resource->swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
+        HR_CHECK(m_resource->device->CreateRenderTargetView(backBuffer.Get(), nullptr, &m_resource->backBufferRTV));
 
         D3D11_TEXTURE2D_DESC depthStencilDesc{};
         depthStencilDesc.Width = m_resolutionWidth;
@@ -355,14 +389,14 @@ namespace engine
         depthStencilDesc.MiscFlags = 0;
 
         Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilTexture;
-        HR_CHECK(m_device->CreateTexture2D(&depthStencilDesc, nullptr, &depthStencilTexture));
+        HR_CHECK(m_resource->device->CreateTexture2D(&depthStencilDesc, nullptr, &depthStencilTexture));
 
         D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc{};
         depthStencilViewDesc.Format = depthStencilDesc.Format;
         depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
         depthStencilViewDesc.Texture2D.MipSlice = 0;
 
-        HR_CHECK(m_device->CreateDepthStencilView(depthStencilTexture.Get(), &depthStencilViewDesc, &m_gameDSV));
+        HR_CHECK(m_resource->device->CreateDepthStencilView(depthStencilTexture.Get(), &depthStencilViewDesc, &m_resource->gameDSV));
 
         // 1. Create Off-screen Texture
         D3D11_TEXTURE2D_DESC gameTextureDesc{};
@@ -378,13 +412,13 @@ namespace engine
         gameTextureDesc.MiscFlags = 0;
 
         Microsoft::WRL::ComPtr<ID3D11Texture2D> gameTexture;
-        HR_CHECK(m_device->CreateTexture2D(&gameTextureDesc, nullptr, &gameTexture));
+        HR_CHECK(m_resource->device->CreateTexture2D(&gameTextureDesc, nullptr, &gameTexture));
 
         // 2. Create RTV for Game
-        HR_CHECK(m_device->CreateRenderTargetView(gameTexture.Get(), nullptr, &m_gameRTV));
+        HR_CHECK(m_resource->device->CreateRenderTargetView(gameTexture.Get(), nullptr, &m_resource->gameRTV));
 
         // 3. Create SRV for Game (to be sampled in EndDraw)
-        HR_CHECK(m_device->CreateShaderResourceView(gameTexture.Get(), nullptr, &m_gameSRV));
+        HR_CHECK(m_resource->device->CreateShaderResourceView(gameTexture.Get(), nullptr, &m_resource->gameSRV));
 
         m_gameViewport.TopLeftX = 0.0f;
         m_gameViewport.TopLeftY = 0.0f;

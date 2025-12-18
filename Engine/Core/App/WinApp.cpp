@@ -3,13 +3,13 @@
 
 #include <DirectXColors.h>
 
-#include "ConfigLoader.h"
 #include "Common/Utility/Profiling.h"
+#include "Core/Graphics/Device/GraphicsDevice.h"
 #include "Core/Graphics/Resource/ResourceManager.h"
+#include "Core/App/ConfigLoader.h"
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/System/SystemManager.h"
 #include "Framework/System/ScriptSystem.h"
-
 
 namespace engine
 {
@@ -30,7 +30,7 @@ namespace engine
 
 		bool operator<=(const Resolution& other) const
 		{
-			return (*this == other) || (width <= other.width && height <= other.height);
+			return width <= other.width && height <= other.height;
 		}
 	};
 
@@ -118,7 +118,7 @@ namespace engine
 		ShowWindow(m_hWnd, SW_SHOW);
 		UpdateWindow(m_hWnd);
 
-		m_graphicsDevice.Initialize(
+		GraphicsDevice::Get().Initialize(
 			m_hWnd,
 			static_cast<UINT>(m_settings.resolutionWidth),
 			static_cast<UINT>(m_settings.resolutionHeight),
@@ -163,12 +163,15 @@ namespace engine
 		float scaleY = viewHeight / static_cast<float>(m_settings.resolutionHeight);
 
 		Input::SetCoordinateTransform(viewX, viewY, scaleX, scaleY);
+
+		ResourceManager::Get().Initialize();
 	}
 
 	void WinApp::Shutdown()
 	{
 		SceneManager::Get().Shutdown();
 		ResourceManager::Get().Cleanup();
+		//GraphicsDevice::Get()
 	}
 
 	void WinApp::Run()
@@ -209,10 +212,11 @@ namespace engine
 
 	void WinApp::Render()
 	{
-		// final
-		m_graphicsDevice.BeginDraw(Color(DirectX::Colors::AliceBlue));
-		m_graphicsDevice.BackBufferDraw();
-		m_graphicsDevice.EndDraw();
+		auto& graphicsDevice = GraphicsDevice::Get();
+
+		graphicsDevice.BeginDraw(Color(DirectX::Colors::AliceBlue));
+		graphicsDevice.BackBufferDraw();
+		graphicsDevice.EndDraw();
 	}
 
 	LRESULT WinApp::MessageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -406,7 +410,7 @@ namespace engine
 		
 		SetWindowPos(m_hWnd, HWND_TOP, x, y, actualW, actualH, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 
-		m_graphicsDevice.Resize(
+		GraphicsDevice::Get().Resize(
 			m_settings.resolutionWidth,
 			m_settings.resolutionHeight,
 			m_screenWidth,

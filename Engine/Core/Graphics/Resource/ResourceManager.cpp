@@ -17,21 +17,19 @@ namespace engine
 
     ResourceManager::~ResourceManager() = default;
 
-    void ResourceManager::Initialize(const GraphicsDevice* graphicsDevice)
+    void ResourceManager::Initialize()
     {
-        m_graphicsDevice = graphicsDevice;
-
         // 1 * 1 크기의 기본 텍스쳐 생성
         auto white = std::make_shared<Texture>();
-        white->Create(m_graphicsDevice->GetDevice(), std::array<unsigned char, 4>{ 255, 255, 255, 255 });
+        white->Create(GraphicsDevice::Get().GetDevice(), std::array<unsigned char, 4>{ 255, 255, 255, 255 });
         g_defaultTextures[static_cast<size_t>(DefaultTextureType::White)] = std::move(white);
 
         auto black = std::make_shared<Texture>();
-        black->Create(m_graphicsDevice->GetDevice(), std::array<unsigned char, 4>{ 0, 0, 0, 255 });
+        black->Create(GraphicsDevice::Get().GetDevice(), std::array<unsigned char, 4>{ 0, 0, 0, 255 });
         g_defaultTextures[static_cast<size_t>(DefaultTextureType::Black)] = std::move(black);
 
         auto flat = std::make_shared<Texture>();
-        flat->Create(m_graphicsDevice->GetDevice(), std::array<unsigned char, 4>{ 128, 128, 255, 255 });
+        flat->Create(GraphicsDevice::Get().GetDevice(), std::array<unsigned char, 4>{ 128, 128, 255, 255 });
         g_defaultTextures[static_cast<size_t>(DefaultTextureType::Flat)] = std::move(flat);
     }
 
@@ -51,7 +49,7 @@ namespace engine
         }
 
         auto indexBuffer = std::make_shared<IndexBuffer>();
-        indexBuffer->Create(m_graphicsDevice->GetDevice(), indices);
+        indexBuffer->Create(indices);
 
         m_indexBuffers[filePath] = indexBuffer;
 
@@ -69,7 +67,7 @@ namespace engine
         }
 
         auto texture = std::make_shared<Texture>();
-        texture->Create(m_graphicsDevice->GetDevice(), filePath);
+        texture->Create(filePath);
 
         m_textures[filePath] = texture;
 
@@ -92,7 +90,7 @@ namespace engine
         }
 
         auto texture = std::make_shared<Texture>();
-        texture->Create(m_graphicsDevice->GetDevice(), width, height, format, bindFlags);
+        texture->Create(GraphicsDevice::Get().GetDevice(), width, height, format, bindFlags);
 
         m_textures[name] = texture;
 
@@ -115,7 +113,7 @@ namespace engine
         }
 
         auto texture = std::make_shared<Texture>();
-        texture->Create(m_graphicsDevice->GetDevice(), desc, srvFormat, rtvFormat, dsvFormat);
+        texture->Create(GraphicsDevice::Get().GetDevice(), desc, srvFormat, rtvFormat, dsvFormat);
 
         m_textures[name] = texture;
 
@@ -138,7 +136,7 @@ namespace engine
         }
 
         auto constantBuffer = std::make_shared<ConstantBuffer>();
-        constantBuffer->Create(m_graphicsDevice->GetDevice(), byteWidth);
+        constantBuffer->Create(byteWidth);
 
         m_constantBuffers[name] = constantBuffer;
 
@@ -156,7 +154,7 @@ namespace engine
         }
 
         auto vertexShader = std::make_shared<VertexShader>();
-        vertexShader->Create(m_graphicsDevice->GetDevice(), filePath);
+        vertexShader->Create(filePath);
 
         m_vertexShaders[filePath] = vertexShader;
 
@@ -174,7 +172,7 @@ namespace engine
         }
 
         auto pixelShader = std::make_shared<PixelShader>();
-        pixelShader->Create(m_graphicsDevice->GetDevice(), filePath);
+        pixelShader->Create(filePath);
 
         m_pixelShaders[filePath] = pixelShader;
 
