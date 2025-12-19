@@ -33,6 +33,10 @@ namespace engine
         std::unordered_map<std::string, std::weak_ptr<ConstantBuffer>> m_constantBuffers;
         std::unordered_map<std::string, std::weak_ptr<VertexShader>> m_vertexShaders;
         std::unordered_map<std::string, std::weak_ptr<PixelShader>> m_pixelShaders;
+        std::unordered_map<std::string, std::weak_ptr<SamplerState>> m_samplerStates;
+        std::unordered_map<std::string, std::weak_ptr<RasterizerState>> m_rasterizerStates;
+        std::unordered_map<std::string, std::weak_ptr<DepthStencilState>> m_depthStencilStates;
+        std::unordered_map<std::string, std::weak_ptr<BlendState>> m_blendStates;
 
         // default resources
         std::array<std::shared_ptr<Texture>, static_cast<size_t>(DefaultTextureType::Count)> m_defaultTextures;
@@ -91,22 +95,17 @@ namespace engine
         std::shared_ptr<VertexShader> GetOrCreateVertexShader(const std::string& filePath);
         std::shared_ptr<PixelShader> GetOrCreatePixelShader(const std::string& filePath);
 
-        std::shared_ptr<SamplerState> GetOrCreateSamplerState(const std::string& filePath);
-        std::shared_ptr<RasterizerState> GetOrCreateRasterizerState(const std::string& filePath);
-        std::shared_ptr<DepthStencilState> GetOrCreateDepthStencilState(const std::string& filePath);
-        std::shared_ptr<BlendState> GetOrCreateBlendState(const std::string& filePath);
+        std::shared_ptr<SamplerState> GetOrCreateSamplerState(const std::string& name, const D3D11_SAMPLER_DESC& desc);
+        std::shared_ptr<RasterizerState> GetOrCreateRasterizerState(const std::string& name, const D3D11_RASTERIZER_DESC& desc);
+        std::shared_ptr<DepthStencilState> GetOrCreateDepthStencilState(const std::string& name, const D3D11_DEPTH_STENCIL_DESC& desc);
+        std::shared_ptr<BlendState> GetOrCreateBlendState(const std::string& name, const D3D11_BLEND_DESC& desc);
 
         // default
         std::shared_ptr<Texture> GetDefaultTexture(DefaultTextureType type);
-        std::shared_ptr<SamplerState> GetDefaultSamplerState(const std::string& filePath);
-        std::shared_ptr<RasterizerState> GetDefaultRasterizerState(const std::string& filePath);
-        std::shared_ptr<DepthStencilState> GetDefaultDepthStencilState(const std::string& filePath);
-        std::shared_ptr<BlendState> GetDefaultBlendState(const std::string& filePath);
-
-        /*class SamplerState;
-        class RasterizerState;
-        class DepthStencilState;
-        class BlendState;*/
+        std::shared_ptr<SamplerState> GetDefaultSamplerState(DefaultSamplerType type);
+        std::shared_ptr<RasterizerState> GetDefaultRasterizerState(DefaultRasterizerType type);
+        std::shared_ptr<DepthStencilState> GetDefaultDepthStencilState(DefaultDepthStencilType type);
+        std::shared_ptr<BlendState> GetDefaultBlendState(DefaultBlendType type);
 
     private:
         void CreateDefaultTextures();

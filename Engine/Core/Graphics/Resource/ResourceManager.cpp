@@ -116,31 +116,6 @@ namespace engine
         return texture;
     }
 
-    std::shared_ptr<Texture> ResourceManager::GetDefaultTexture(DefaultTextureType type)
-    {
-        return m_defaultTextures[static_cast<size_t>(type)];
-    }
-
-    std::shared_ptr<SamplerState> ResourceManager::GetDefaultSamplerState(DefaultSamplerType type)
-    {
-        return m_defaultTextures[static_cast<size_t>(type)];
-    }
-
-    std::shared_ptr<RasterizerState> ResourceManager::GetDefaultRasterizerState(DefaultRasterizerType type)
-    {
-        return m_defaultTextures[static_cast<size_t>(type)];
-    }
-
-    std::shared_ptr<DepthStencilState> ResourceManager::GetDefaultDepthStencilState(DefaultDepthStencilType type)
-    {
-        return m_defaultTextures[static_cast<size_t>(type)];
-    }
-
-    std::shared_ptr<BlendState> ResourceManager::GetDefaultBlendState(const std::string& filePath)
-    {
-        return m_defaultTextures[static_cast<size_t>(type)];
-    }
-
     std::shared_ptr<ConstantBuffer> ResourceManager::GetOrCreateConstantBuffer(const std::string& name, UINT byteWidth)
     {
         if (auto find = m_constantBuffers.find(name); find != m_constantBuffers.end())
@@ -195,24 +170,109 @@ namespace engine
         return pixelShader;
     }
 
-    std::shared_ptr<SamplerState> ResourceManager::GetOrCreateSamplerState(const std::string& filePath)
+    std::shared_ptr<SamplerState> ResourceManager::GetOrCreateSamplerState(
+        const std::string& name,
+        const D3D11_SAMPLER_DESC& desc)
     {
-        return std::shared_ptr<SamplerState>();
+        if (auto find = m_samplerStates.find(name); find != m_samplerStates.end())
+        {
+            if (!find->second.expired())
+            {
+                return find->second.lock();
+            }
+        }
+
+        auto samplerState = std::make_shared<SamplerState>();
+        samplerState->Create(desc);
+
+        m_samplerStates[name] = samplerState;
+
+        return samplerState;
     }
 
-    std::shared_ptr<RasterizerState> ResourceManager::GetOrCreateRasterizerState(const std::string& filePath)
+    std::shared_ptr<RasterizerState> ResourceManager::GetOrCreateRasterizerState(
+        const std::string& name,
+        const D3D11_RASTERIZER_DESC& desc)
     {
-        return std::shared_ptr<RasterizerState>();
+        if (auto find = m_rasterizerStates.find(name); find != m_rasterizerStates.end())
+        {
+            if (!find->second.expired())
+            {
+                return find->second.lock();
+            }
+        }
+
+        auto rasterizerState = std::make_shared<RasterizerState>();
+        rasterizerState->Create(desc);
+
+        m_rasterizerStates[name] = rasterizerState;
+
+        return rasterizerState;
     }
 
-    std::shared_ptr<DepthStencilState> ResourceManager::GetOrCreateDepthStencilState(const std::string& filePath)
+    std::shared_ptr<DepthStencilState> ResourceManager::GetOrCreateDepthStencilState(
+        const std::string& name,
+        const D3D11_DEPTH_STENCIL_DESC& desc)
     {
-        return std::shared_ptr<DepthStencilState>();
+        if (auto find = m_depthStencilStates.find(name); find != m_depthStencilStates.end())
+        {
+            if (!find->second.expired())
+            {
+                return find->second.lock();
+            }
+        }
+
+        auto depthStencilState = std::make_shared<DepthStencilState>();
+        depthStencilState->Create(desc);
+
+        m_depthStencilStates[name] = depthStencilState;
+
+        return depthStencilState;
     }
 
-    std::shared_ptr<BlendState> ResourceManager::GetOrCreateBlendState(const std::string& filePath)
+    std::shared_ptr<BlendState> ResourceManager::GetOrCreateBlendState(
+        const std::string& name,
+        const D3D11_BLEND_DESC& desc)
     {
-        return std::shared_ptr<BlendState>();
+        if (auto find = m_blendStates.find(name); find != m_blendStates.end())
+        {
+            if (!find->second.expired())
+            {
+                return find->second.lock();
+            }
+        }
+
+        auto blendState = std::make_shared<BlendState>();
+        blendState->Create(desc);
+
+        m_blendStates[name] = blendState;
+
+        return blendState;
+    }
+
+    std::shared_ptr<Texture> ResourceManager::GetDefaultTexture(DefaultTextureType type)
+    {
+        return m_defaultTextures[static_cast<size_t>(type)];
+    }
+
+    std::shared_ptr<SamplerState> ResourceManager::GetDefaultSamplerState(DefaultSamplerType type)
+    {
+        return m_defaultSamplerStates[static_cast<size_t>(type)];
+    }
+
+    std::shared_ptr<RasterizerState> ResourceManager::GetDefaultRasterizerState(DefaultRasterizerType type)
+    {
+        return m_defaultRasterizerStates[static_cast<size_t>(type)];
+    }
+
+    std::shared_ptr<DepthStencilState> ResourceManager::GetDefaultDepthStencilState(DefaultDepthStencilType type)
+    {
+        return m_defaultDepthStencilStates[static_cast<size_t>(type)];
+    }
+
+    std::shared_ptr<BlendState> ResourceManager::GetDefaultBlendState(DefaultBlendType type)
+    {
+        return m_defaultBlendStates[static_cast<size_t>(type)];
     }
 
     void ResourceManager::CreateDefaultTextures()
@@ -222,8 +282,6 @@ namespace engine
         m_defaultTextures[static_cast<size_t>(DefaultTextureType::White)]->Create(std::array<unsigned char, 4>{ 255, 255, 255, 255 });
 
         // 검은색
-        auto black = std::make_shared<Texture>();
-        black->Create(std::array<unsigned char, 4>{ 0, 0, 0, 255 });
         m_defaultTextures[static_cast<size_t>(DefaultTextureType::Black)] = std::make_shared<Texture>();
         m_defaultTextures[static_cast<size_t>(DefaultTextureType::Black)]->Create(std::array<unsigned char, 4>{ 0, 0, 0, 255 });
 
@@ -331,10 +389,9 @@ namespace engine
         {
             D3D11_BLEND_DESC desc{};
             desc.RenderTarget[0].BlendEnable = TRUE;
-            desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA; // or ONE
+            desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
             desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
             desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-            // ... Alpha settings
             desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
             m_defaultBlendStates[static_cast<size_t>(DefaultBlendType::Additive)] = std::make_shared<BlendState>();
             m_defaultBlendStates[static_cast<size_t>(DefaultBlendType::Additive)]->Create(desc);

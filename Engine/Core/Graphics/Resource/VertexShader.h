@@ -18,9 +18,9 @@ namespace engine
         void Create(const std::string& filePath);
 
         template <typename T>
-        void GetOrCreateInputLayout()
+        std::shared_ptr<InputLayout> GetOrCreateInputLayout()
         {
-            VertexFormat format = T::Format;
+            VertexFormat format = T::vertexFormat;
 
             if (auto it = m_inputLayouts.find(format); it != m_inputLayouts.end())
             {
@@ -30,7 +30,7 @@ namespace engine
             auto layoutDesc = T::GetLayout();
             
             auto inputLayout = std::make_shared<InputLayout>();
-            inputLayout->Create(m_vertexShaderBuffer, layoutDesc.data, layoutDesc.size());
+            inputLayout->Create(m_vertexShaderBuffer, layoutDesc.data(), static_cast<UINT>(layoutDesc.size()));
 
             m_inputLayouts[format] = inputLayout;
 
