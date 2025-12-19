@@ -108,9 +108,6 @@ namespace engine
         {
             HR_CHECK(DirectX::CreateWICTextureFromFile(device.Get(), path.c_str(), nullptr, &m_srv));
         }
-
-        ID3D11Resource;
-        m_srv->GetResource(&aa);
     }
 
     void Texture::Create(UINT width, UINT height, DXGI_FORMAT format, UINT bindFlags)
