@@ -18,6 +18,7 @@ namespace engine
         std::vector<Transform*> m_children;
 
         bool m_isDirty = true;
+        bool m_isDirtyThisFrame = true;
 
     public:
         Transform();
@@ -36,6 +37,8 @@ namespace engine
         Vector3 GetUp() const;
         Vector3 GetRight() const;
 
+        bool IsDirtyThisFrame() const;
+
         void SetLocalPosition(const Vector3& position);
         void SetLocalRotation(const Quaternion& rotation);
         void SetLocalRotation(const Vector3& euler);
@@ -46,6 +49,9 @@ namespace engine
         const std::vector<Transform*>& GetChildren() const;
 
         void UnmarkDirtyThisFrame();
+
+    public:
+        void OnGui() override;
 
     private:
         void RecalculateWorldMatrix();

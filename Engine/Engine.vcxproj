@@ -175,6 +175,7 @@
     <ClCompile Include="Framework\Asset\SkeletonData.cpp" />
     <ClCompile Include="Framework\Asset\StaticMeshData.cpp" />
     <ClCompile Include="Framework\Asset\MaterialData.cpp" />
+    <ClCompile Include="Framework\Object\Component\Camera.cpp" />
     <ClCompile Include="Framework\Object\Component\Component.cpp" />
     <ClCompile Include="Framework\Object\Component\Script.cpp" />
     <ClCompile Include="Framework\Object\Component\Transform.cpp" />
@@ -184,6 +185,7 @@
     <ClCompile Include="Framework\Scene\SceneManager.cpp" />
     <ClCompile Include="Framework\System\SystemManager.cpp" />
     <ClCompile Include="Framework\System\ScriptSystem.cpp" />
+    <ClCompile Include="Framework\System\TransformSystem.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -230,6 +232,7 @@
     <ClInclude Include="Framework\Asset\SkeletalMeshData.h" />
     <ClInclude Include="Framework\Asset\SkeletonData.h" />
     <ClInclude Include="Framework\Asset\StaticMeshData.h" />
+    <ClInclude Include="Framework\Object\Component\Camera.h" />
     <ClInclude Include="Framework\Object\Component\Component.h" />
     <ClInclude Include="Framework\Object\Component\Script.h" />
     <ClInclude Include="Framework\Object\Component\Transform.h" />
@@ -242,6 +245,7 @@
     <ClInclude Include="Framework\System\SystemManager.h" />
     <ClInclude Include="Framework\System\ScriptSystem.h" />
     <ClInclude Include="Framework\System\System.h" />
+    <ClInclude Include="Framework\System\TransformSystem.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Core\App\WinApp.h" />
   </ItemGroup>

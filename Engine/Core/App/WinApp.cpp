@@ -10,6 +10,7 @@
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/System/SystemManager.h"
 #include "Framework/System/ScriptSystem.h"
+#include "Framework/System/TransformSystem.h"
 
 namespace engine
 {
@@ -208,6 +209,8 @@ namespace engine
 
         SystemManager::Get().Script().CallStart();
         SystemManager::Get().Script().CallUpdate();
+
+        SystemManager::Get().Transform().UnmarkDirtyThisFrame();
     }
 
     void WinApp::Render()

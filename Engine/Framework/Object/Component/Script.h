@@ -35,6 +35,9 @@ namespace engine
         virtual void Initialize();
         virtual void Start();
         virtual void Update();
+
+    public:
+        void OnGui() override {};
     };
 
     template <typename Base, typename Derived>

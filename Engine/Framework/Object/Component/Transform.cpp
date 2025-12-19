@@ -1,13 +1,17 @@
 ﻿#include "pch.h"
 #include "Transform.h"
 
+#include <imgui.h>
+
 #include "Common/Math/MathUtility.h"
+#include "Framework/System/SystemManager.h"
+#include "Framework/System/TransformSystem.h"
 
 namespace engine
 {
     Transform::Transform()
     {
-
+        SystemManager::Get().Transform().Register(this);
     }
 
     Transform::~Transform()
@@ -22,6 +26,8 @@ namespace engine
             child->m_parent = nullptr;
             child->MarkDirty();
         }
+
+        SystemManager::Get().Transform().Unregister(this);
     }
 
     const Vector3& Transform::GetLocalPosition() const
@@ -41,7 +47,7 @@ namespace engine
 
     Vector3 Transform::GetLocalEulerAngles() const
     {
-        Vector3 euler = ToEulerAngles(m_localRotation);
+        Vector3 euler = m_localRotation.ToEuler();
         euler.x = ToDegree(euler.x);
         euler.y = ToDegree(euler.y);
         euler.z = ToDegree(euler.z);
@@ -71,6 +77,11 @@ namespace engine
     Vector3 Transform::GetRight() const
     {
         return Vector3::Transform(Vector3::Right, m_localRotation);
+    }
+
+    bool Transform::IsDirtyThisFrame() const
+    {
+        return m_isDirtyThisFrame;
     }
 
     void Transform::SetLocalPosition(const Vector3& position)
@@ -137,7 +148,19 @@ namespace engine
 
     void Transform::UnmarkDirtyThisFrame()
     {
+        m_isDirtyThisFrame = false;
+    }
 
+    void Transform::OnGui()
+    {
+        Vector3 rotation = GetLocalEulerAngles();
+
+        ImGui::DragFloat3("Position##Transform", &m_localPosition.x, 0.1f);
+        if (ImGui::DragFloat3("Rotation##Transform", &rotation.x, 0.1f))
+        {
+            SetLocalRotation(rotation);
+        }
+        ImGui::DragFloat3("Scale##Transform", &m_localScale.x, 0.1f);
     }
 
     void Transform::RecalculateWorldMatrix()
@@ -166,7 +189,7 @@ namespace engine
         }
         
         m_isDirty = true;
-
+        m_isDirtyThisFrame = true;
         
         for (auto child : m_children)
         {

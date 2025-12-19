@@ -29,6 +29,7 @@ namespace engine
         {
             std::unique_ptr<T> component = std::make_unique<T>(std::forward<Args>(args)...);
 
+            component->SetOwner(this);
             T* ptr = component.get();
 
             m_components.push_back(std::move(component));
@@ -41,7 +42,7 @@ namespace engine
         {
             for (const auto& component : m_components)
             {
-                if (T* casted = dynamic_cast<T*>(component.get()); casted)
+                if (T* casted = dynamic_cast<T*>(component.get()); casted != nullptr)
                 {
                     return casted;
                 }
@@ -49,5 +50,8 @@ namespace engine
 
             return nullptr;
         }
+
+    public:
+        virtual void OnGui() {};
     };
 }

@@ -392,6 +392,10 @@ namespace engine
             desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
             desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
             desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+            // todo : 제대로 초기화하는지 확인 필요
+            desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+            desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+            desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
             desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
             m_defaultBlendStates[static_cast<size_t>(DefaultBlendType::Additive)] = std::make_shared<BlendState>();
             m_defaultBlendStates[static_cast<size_t>(DefaultBlendType::Additive)]->Create(desc);

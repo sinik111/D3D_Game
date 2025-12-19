@@ -21,6 +21,7 @@
 #include <d3d11.h>
 #include <directxtk/SimpleMath.h>
 #include <dxgi1_5.h>
+#include <DirectXCollision.h>
 
 namespace engine
 {

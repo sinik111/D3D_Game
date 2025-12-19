@@ -5,12 +5,14 @@
 namespace engine
 {
     class ScriptSystem;
+    class TransformSystem;
 
     class SystemManager :
         public Singleton<SystemManager>
     {
     private:
         std::unique_ptr<ScriptSystem> m_scriptSystem;
+        std::unique_ptr<TransformSystem> m_transformSystem;
 
     private:
         SystemManager();
@@ -18,6 +20,7 @@ namespace engine
 
     public:
         ScriptSystem& Script() const;
+        TransformSystem& Transform() const;
 
     private:
         friend class Singleton<SystemManager>;

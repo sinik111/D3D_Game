@@ -6,12 +6,29 @@
 
 namespace engine
 {
+    class GameObject;
+    class Transform;
+
     class Component :
         public Object
     {
     private:
-        template <std::derived_from<Component> T> friend class System;
-
+        GameObject* m_owner = nullptr;
         std::int32_t m_systemIndex = -1;
+
+    public:
+        GameObject* GetGameObject() const;
+        Transform* GetTransform() const;
+        
+    public:
+        virtual void OnGui() = 0;
+
+    private:
+        void SetOwner(GameObject* owner);
+
+    private:
+        template <std::derived_from<Component> T>
+        friend class System;
+        friend class GameObject;
     };
 }
