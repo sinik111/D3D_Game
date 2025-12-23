@@ -24,7 +24,6 @@ namespace engine
         CreateDefaultRasterizerStates();
         CreateDefaultDepthStencilStates();
         CreateDefaultBlendStates();
-        CreateDefaultVertexIndexBuffers();
     }
 
     void ResourceManager::Cleanup()
@@ -278,16 +277,6 @@ namespace engine
         return m_defaultBlendStates[static_cast<size_t>(type)];
     }
 
-    std::shared_ptr<VertexBuffer> ResourceManager::GetDefaultVertexBuffer(DefaultStaticMeshType type)
-    {
-        return m_defaultVertexBuffers[static_cast<size_t>(type)];
-    }
-
-    std::shared_ptr<IndexBuffer> ResourceManager::GetDefaultIndexBuffer(DefaultStaticMeshType type)
-    {
-        return m_defaultIndexBuffers[static_cast<size_t>(type)];
-    }
-
     void ResourceManager::CreateDefaultTextures()
     {
         // 흰색
@@ -462,25 +451,6 @@ namespace engine
             desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
             m_defaultBlendStates[static_cast<size_t>(DefaultBlendType::Additive)] = std::make_shared<BlendState>();
             m_defaultBlendStates[static_cast<size_t>(DefaultBlendType::Additive)]->Create(desc);
-        }
-    }
-    void ResourceManager::CreateDefaultVertexIndexBuffers()
-    {
-        // Cube
-        {
-            auto meshData = AssetManager::Get().GetDefaultStaticMeshData(DefaultStaticMeshType::Cube);
-            const auto& vertices = meshData->GetVertices();
-            const auto& indices = meshData->GetIndices();
-
-            std::shared_ptr<VertexBuffer> vertexBuffer = std::make_shared<VertexBuffer>();
-            vertexBuffer->Create(vertices);
-
-            m_defaultVertexBuffers[static_cast<size_t>(DefaultStaticMeshType::Cube)] = vertexBuffer;
-
-            std::shared_ptr<IndexBuffer> indexBuffer = std::make_shared<IndexBuffer>();
-            indexBuffer->Create(indices);
-
-            m_defaultIndexBuffers[static_cast<size_t>(DefaultStaticMeshType::Cube)] = indexBuffer;
         }
     }
 }

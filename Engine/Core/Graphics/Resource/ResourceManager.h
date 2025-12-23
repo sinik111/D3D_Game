@@ -2,8 +2,7 @@
 
 #include "Core/Graphics/Resource/ResourceKey.h"
 #include "Core/Graphics/Resource/VertexBuffer.h"
-#include "Common/Type/DefaultResourceTypes.h"
-#include "Common/Type/DefaultAssetTypes.h"
+#include "Core/Graphics/Resource/DefaultResourceTypes.h"
 
 namespace engine
 {
@@ -43,8 +42,6 @@ namespace engine
         std::array<std::shared_ptr<RasterizerState>, static_cast<size_t>(DefaultRasterizerType::Count)> m_defaultRasterizerStates;
         std::array<std::shared_ptr<DepthStencilState>, static_cast<size_t>(DefaultDepthStencilType::Count)> m_defaultDepthStencilStates;
         std::array<std::shared_ptr<BlendState>, static_cast<size_t>(DefaultBlendType::Count)> m_defaultBlendStates;
-        std::array<std::shared_ptr<VertexBuffer>, static_cast<size_t>(DefaultStaticMeshType::Count)> m_defaultVertexBuffers;
-        std::array<std::shared_ptr<IndexBuffer>, static_cast<size_t>(DefaultStaticMeshType::Count)> m_defaultIndexBuffers;
 
     private:
         ResourceManager() = default;
@@ -107,8 +104,6 @@ namespace engine
         std::shared_ptr<RasterizerState> GetDefaultRasterizerState(DefaultRasterizerType type);
         std::shared_ptr<DepthStencilState> GetDefaultDepthStencilState(DefaultDepthStencilType type);
         std::shared_ptr<BlendState> GetDefaultBlendState(DefaultBlendType type);
-        std::shared_ptr<VertexBuffer> GetDefaultVertexBuffer(DefaultStaticMeshType type);
-        std::shared_ptr<IndexBuffer> GetDefaultIndexBuffer(DefaultStaticMeshType type);
 
     private:
         void CreateDefaultTextures();
@@ -116,7 +111,6 @@ namespace engine
         void CreateDefaultRasterizerStates();
         void CreateDefaultDepthStencilStates();
         void CreateDefaultBlendStates();
-        void CreateDefaultVertexIndexBuffers();
 
     private:
         friend class Singleton<ResourceManager>;

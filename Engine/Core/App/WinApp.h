@@ -41,8 +41,8 @@ namespace engine
         void Render();
 
         void ValidateSettings();
-        void SetWindowMode(bool isFullScreen);
-        void SetResolution(int width, int height, bool isFullScreen);
+        void SetWindowMode(bool isFullscreen);
+        void SetResolution(int width, int height, bool isFullscreen);
 
     protected:
         virtual LRESULT MessageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

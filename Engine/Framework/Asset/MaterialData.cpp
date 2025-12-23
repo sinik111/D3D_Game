@@ -40,8 +40,8 @@ namespace engine
 
             if (aiReturn_SUCCESS == aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &path))
             {
-                material.texturePaths[MaterialKey::DIFFUSE_TEXTURE] = fs::path(path.C_Str()).filename().string();
-                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::DIFFUSE_TEXTURE);
+                material.texturePaths[MaterialKey::BASE_COLOR_TEXTURE] = fs::path(path.C_Str()).filename().string();
+                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::BASE_COLOR_TEXTURE);
             }
 
             if (aiReturn_SUCCESS == aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &path))
@@ -50,22 +50,10 @@ namespace engine
                 material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::NORMAL_TEXTURE);
             }
 
-            if (aiReturn_SUCCESS == aiMaterial->GetTexture(aiTextureType_SPECULAR, 0, &path))
-            {
-                material.texturePaths[MaterialKey::SPECULAR_TEXTURE] = fs::path(path.C_Str()).filename().string();
-                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::SPECULAR_TEXTURE);
-            }
-
             if (aiReturn_SUCCESS == aiMaterial->GetTexture(aiTextureType_EMISSIVE, 0, &path))
             {
                 material.texturePaths[MaterialKey::EMISSIVE_TEXTURE] = fs::path(path.C_Str()).filename().string();
                 material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::EMISSIVE_TEXTURE);
-            }
-
-            if (aiReturn_SUCCESS == aiMaterial->GetTexture(aiTextureType_OPACITY, 0, &path))
-            {
-                material.texturePaths[MaterialKey::OPACITY_TEXTURE] = fs::path(path.C_Str()).filename().string();
-                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::OPACITY_TEXTURE);
             }
 
             if (aiReturn_SUCCESS == aiMaterial->GetTexture(aiTextureType_METALNESS, 0, &path))
@@ -98,38 +86,38 @@ namespace engine
 
             if (aiReturn_SUCCESS == aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color))
             {
-                material.vectorValues[MaterialKey::DIFFUSE_COLOR] = { color.r, color.g, color.b, color.a };
-                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::DIFFUSE_COLOR);
-            }
-
-            if (aiReturn_SUCCESS == aiMaterial->Get(AI_MATKEY_COLOR_AMBIENT, color))
-            {
-                material.vectorValues[MaterialKey::AMBIENT_COLOR] = { color.r, color.g, color.b, color.a };
-                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::AMBIENT_COLOR);
-            }
-
-            if (aiReturn_SUCCESS == aiMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color))
-            {
-                material.vectorValues[MaterialKey::SPECULAR_COLOR] = { color.r, color.g, color.b, color.a };
-                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::SPECULAR_COLOR);
+                material.vectorValues[MaterialKey::BASE_COLOR] = { color.r, color.g, color.b, color.a };
+                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::BASE_COLOR);
             }
 
             if (aiReturn_SUCCESS == aiMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, color))
             {
-                material.vectorValues[MaterialKey::EMISSIVE_COLOR] = { color.r, color.g, color.b, color.a };
+                material.vectorValues[MaterialKey::EMISSIVE_COLOR] = { color.r, color.g, color.b, 1.0f };
                 material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::EMISSIVE_COLOR);
             }
 
-            if (aiReturn_SUCCESS == aiMaterial->Get(AI_MATKEY_SHININESS, scalar))
+            if (aiReturn_SUCCESS == aiMaterial->Get("$raw.Roughness", 0, 0, scalar))
             {
-                material.scalarValues[MaterialKey::SHININESS_FACTOR] = scalar;
-                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::SHININESS_FACTOR);
+                material.scalarValues[MaterialKey::ROUGHNESS] = scalar;
+                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::ROUGHNESS);
             }
 
-            if (aiReturn_SUCCESS == aiMaterial->Get(AI_MATKEY_OPACITY, scalar))
+            if (aiReturn_SUCCESS == aiMaterial->Get("$raw.Metalness", 0, 0, scalar))
             {
-                material.scalarValues[MaterialKey::OPACITY_FACTOR] = scalar;
-                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::OPACITY_FACTOR);
+                material.scalarValues[MaterialKey::METALNESS] = scalar;
+                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::METALNESS);
+            }
+
+            if (aiReturn_SUCCESS == aiMaterial->Get("$raw.EmissiveIntensity", 0, 0, scalar))
+            {
+                material.scalarValues[MaterialKey::EMISSIVE_INTENSITY] = scalar;
+                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::EMISSIVE_INTENSITY);
+            }
+
+            if (aiReturn_SUCCESS == aiMaterial->Get("$raw.AmbientOcclusion", 0, 0, scalar))
+            {
+                material.scalarValues[MaterialKey::AMBIENT_OCCLUSION] = scalar;
+                material.materialFlags |= static_cast<std::uint64_t>(MaterialKey::AMBIENT_OCCLUSION);
             }
 
             m_materials.push_back(std::move(material));

@@ -3,6 +3,9 @@
 		<Vendor>$(SolutionDir)Vendor</Vendor>
         <TripletStatic>x64-windows-static-md</TripletStatic>
         <TripletDynamic>x64-windows</TripletDynamic>
+		
+		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+		<RunPostBuildEvent>Always</RunPostBuildEvent>
     </PropertyGroup>
 
     <ItemDefinitionGroup>

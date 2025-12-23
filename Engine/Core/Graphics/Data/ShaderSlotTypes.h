@@ -1,0 +1,42 @@
+﻿#pragma once
+
+enum class TextureSlot
+{
+    BaseColor               = 0,
+    Normal                  = 1,
+    Metalness               = 2,
+    Roughness               = 3,
+    AmbientOcclusion        = 4,
+    Emissive                = 5,
+
+    GBufferBaseColor        = 10,
+    GBufferPosition         = 11,
+    GBufferNormal           = 12,
+    GBufferORM              = 13,
+    GBufferEmissive         = 14,
+
+    ShadowMap               = 20,
+    IBLEnvironment          = 21,
+    IBLIrradiance           = 22,
+    IBLSpecular             = 23,
+    IBLSpecularBRDFLUT      = 24,
+
+    Blit                    = 30,
+    HDR                     = 31
+};
+
+enum class SamplerSlot
+{
+    Linear = 0,
+    Point = 1,
+    Comparison = 2,
+    Clamp = 3
+};
+
+enum class ConstantBufferSlot
+{
+    Global = 0,
+    Material = 1,
+    Object = 2,
+    Bone = 3
+};

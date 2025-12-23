@@ -18,6 +18,7 @@
 #include "Framework/System/RenderSystem.h"
 #include "Framework/Object/GameObject/GameObject.h"
 #include "Framework/Object/Component/Transform.h"
+#include "Core/Graphics/Data/ShaderSlotTypes.h"
 
 
 namespace engine
@@ -36,29 +37,7 @@ namespace engine
 
         m_vertexBuffer = ResourceManager::Get().GetOrCreateVertexBuffer<CommonVertex>(meshFilePath, m_staticMeshData->GetVertices());
         m_indexBuffer = ResourceManager::Get().GetOrCreateIndexBuffer(meshFilePath, m_staticMeshData->GetIndices());
-        m_worldTransformBuffer = ResourceManager::Get().GetOrCreateConstantBuffer("WorldTransform", sizeof(WorldTransformBuffer));
-        m_finalPassVertexShader = ResourceManager::Get().GetOrCreateVertexShader("Shader/Vertex/BasicVS.hlsl");
-        m_shadowPassVertexShader = ResourceManager::Get().GetOrCreateVertexShader("Shader/Vertex/BasicLightViewVS.hlsl");
-        m_finalPassPixelShader = ResourceManager::Get().GetOrCreatePixelShader(shaderFilePath);
-        m_shadowPassPixelShader = ResourceManager::Get().GetOrCreatePixelShader("Shader/Pixel/LightViewPS.hlsl");
-        m_inputLayout = m_finalPassVertexShader->GetOrCreateInputLayout<CommonVertex>();
-        m_samplerState = ResourceManager::Get().GetDefaultSamplerState(DefaultSamplerType::Linear);
-        m_comparisonSamplerState = ResourceManager::Get().GetDefaultSamplerState(DefaultSamplerType::Comparison);
-
-        SetupTextures(m_materialData, m_textures);
-    }
-
-    StaticMeshRenderer::StaticMeshRenderer(DefaultStaticMeshType type, const std::string& shaderFilePath)
-    {
-        SystemManager::Get().Render().Register(this);
-
-        m_staticMeshData = AssetManager::Get().GetDefaultStaticMeshData(type);
-        m_materialData = std::make_shared<MaterialData>();
-        m_materialData->Create();
-
-        m_vertexBuffer = ResourceManager::Get().GetDefaultVertexBuffer(type);
-        m_indexBuffer = ResourceManager::Get().GetDefaultIndexBuffer(type);
-        m_worldTransformBuffer = ResourceManager::Get().GetOrCreateConstantBuffer("WorldTransform", sizeof(WorldTransformBuffer));
+        m_worldTransformBuffer = ResourceManager::Get().GetOrCreateConstantBuffer("WorldTransform", sizeof(CbObject));
         m_finalPassVertexShader = ResourceManager::Get().GetOrCreateVertexShader("Shader/Vertex/BasicVS.hlsl");
         m_shadowPassVertexShader = ResourceManager::Get().GetOrCreateVertexShader("Shader/Vertex/BasicLightViewVS.hlsl");
         m_finalPassPixelShader = ResourceManager::Get().GetOrCreatePixelShader(shaderFilePath);
@@ -101,12 +80,12 @@ namespace engine
         deviceContext->IASetInputLayout(m_inputLayout->GetRawInputLayout());
 
         deviceContext->VSSetShader(m_finalPassVertexShader->GetRawShader(), nullptr, 0);
-        deviceContext->VSSetConstantBuffers(static_cast<UINT>(ConstantBufferSlot::WorldTransform),
+        deviceContext->VSSetConstantBuffers(static_cast<UINT>(ConstantBufferSlot::Object),
             1, m_worldTransformBuffer->GetBuffer().GetAddressOf());
         
-        WorldTransformBuffer worldData{};
-        worldData.world = GetTransform()->GetWorld().Transpose();
-        deviceContext->UpdateSubresource(m_worldTransformBuffer->GetRawBuffer(), 0, nullptr, &worldData, 0, 0);
+        CbObject cbObject{};
+        cbObject.world = GetTransform()->GetWorld().Transpose();
+        deviceContext->UpdateSubresource(m_worldTransformBuffer->GetRawBuffer(), 0, nullptr, &cbObject, 0, 0);
 
         deviceContext->PSSetSamplers(0, 1, m_samplerState->GetSamplerState().GetAddressOf());
         deviceContext->PSSetSamplers(1, 1, m_comparisonSamplerState->GetSamplerState().GetAddressOf());

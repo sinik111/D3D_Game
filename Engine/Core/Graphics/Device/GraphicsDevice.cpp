@@ -6,41 +6,13 @@
 #include <d3dcompiler.h>
 
 #include "Common/Utility/Profiling.h"
+#include "Core/Graphics/Data/Vertex.h"
+#include "Core/Graphics/Resource/Texture.h"
+#include "Core/Graphics/Resource/RasterizerState.h"
 
 namespace engine
 {
-    struct DeviceResources
-    {
-        Microsoft::WRL::ComPtr<ID3D11Device> device;
-        Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
-        Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain;
-
-        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gameRTV;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilView> gameDSV;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> gameSRV;
-
-        Microsoft::WRL::ComPtr<ID3D11RenderTargetView> backBufferRTV;
-
-        Microsoft::WRL::ComPtr<IDXGIAdapter3> dxgiAdapter;
-
-        // Resources for Blit
-        Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
-        Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
-        Microsoft::WRL::ComPtr<ID3D11VertexShader> defaultVS;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> defaultPS;
-        Microsoft::WRL::ComPtr<ID3D11InputLayout> defaultInputLayout;
-        Microsoft::WRL::ComPtr<ID3D11SamplerState> defaultSamplerState;
-        UINT vertexCount = 0;
-        UINT indexCount = 0;
-        UINT stride = 0;
-        UINT offset = 0;
-    };
-
-    GraphicsDevice::GraphicsDevice()
-        : m_resource{ std::make_unique<DeviceResources>() }
-    {
-    }
-
+    GraphicsDevice::GraphicsDevice() = default;
     GraphicsDevice::~GraphicsDevice() = default;
 
     void GraphicsDevice::Initialize(
@@ -49,7 +21,7 @@ namespace engine
         UINT resolutionHeight,
         UINT screenWidth,
         UINT screenHeight,
-        bool isFullScreen,
+        bool isFullscreen,
         bool useVsync)
     {
         m_hWnd = hWnd;
@@ -57,8 +29,320 @@ namespace engine
         m_resolutionHeight = resolutionHeight;
         m_screenWidth = screenWidth;
         m_screenHeight = screenHeight;
-        m_isFullScreen = isFullScreen;
+        m_isFullscreen = isFullscreen;
 
+        CreateCoreResources();
+        
+        // GraphicsDevice::Get().GetDevice 등 사용 가능
+
+        SetVsync(useVsync);
+
+        CreateSizeDependentResources();
+
+        Microsoft::WRL::ComPtr<IDXGIAdapter> dxgiAdapter;
+        Microsoft::WRL::ComPtr<IDXGIDevice3> dxgiDevice;
+        m_device.As(&dxgiDevice);
+        dxgiDevice->GetAdapter(dxgiAdapter.GetAddressOf());
+        dxgiAdapter.As(&dxgiAdapter);
+
+        CreateFullscreenQuadResources();
+        CreateShadowBuffer();
+    }
+
+    void GraphicsDevice::Shutdown()
+    {
+        m_quadIndexBuffer.Reset();
+        m_quadVertexBuffer.Reset();
+        m_samplerLinear.Reset();
+        m_quadInputLayout.Reset();
+        m_blitPS.Reset();
+        m_fullscreenQuadVS.Reset();
+        m_dxgiAdapter.Reset();
+
+        m_gBuffer.Reset();
+        m_hdrBuffer.reset();
+        m_finalBuffer.reset();
+
+        m_backBufferRTV.Reset();
+
+        m_swapChain.Reset();
+        m_deviceContext.Reset();
+        m_device.Reset();
+    }
+
+    bool GraphicsDevice::Resize(
+        UINT resolutionWidth,
+        UINT resolutionHeight,
+        UINT screenWidth,
+        UINT screenHeight,
+        bool isFullscreen)
+    {
+        if (m_resolutionWidth == resolutionWidth &&
+            m_resolutionHeight == resolutionHeight &&
+            m_isFullscreen == isFullscreen)
+        {
+            return false;
+        }
+
+        if (resolutionWidth == 0 || resolutionHeight == 0)
+        {
+            return false;
+        }
+
+        m_resolutionWidth = resolutionWidth;
+        m_resolutionHeight = resolutionHeight;
+        m_isFullscreen = isFullscreen;
+
+        m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+
+        UINT swapChainFlags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+        if (m_tearingSupport)
+        {
+            swapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+        }
+
+        HR_CHECK(m_swapChain->ResizeBuffers(
+            0,
+            m_isFullscreen ? m_screenWidth : m_resolutionWidth,
+            m_isFullscreen ? m_screenHeight : m_resolutionHeight,
+            DXGI_FORMAT_UNKNOWN,
+            swapChainFlags));
+
+        CreateSizeDependentResources();
+
+        return true;
+    }
+
+    void GraphicsDevice::BeginDraw(const Color& clearColor)
+    {
+
+    }
+
+    void GraphicsDevice::BackBufferDraw()
+    {
+        m_deviceContext->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), nullptr);
+
+        m_deviceContext->ClearRenderTargetView(m_backBufferRTV.Get(), Color(0.0f, 0.0f, 0.0f, 1.0f));
+
+        m_deviceContext->RSSetViewports(1, &m_backBufferViewport);
+
+        // Blit
+        {
+            // Input Assembler
+            m_deviceContext->IASetInputLayout(m_quadInputLayout.Get());
+            m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+            // Shaders
+            m_deviceContext->VSSetShader(m_fullscreenQuadVS.Get(), nullptr, 0);
+            m_deviceContext->PSSetShader(m_blitPS.Get(), nullptr, 0);
+
+            // Resources
+            m_deviceContext->PSSetShaderResources(0, 1, m_gameSRV.GetAddressOf());
+            m_deviceContext->PSSetSamplers(0, 1, m_samplerLinear.GetAddressOf());
+
+            // Draw
+            m_deviceContext->IASetVertexBuffers(0, 1, m_quadVertexBuffer.GetAddressOf(), &m_quadVertexStride, &m_quadVertexOffset);
+            m_deviceContext->IASetIndexBuffer(m_quadIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+            m_deviceContext->DrawIndexed(m_quadIndexCount, 0, 0);
+
+            // Unbind
+            ID3D11ShaderResourceView* nullSRV = nullptr;
+            m_deviceContext->PSSetShaderResources(0, 1, &nullSRV);
+        }
+    }
+
+    void GraphicsDevice::BeginDrawShadowPass()
+    {
+        m_deviceContext->ClearDepthStencilView(m_shadowDepthBuffer->GetRawDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+        m_deviceContext->OMSetRenderTargets(0, nullptr, m_shadowDepthBuffer->GetRawDSV());
+        m_deviceContext->OMSetDepthStencilState(nullptr, 0);
+
+        m_deviceContext->RSSetViewports(1, &m_shadowViewport);
+        m_deviceContext->RSSetState(m_shadowMapRSS->GetRawRasterizerState());
+    }
+
+    void GraphicsDevice::EndDrawShadowPass()
+    {
+        m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+        m_deviceContext->RSSetState(nullptr);
+        m_deviceContext->RSSetViewports(1, &m_gameViewport);
+    }
+
+    void GraphicsDevice::BeginDrawGeometryPass()
+    {
+    }
+
+    void GraphicsDevice::EndDrawGeometryPass()
+    {
+    }
+
+    void GraphicsDevice::BeginDrawGlobalLightPass()
+    {
+    }
+
+    void GraphicsDevice::EndDrawGlobalLightPass()
+    {
+    }
+
+    void GraphicsDevice::BeginDrawForwardPass()
+    {
+    }
+
+    void GraphicsDevice::EndDrawForwardPass()
+    {
+    }
+
+    void GraphicsDevice::BeginDrawPostProccessingPass()
+    {
+    }
+
+    void GraphicsDevice::EndDrawPostProccessingPass()
+    {
+    }
+
+    void GraphicsDevice::EndDraw()
+    {
+        m_swapChain->Present(m_syncInterval, m_presentFlags);
+
+        // vram usage
+        {
+            DXGI_QUERY_VIDEO_MEMORY_INFO memInfo{};
+            m_dxgiAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memInfo);
+            Profiling::UpdateVRAMUsage(memInfo.CurrentUsage);
+        }
+    }
+
+    const Microsoft::WRL::ComPtr<ID3D11Device>& GraphicsDevice::GetDevice() const
+    {
+        return m_device;
+    }
+
+    const Microsoft::WRL::ComPtr<ID3D11DeviceContext>& GraphicsDevice::GetDeviceContext() const
+    {
+        return m_deviceContext;
+    }
+
+    const D3D11_VIEWPORT& GraphicsDevice::GetViewport() const
+    {
+        return m_gameViewport;
+    }
+
+    void GraphicsDevice::SetVsync(bool useVsync)
+    {
+        m_useVsync = useVsync;
+        if (m_useVsync || !m_tearingSupport)
+        {
+            m_syncInterval = 1;
+            m_presentFlags = 0;
+        }
+        else if (m_tearingSupport)
+        {
+            m_syncInterval = 0;
+            m_presentFlags = DXGI_PRESENT_ALLOW_TEARING;
+        }
+    }
+
+    void GraphicsDevice::CompileShaderFromFile(
+        const std::filesystem::path& fileName,
+        const std::string& entryPoint,
+        const std::string& shaderModel,
+        Microsoft::WRL::ComPtr<ID3DBlob>& blobOut)
+    {
+#ifdef _DEBUG
+        DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+        shaderFlags |= D3DCOMPILE_DEBUG;
+        shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+
+        Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
+
+        HR_CHECK(D3DCompileFromFile(
+            (fileName).c_str(),
+            nullptr,
+            D3D_COMPILE_STANDARD_FILE_INCLUDE,
+            entryPoint.c_str(),
+            shaderModel.c_str(),
+            shaderFlags,
+            0,
+            &blobOut,
+            &errorBlob));
+#else
+        std::filesystem::path csoPath = fileName;
+        csoPath.replace_extension(".cso");
+
+        HR_CHECK(D3DReadFileToBlob(csoPath.c_str(), &blobOut));
+
+#endif // _DEBUG
+    }
+
+    void GraphicsDevice::CheckHDRSupportAndGetMaxNits()
+    {
+        Microsoft::WRL::ComPtr<IDXGIFactory4> pFactory;
+        HRESULT hr = CreateDXGIFactory1(IID_PPV_ARGS(&pFactory));
+
+        // 2. 주 그래픽 어댑터 (0번) 열거
+        Microsoft::WRL::ComPtr<IDXGIAdapter1> pAdapter;
+        UINT adapterIndex = 0;
+        while (pFactory->EnumAdapters1(adapterIndex, &pAdapter) != DXGI_ERROR_NOT_FOUND)
+        {
+            DXGI_ADAPTER_DESC1 desc;
+            pAdapter->GetDesc1(&desc);
+
+            // WARP 어댑터(소프트웨어)를 건너뛰고 주 어댑터만 사용하도록 선택할 수 있습니다.
+            if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+            {
+                adapterIndex++;
+                pAdapter.Reset();
+                continue;
+            }
+            break;
+        }
+
+        // 3. 주 모니터 출력 (0번) 열거
+        Microsoft::WRL::ComPtr<IDXGIOutput> pOutput;
+        hr = pAdapter->EnumOutputs(0, &pOutput); // 0번 출력
+
+        // 4. HDR 정보를 얻기 위해 IDXGIOutput6으로 쿼리
+        Microsoft::WRL::ComPtr<IDXGIOutput6> pOutput6;
+        hr = pOutput.As(&pOutput6);
+        if (FAILED(hr))
+        {
+            // hdr 지원 x
+            m_format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            m_monitorMaxNits = 100.0f;
+            m_isHDRSupported = false;
+
+            return;
+        }
+
+        // 5. DXGI_OUTPUT_DESC1에서 HDR 정보 확인
+        DXGI_OUTPUT_DESC1 desc1 = {};
+        hr = pOutput6->GetDesc1(&desc1);
+
+        // 6. HDR 활성화 조건 분석
+        bool isHDRColorSpace = (desc1.ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+        m_monitorMaxNits = (float)desc1.MaxLuminance;
+
+        // OS가 HDR을 켰을 때 MaxLuminance는 100 Nits(SDR 기준)를 초과합니다.
+        bool isHDRActive = m_monitorMaxNits > 100.0f;
+
+        if (isHDRColorSpace && isHDRActive)
+        {
+            // 최종 판단: HDR 지원 및 OS 활성화
+            m_format = DXGI_FORMAT_R10G10B10A2_UNORM; // HDR 포맷 설정
+            m_isHDRSupported = true;
+        }
+        else
+        {
+            // HDR 지원 안함 또는 OS에서 비활성화
+            m_monitorMaxNits = 100.0f; // SDR 기본값
+            m_format = DXGI_FORMAT_R8G8B8A8_UNORM; // SDR 포맷 설정
+            m_isHDRSupported = false;
+        }
+    }
+
+    void GraphicsDevice::CreateCoreResources()
+    {
         // create device, device context, swap chain
         {
             UINT dxgiFactoryCreationFlags = 0;
@@ -96,9 +380,9 @@ namespace engine
                     featureLevels,
                     ARRAYSIZE(featureLevels),
                     D3D11_SDK_VERSION,
-                    &m_resource->device,
+                    &m_device,
                     &actualFeatureLevel,
-                    &m_resource->deviceContext));
+                    &m_deviceContext));
             }
 
             // create swap chain
@@ -112,9 +396,9 @@ namespace engine
                 }
 
                 DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-                swapChainDesc.Width = m_isFullScreen ? m_screenWidth : m_resolutionWidth;
-                swapChainDesc.Height = m_isFullScreen ? m_screenHeight : m_resolutionHeight;
-                swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                swapChainDesc.Width = m_isFullscreen ? m_screenWidth : m_resolutionWidth;
+                swapChainDesc.Height = m_isFullscreen ? m_screenHeight : m_resolutionHeight;
+                swapChainDesc.Format = m_format;
                 swapChainDesc.SampleDesc.Count = 1;
                 swapChainDesc.SampleDesc.Quality = 0;
                 swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -129,333 +413,170 @@ namespace engine
                     swapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
                 }
 
-                SetVsync(useVsync);
-
                 HR_CHECK(dxgiFactory->CreateSwapChainForHwnd(
-                    m_resource->device.Get(),
+                    m_device.Get(),
                     m_hWnd,
                     &swapChainDesc,
                     nullptr,
                     nullptr,
-                    &m_resource->swapChain));
+                    &m_swapChain));
             }
         }
 
         // directx alt+enter 전체화면 전환 해제
         if (Microsoft::WRL::ComPtr<IDXGIFactory1> factory;
-            SUCCEEDED(m_resource->swapChain->GetParent(__uuidof (IDXGIFactory1), &factory)))
+            SUCCEEDED(m_swapChain->GetParent(__uuidof (IDXGIFactory1), &factory)))
         {
             factory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
         }
+    }
 
-        CreateSizeDependentResources();
-
-        Microsoft::WRL::ComPtr<IDXGIAdapter> dxgiAdapter;
-        Microsoft::WRL::ComPtr<IDXGIDevice3> dxgiDevice;
-        m_resource->device.As(&dxgiDevice);
-        dxgiDevice->GetAdapter(dxgiAdapter.GetAddressOf());
-        dxgiAdapter.As(&m_resource->dxgiAdapter);
-
-        // Create Fullscreen Quad Mesh
+    void GraphicsDevice::CreateShadowBuffer()
+    {
+        // shadow depth buffer
         {
-            MeshData quadData = GeometryGenerator::CreateFullscreenQuad();
-            m_resource->vertexCount = static_cast<UINT>(quadData.vertices.size());
-            m_resource->indexCount = static_cast<UINT>(quadData.indices.size());
-            m_resource->stride = sizeof(CommonVertex);
-            m_resource->offset = 0;
+            D3D11_TEXTURE2D_DESC desc{};
+            desc.Width = static_cast<UINT>(m_shadowMapSize);
+            desc.Height = static_cast<UINT>(m_shadowMapSize);
+            desc.MipLevels = 1;
+            desc.ArraySize = 1;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.Format = DXGI_FORMAT_R32_TYPELESS;
+            desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+            desc.SampleDesc.Count = 1;
+            desc.SampleDesc.Quality = 0;
+            desc.CPUAccessFlags = 0;
+            desc.MiscFlags = 0;
 
-            D3D11_BUFFER_DESC vertexBufferDesc{};
-            vertexBufferDesc.ByteWidth = sizeof(CommonVertex) * m_resource->vertexCount;
-            vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-            vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-            vertexBufferDesc.CPUAccessFlags = 0;
-            vertexBufferDesc.MiscFlags = 0;
-            vertexBufferDesc.StructureByteStride = 0;
+            m_shadowDepthBuffer = std::make_unique<Texture>();
+            m_shadowDepthBuffer->Create(desc, DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_D32_FLOAT);
 
-            D3D11_SUBRESOURCE_DATA vertexData{};
-            vertexData.pSysMem = quadData.vertices.data();
-            vertexData.SysMemPitch = 0;
-            vertexData.SysMemSlicePitch = 0;
+            D3D11_RASTERIZER_DESC rsDesc{};
+            rsDesc.FillMode = D3D11_FILL_SOLID;
+            rsDesc.CullMode = D3D11_CULL_BACK;
+            rsDesc.DepthBias = 5000;
+            rsDesc.DepthBiasClamp = 0.0f;
+            rsDesc.SlopeScaledDepthBias = 2.0f;
+            rsDesc.DepthClipEnable = true;
 
-            HR_CHECK(GraphicsDevice::Get().GetDevice()->CreateBuffer(&vertexBufferDesc, &vertexData, &m_resource->vertexBuffer));
-
-            D3D11_BUFFER_DESC indexBufferDesc{};
-            indexBufferDesc.ByteWidth = sizeof(uint32_t) * m_resource->indexCount;
-            indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-            indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-            indexBufferDesc.CPUAccessFlags = 0;
-            indexBufferDesc.MiscFlags = 0;
-            indexBufferDesc.StructureByteStride = 0;
-
-            D3D11_SUBRESOURCE_DATA indexData{};
-            indexData.pSysMem = quadData.indices.data();
-            indexData.SysMemPitch = 0;
-            indexData.SysMemSlicePitch = 0;
-
-            HR_CHECK(GraphicsDevice::Get().GetDevice()->CreateBuffer(&indexBufferDesc, &indexData, &m_resource->indexBuffer));
+            m_shadowMapRSS = std::make_unique<RasterizerState>();
+            m_shadowMapRSS->Create(rsDesc);
         }
 
-        // Create Default Shaders & Layout
+        // shadow viewport
         {
-            Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
-            CompileShaderFromFile("Shader/Vertex/DefaultVertexShader.hlsl", "main", "vs_5_0", vsBlob);
-            HR_CHECK(m_resource->device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_resource->defaultVS));
-
-            D3D11_INPUT_ELEMENT_DESC layout[] =
-            {
-                { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-                { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-                { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            };
-            HR_CHECK(m_resource->device->CreateInputLayout(layout, ARRAYSIZE(layout), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_resource->defaultInputLayout));
-
-            Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-            CompileShaderFromFile("Shader/Pixel/DefaultPixelShader.hlsl", "main", "ps_5_0", psBlob);
-            HR_CHECK(m_resource->device->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &m_resource->defaultPS));
+            m_shadowViewport.TopLeftX = 0;
+            m_shadowViewport.TopLeftY = 0;
+            m_shadowViewport.Width = static_cast<float>(m_shadowMapSize);
+            m_shadowViewport.Height = static_cast<float>(m_shadowMapSize);
+            m_shadowViewport.MinDepth = 0.0f;
+            m_shadowViewport.MaxDepth = 1.0f;
         }
-
-        // Create Sampler State
-        {
-            D3D11_SAMPLER_DESC samplerDesc{};
-            samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-            samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-            samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-            samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-            samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-            samplerDesc.MinLOD = 0;
-            samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-            HR_CHECK(m_resource->device->CreateSamplerState(&samplerDesc, &m_resource->defaultSamplerState));
-        }
-    }
-
-    void GraphicsDevice::Shutdown()
-    {
-        m_resource.reset();
-    }
-
-    bool GraphicsDevice::Resize(
-        UINT resolutionWidth,
-        UINT resolutionHeight,
-        UINT screenWidth,
-        UINT screenHeight,
-        bool isFullScreen)
-    {
-        if (m_resolutionWidth == resolutionWidth &&
-            m_resolutionHeight == resolutionHeight &&
-            m_isFullScreen == isFullScreen)
-        {
-            return false;
-        }
-
-        if (resolutionWidth == 0 || resolutionHeight == 0)
-        {
-            return false;
-        }
-
-        m_resolutionWidth = resolutionWidth;
-        m_resolutionHeight = resolutionHeight;
-        m_isFullScreen = isFullScreen;
-
-        m_resource->deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-        m_resource->backBufferRTV.Reset();
-        m_resource->gameRTV.Reset();
-        m_resource->gameDSV.Reset();
-        m_resource->gameSRV.Reset();
-
-        UINT swapChainFlags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-        if (m_tearingSupport)
-        {
-            swapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-        }
-        HR_CHECK(m_resource->swapChain->ResizeBuffers(
-            0,
-            m_isFullScreen ? m_screenWidth : m_resolutionWidth,
-            m_isFullScreen ? m_screenHeight : m_resolutionHeight,
-            DXGI_FORMAT_UNKNOWN,
-            swapChainFlags));
-
-        CreateSizeDependentResources();
-
-        return true;
-    }
-
-    void GraphicsDevice::BeginDraw(const Color& clearColor)
-    {
-        m_resource->deviceContext->OMSetRenderTargets(1, m_resource->gameRTV.GetAddressOf(), m_resource->gameDSV.Get());
-
-        m_resource->deviceContext->ClearRenderTargetView(m_resource->gameRTV.Get(), clearColor);
-        m_resource->deviceContext->ClearDepthStencilView(m_resource->gameDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-        m_resource->deviceContext->RSSetViewports(1, &m_gameViewport);
-    }
-
-    void GraphicsDevice::BackBufferDraw()
-    {
-        m_resource->deviceContext->OMSetRenderTargets(1, m_resource->backBufferRTV.GetAddressOf(), nullptr);
-
-        m_resource->deviceContext->ClearRenderTargetView(m_resource->backBufferRTV.Get(), Color(0.0f, 0.0f, 0.0f, 1.0f));
-
-        m_resource->deviceContext->RSSetViewports(1, &m_backBufferViewport);
-
-        // Blit
-        {
-            // Input Assembler
-            m_resource->deviceContext->IASetInputLayout(m_resource->defaultInputLayout.Get());
-            m_resource->deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-            // Shaders
-            m_resource->deviceContext->VSSetShader(m_resource->defaultVS.Get(), nullptr, 0);
-            m_resource->deviceContext->PSSetShader(m_resource->defaultPS.Get(), nullptr, 0);
-
-            // Resources
-            m_resource->deviceContext->PSSetShaderResources(0, 1, m_resource->gameSRV.GetAddressOf());
-            m_resource->deviceContext->PSSetSamplers(0, 1, m_resource->defaultSamplerState.GetAddressOf());
-
-            // Draw
-            m_resource->deviceContext->IASetVertexBuffers(0, 1, m_resource->vertexBuffer.GetAddressOf(), &m_resource->stride, &m_resource->offset);
-            m_resource->deviceContext->IASetIndexBuffer(m_resource->indexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-            m_resource->deviceContext->DrawIndexed(m_resource->indexCount, 0, 0);
-
-            // Unbind
-            ID3D11ShaderResourceView* nullSRV = nullptr;
-            m_resource->deviceContext->PSSetShaderResources(0, 1, &nullSRV);
-        }
-    }
-
-    void GraphicsDevice::EndDraw()
-    {
-        m_resource->swapChain->Present(m_syncInterval, m_presentFlags);
-
-        // vram usage
-        {
-            DXGI_QUERY_VIDEO_MEMORY_INFO memInfo{};
-            m_resource->dxgiAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &memInfo);
-            Profiling::UpdateVRAMUsage(memInfo.CurrentUsage);
-        }
-    }
-
-    const Microsoft::WRL::ComPtr<ID3D11Device>& GraphicsDevice::GetDevice() const
-    {
-        return m_resource->device;
-    }
-
-    const Microsoft::WRL::ComPtr<ID3D11DeviceContext>& GraphicsDevice::GetDeviceContext() const
-    {
-        return m_resource->deviceContext;
-    }
-
-    const Microsoft::WRL::ComPtr<IDXGISwapChain1>& GraphicsDevice::GetSwapChain() const
-    {
-        return m_resource->swapChain;
-    }
-
-    const Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& GraphicsDevice::GetRenderTargetView() const
-    {
-        return m_resource->gameRTV;
-    }
-
-    const Microsoft::WRL::ComPtr<ID3D11DepthStencilView>& GraphicsDevice::GetDepthStencilView() const
-    {
-        return m_resource->gameDSV;
-    }
-
-    const D3D11_VIEWPORT& GraphicsDevice::GetViewport() const
-    {
-        return m_gameViewport;
-    }
-
-    void GraphicsDevice::SetVsync(bool useVsync)
-    {
-        m_useVsync = useVsync;
-        if (m_useVsync || !m_tearingSupport)
-        {
-            m_syncInterval = 1;
-            m_presentFlags = 0;
-        }
-        else if (m_tearingSupport)
-        {
-            m_syncInterval = 0;
-            m_presentFlags = DXGI_PRESENT_ALLOW_TEARING;
-        }
-    }
-
-    void GraphicsDevice::CompileShaderFromFile(
-        const std::filesystem::path& fileName,
-        const std::string& entryPoint,
-        const std::string& shaderModel,
-        Microsoft::WRL::ComPtr<ID3DBlob>& blobOut)
-    {
-        DWORD shaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#ifdef _DEBUG
-        shaderFlags |= D3DCOMPILE_DEBUG;
-        shaderFlags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif // _DEBUG
-
-        Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
-
-        HR_CHECK(D3DCompileFromFile(
-            (fileName).c_str(),
-            nullptr,
-            D3D_COMPILE_STANDARD_FILE_INCLUDE,
-            entryPoint.c_str(),
-            shaderModel.c_str(),
-            shaderFlags,
-            0,
-            &blobOut,
-            &errorBlob));
     }
 
     void GraphicsDevice::CreateSizeDependentResources()
     {
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
-        HR_CHECK(m_resource->swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
-        HR_CHECK(m_resource->device->CreateRenderTargetView(backBuffer.Get(), nullptr, &m_resource->backBufferRTV));
+        // backbuffer
+        {
+            Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
+            HR_CHECK(m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
+            HR_CHECK(m_device->CreateRenderTargetView(backBuffer.Get(), nullptr, &m_backBufferRTV));
+        }
 
-        D3D11_TEXTURE2D_DESC depthStencilDesc{};
-        depthStencilDesc.Width = m_resolutionWidth;
-        depthStencilDesc.Height = m_resolutionHeight;
-        depthStencilDesc.MipLevels = 1;
-        depthStencilDesc.ArraySize = 1;
-        depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-        depthStencilDesc.SampleDesc.Count = 1;
-        depthStencilDesc.SampleDesc.Quality = 0;
-        depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-        depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-        depthStencilDesc.CPUAccessFlags = 0;
-        depthStencilDesc.MiscFlags = 0;
+        // final buffer
+        {
+            D3D11_TEXTURE2D_DESC desc{};
+            desc.Width = m_resolutionWidth;
+            desc.Height = m_resolutionHeight;
+            desc.MipLevels = 1;
+            desc.ArraySize = 1;
+            desc.Format = m_format;
+            desc.SampleDesc.Count = 1;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+            desc.CPUAccessFlags = 0;
+            desc.MiscFlags = 0;
 
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> depthStencilTexture;
-        HR_CHECK(m_resource->device->CreateTexture2D(&depthStencilDesc, nullptr, &depthStencilTexture));
+            m_finalBuffer = std::make_unique<Texture>();
+            m_finalBuffer->Create(desc);
+        }
 
-        D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc{};
-        depthStencilViewDesc.Format = depthStencilDesc.Format;
-        depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-        depthStencilViewDesc.Texture2D.MipSlice = 0;
+        // hdr buffer
+        {
+            D3D11_TEXTURE2D_DESC desc{};
+            desc.Width = m_resolutionWidth;
+            desc.Height = m_resolutionHeight;
+            desc.MipLevels = 1;
+            desc.ArraySize = 1;
+            desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            desc.SampleDesc.Count = 1;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+            desc.CPUAccessFlags = 0;
+            desc.MiscFlags = 0;
 
-        HR_CHECK(m_resource->device->CreateDepthStencilView(depthStencilTexture.Get(), &depthStencilViewDesc, &m_resource->gameDSV));
+            m_hdrBuffer = std::make_unique<Texture>();
+            m_hdrBuffer->Create(desc);
+        }
 
-        // 1. Create Off-screen Texture
-        D3D11_TEXTURE2D_DESC gameTextureDesc{};
-        gameTextureDesc.Width = m_resolutionWidth;
-        gameTextureDesc.Height = m_resolutionHeight;
-        gameTextureDesc.MipLevels = 1;
-        gameTextureDesc.ArraySize = 1;
-        gameTextureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        gameTextureDesc.SampleDesc.Count = 1;
-        gameTextureDesc.Usage = D3D11_USAGE_DEFAULT;
-        gameTextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-        gameTextureDesc.CPUAccessFlags = 0;
-        gameTextureDesc.MiscFlags = 0;
+        // game depth buffer
+        {
+            D3D11_TEXTURE2D_DESC desc{};
+            desc.Width = m_resolutionWidth;
+            desc.Height = m_resolutionHeight;
+            desc.MipLevels = 1;
+            desc.ArraySize = 1;
+            desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+            desc.SampleDesc.Count = 1;
+            desc.SampleDesc.Quality = 0;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+            desc.CPUAccessFlags = 0;
+            desc.MiscFlags = 0;
 
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> gameTexture;
-        HR_CHECK(m_resource->device->CreateTexture2D(&gameTextureDesc, nullptr, &gameTexture));
+            m_gameDepthBuffer = std::make_unique<Texture>();
+            m_gameDepthBuffer->Create(desc);
+        }
 
-        // 2. Create RTV for Game
-        HR_CHECK(m_resource->device->CreateRenderTargetView(gameTexture.Get(), nullptr, &m_resource->gameRTV));
+        // G-Buffer
+        {
+            D3D11_TEXTURE2D_DESC desc{};
+            desc.Width = m_resolutionWidth;
+            desc.Height = m_resolutionHeight;
+            desc.MipLevels = 1;
+            desc.ArraySize = 1;
+            desc.SampleDesc.Count = 1;
+            desc.SampleDesc.Quality = 0;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+            desc.CPUAccessFlags = 0;
+            desc.MiscFlags = 0;
 
-        // 3. Create SRV for Game (to be sampled in EndDraw)
-        HR_CHECK(m_resource->device->CreateShaderResourceView(gameTexture.Get(), nullptr, &m_resource->gameSRV));
+            desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
+            m_gBuffer.baseColor = std::make_unique<Texture>();
+            m_gBuffer.baseColor->Create(desc);
+
+            desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+            m_gBuffer.position = std::make_unique<Texture>();
+            m_gBuffer.position->Create(desc);
+
+            desc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+
+            m_gBuffer.normal = std::make_unique<Texture>();
+            m_gBuffer.normal->Create(desc);
+
+            desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+            m_gBuffer.orm = std::make_unique<Texture>();
+            m_gBuffer.orm->Create(desc);
+
+            desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
+            m_gBuffer.emissive= std::make_unique<Texture>();
+            m_gBuffer.emissive->Create(desc);
+        }
 
         m_gameViewport.TopLeftX = 0.0f;
         m_gameViewport.TopLeftY = 0.0f;
@@ -472,7 +593,7 @@ namespace engine
         float targetAspectRatio = static_cast<float>(m_resolutionWidth) / static_cast<float>(m_resolutionHeight);
         float screenAspectRatio = static_cast<float>(m_screenWidth) / static_cast<float>(m_screenHeight);
 
-        if (m_isFullScreen)
+        if (m_isFullscreen)
         {
             float viewWidth = static_cast<float>(m_screenWidth);
             float viewHeight = static_cast<float>(m_screenHeight);
@@ -499,6 +620,105 @@ namespace engine
         {
             m_backBufferViewport.Width = static_cast<float>(m_resolutionWidth);
             m_backBufferViewport.Height = static_cast<float>(m_resolutionHeight);
+        }
+    }
+
+    void GraphicsDevice::CreateFullscreenQuadResources()
+    {
+        // Create vertex, index buffer
+        {
+            constexpr UINT vertexCount = 4;
+            constexpr UINT indexCount = 6;
+
+            constexpr std::array<PositionTexCoordVertex, vertexCount> vertices{
+                PositionTexCoordVertex{ { -1.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+                PositionTexCoordVertex{ {  1.0f,  1.0f, 0.0f }, { 1.0f, 0.0f } },
+                PositionTexCoordVertex{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f } },
+                PositionTexCoordVertex{ {  1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f } },
+            };
+
+            constexpr std::array<DWORD, indexCount> indices{
+                0, 1, 2,
+                2, 1, 3
+            };
+
+            m_quadVertexCount = vertexCount;
+            m_quadIndexCount = indexCount;
+            m_quadVertexStride = sizeof(PositionTexCoordVertex);
+            m_quadVertexOffset = 0;
+
+            D3D11_BUFFER_DESC vertexBufferDesc{};
+            vertexBufferDesc.ByteWidth = sizeof(PositionTexCoordVertex) * vertexCount;
+            vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+            vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+            vertexBufferDesc.CPUAccessFlags = 0;
+            vertexBufferDesc.MiscFlags = 0;
+            vertexBufferDesc.StructureByteStride = 0;
+
+            D3D11_SUBRESOURCE_DATA vertexData{};
+            vertexData.pSysMem = vertices.data();
+            vertexData.SysMemPitch = 0;
+            vertexData.SysMemSlicePitch = 0;
+
+            HR_CHECK(m_device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_quadVertexBuffer));
+
+            D3D11_BUFFER_DESC indexBufferDesc{};
+            indexBufferDesc.ByteWidth = sizeof(DWORD) * indexCount;
+            indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+            indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+            indexBufferDesc.CPUAccessFlags = 0;
+            indexBufferDesc.MiscFlags = 0;
+            indexBufferDesc.StructureByteStride = 0;
+
+            D3D11_SUBRESOURCE_DATA indexData{};
+            indexData.pSysMem = indices.data();
+            indexData.SysMemPitch = 0;
+            indexData.SysMemSlicePitch = 0;
+
+            HR_CHECK(m_device->CreateBuffer(&indexBufferDesc, &indexData, &m_quadIndexBuffer));
+        }
+
+        // Create default shader, layout
+        {
+            Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
+            CompileShaderFromFile("Shader/Vertex/FullscreenQuad_VS.hlsl", "main", "vs_5_0", vsBlob);
+
+
+            HR_CHECK(m_device->CreateVertexShader(
+                vsBlob->GetBufferPointer(),
+                vsBlob->GetBufferSize(),
+                nullptr,
+                &m_fullscreenQuadVS));
+
+            HR_CHECK(m_device->CreateInputLayout(
+                PositionTexCoordVertex::layout.data(),
+                PositionTexCoordVertex::layout.size(),
+                vsBlob->GetBufferPointer(),
+                vsBlob->GetBufferSize(),
+                &m_quadInputLayout));
+
+            Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
+            CompileShaderFromFile("Shader/Pixel/Blit_PS.hlsl", "main", "ps_5_0", psBlob);
+
+            HR_CHECK(m_device->CreatePixelShader(
+                psBlob->GetBufferPointer(),
+                psBlob->GetBufferSize(),
+                nullptr,
+                &m_blitPS));
+        }
+
+        // Create Sampler State
+        {
+            D3D11_SAMPLER_DESC samplerDesc{};
+            samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+            samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+            samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+            samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+            samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+            samplerDesc.MinLOD = 0;
+            samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+            HR_CHECK(m_device->CreateSamplerState(&samplerDesc, &m_samplerLinear));
         }
     }
 

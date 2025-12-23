@@ -42,15 +42,3 @@ enum class DefaultBlendType
     Additive,
     Count
 };
-
-enum class DefaultVertexBufferType
-{
-    Cube,
-    Count
-};
-
-enum class DefaultIndexBufferType
-{
-    Cube,
-    Count
-};

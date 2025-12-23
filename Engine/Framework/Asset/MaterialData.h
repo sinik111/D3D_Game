@@ -8,20 +8,20 @@ namespace engine
 {
     enum class MaterialKey : std::uint64_t
     {
-        DIFFUSE_TEXTURE            = 1ULL << 0,
+        BASE_COLOR_TEXTURE         = 1ULL << 0,
         NORMAL_TEXTURE             = 1ULL << 1,
-        SPECULAR_TEXTURE           = 1ULL << 2,
-        EMISSIVE_TEXTURE           = 1ULL << 3,
-        OPACITY_TEXTURE            = 1ULL << 4,
-        METALNESS_TEXTURE          = 1ULL << 5,
-        ROUGHNESS_TEXTURE          = 1ULL << 6,
-        AMBIENT_OCCLUSION_TEXTURE  = 1ULL << 7,
-        DIFFUSE_COLOR              = 1ULL << 8,
-        AMBIENT_COLOR              = 1ULL << 9,
-        SPECULAR_COLOR             = 1ULL << 10,
-        EMISSIVE_COLOR             = 1ULL << 11,
-        SHININESS_FACTOR           = 1ULL << 12,
-        OPACITY_FACTOR             = 1ULL << 13,
+        EMISSIVE_TEXTURE           = 1ULL << 2,
+        METALNESS_TEXTURE          = 1ULL << 3,
+        ROUGHNESS_TEXTURE          = 1ULL << 4,
+        AMBIENT_OCCLUSION_TEXTURE  = 1ULL << 5,
+
+        BASE_COLOR                 = 1ULL << 6,
+        EMISSIVE_COLOR             = 1ULL << 7,
+
+        ROUGHNESS                  = 1ULL << 8,
+        METALNESS                  = 1ULL << 9,
+        EMISSIVE_INTENSITY         = 1ULL << 10,
+        AMBIENT_OCCLUSION          = 1ULL << 11,
     };
 
     struct Material

@@ -10,7 +10,7 @@ namespace engine
         int resolutionWidth = 1280;
         int resolutionHeight = 720;
         std::vector<std::string> supportedResolutions{ "1280x720", "1920x1080", "2560x1440", "3840x2160" };
-        bool isFullScreen = false;
+        bool isFullscreen = false;
         bool useVsync = true;
     };
 

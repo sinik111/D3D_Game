@@ -15,7 +15,7 @@ namespace engine
         std::vector<Renderer*> m_transparentList;
         std::vector<Renderer*> m_screenList;
         std::vector<Renderer*> m_shadowList;
-        std::shared_ptr<ConstantBuffer> m_transformCB;
+        std::shared_ptr<ConstantBuffer> m_globalConstantBuffer;
 
     public:
         RenderSystem();

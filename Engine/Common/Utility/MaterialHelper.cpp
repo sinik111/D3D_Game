@@ -15,13 +15,13 @@ namespace engine
 		{
 			Textures textures{};
 
-			if (material.materialFlags & static_cast<std::uint64_t>(MaterialKey::DIFFUSE_TEXTURE))
+			if (material.materialFlags & static_cast<std::uint64_t>(MaterialKey::BASE_COLOR_TEXTURE))
 			{
-				textures.diffuse = ResourceManager::Get().GetOrCreateTexture(material.texturePaths.at(MaterialKey::DIFFUSE_TEXTURE));
+				textures.baseColor = ResourceManager::Get().GetOrCreateTexture(material.texturePaths.at(MaterialKey::BASE_COLOR_TEXTURE));
 			}
 			else
 			{
-				textures.diffuse = ResourceManager::Get().GetDefaultTexture(DefaultTextureType::White);
+				textures.baseColor = ResourceManager::Get().GetDefaultTexture(DefaultTextureType::White);
 			}
 
 			if (material.materialFlags & static_cast<std::uint64_t>(MaterialKey::NORMAL_TEXTURE))
@@ -33,31 +33,13 @@ namespace engine
 				textures.normal = ResourceManager::Get().GetDefaultTexture(DefaultTextureType::Normal);
 			}
 
-			if (material.materialFlags & static_cast<std::uint64_t>(MaterialKey::SPECULAR_TEXTURE))
-			{
-				textures.specular = ResourceManager::Get().GetOrCreateTexture(material.texturePaths.at(MaterialKey::SPECULAR_TEXTURE));
-			}
-			else
-			{
-				textures.specular = ResourceManager::Get().GetDefaultTexture(DefaultTextureType::Black);
-			}
-
 			if (material.materialFlags & static_cast<std::uint64_t>(MaterialKey::EMISSIVE_TEXTURE))
 			{
 				textures.emissive = ResourceManager::Get().GetOrCreateTexture(material.texturePaths.at(MaterialKey::EMISSIVE_TEXTURE));
 			}
 			else
 			{
-				textures.emissive = ResourceManager::Get().GetDefaultTexture(DefaultTextureType::Black);
-			}
-
-			if (material.materialFlags & static_cast<std::uint64_t>(MaterialKey::OPACITY_TEXTURE))
-			{
-				textures.opacity = ResourceManager::Get().GetOrCreateTexture(material.texturePaths.at(MaterialKey::OPACITY_TEXTURE));
-			}
-			else
-			{
-				textures.opacity = ResourceManager::Get().GetDefaultTexture(DefaultTextureType::White);
+				textures.emissive = ResourceManager::Get().GetDefaultTexture(DefaultTextureType::White);
 			}
 
 			if (material.materialFlags & static_cast<std::uint64_t>(MaterialKey::METALNESS_TEXTURE))

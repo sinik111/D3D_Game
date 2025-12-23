@@ -2,7 +2,6 @@
 
 #include "Framework/Object/Component/Renderer.h"
 #include "Core/Graphics/Resource/Texture.h"
-#include "Common/Type/DefaultAssetTypes.h"
 
 namespace engine
 {
@@ -45,7 +44,6 @@ namespace engine
     public:
         StaticMeshRenderer();
         StaticMeshRenderer(const std::string& meshFilePath, const std::string& shaderFilePath);
-        StaticMeshRenderer(DefaultStaticMeshType type, const std::string& shaderFilePath);
         ~StaticMeshRenderer();
 
     public:

@@ -13,7 +13,7 @@ namespace engine
         resolutionWidth,
         resolutionHeight,
         supportedResolutions,
-        isFullScreen,
+        isFullscreen,
         useVsync)
 
         void ConfigLoader::Load(const std::filesystem::path& filePath, WindowSettings& outSettings)

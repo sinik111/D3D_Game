@@ -1,128 +1,165 @@
 #ifndef SHARED_HLSLI
 #define SHARED_HLSLI
 
-Texture2D g_texDiffuse              : register(t0);
-Texture2D g_texNormal               : register(t1);
-Texture2D g_texSpecular             : register(t2);
-Texture2D g_texEmissive             : register(t3);
-Texture2D g_texOpacity              : register(t4);
-Texture2D g_texMetalness            : register(t5);
-Texture2D g_texRoughness            : register(t6);
-Texture2D g_texAmbientOcclusion     : register(t7);
-Texture2D g_texShadowMap            : register(t8);
-TextureCube g_texIblIrradiance      : register(t9);
-TextureCube g_texIblSpecular        : register(t10);
-Texture2D g_texIblSpecularBrdfLut   : register(t11);
+// pbr material textures
+Texture2D g_texBaseColor                : register(t0);
+Texture2D g_texNormal                   : register(t1);
+Texture2D g_texMetalness                : register(t2);
+Texture2D g_texRoughness                : register(t3);
+Texture2D g_texAmbientOcclusion         : register(t4);
+Texture2D g_texEmissive                 : register(t5);
+
+// g-buffer textures
+Texture2D g_gBufferBaseColor            : register(t10);
+Texture2D g_gBufferPosition             : register(t11);
+Texture2D g_gBufferNormal               : register(t12);
+Texture2D g_gBufferORM                  : register(t13); // AO(r), roughness(g), metalness(b)
+Texture2D g_gBufferEmissive             : register(t14);
+
+// global
+Texture2D g_texShadowMap                : register(t20);
+TextureCube g_texIBLEnvironment         : register(t21);
+TextureCube g_texIBLIrradiance          : register(t22);
+TextureCube g_texIBLSpecular            : register(t23);
+Texture2D g_texIBLSpecularBRDFLUT       : register(t24);
+
+// utility
+Texture2D g_texBlit                     : register(t30);
+Texture2D g_texHDR                      : register(t31);
 
 SamplerState g_samLinear                : register(s0);
-SamplerComparisonState g_samComparison  : register(s1);
+SamplerState g_samPoint                 : register(s1);
+SamplerComparisonState g_samComparison  : register(s2);
+SamplerState g_samClamp                 : register(s3);
 
-cbuffer Transform : register(b0)
+
+
+cbuffer Global : register(b0) // 프레임 당 한번만 갱신되는 버퍼
 {
     matrix g_view;
+    
     matrix g_projection;
-    matrix g_lightView;
-    matrix g_lightProjection;
-}
-
-cbuffer Environment : register(b1)
-{
-    float3 g_cameraPos;
-    float __pad3;
-    float3 g_lightDir;
-    float __pad4;
-    float4 g_lightColor;
-    float4 g_ambientLightColor;
+    
+    matrix g_viewProjection;
+    
+    matrix g_mainLightViewProjection;
+    
+    float3 g_cameraWorldPosition;
+    float g_elapsedTime;
+    
+    float3 g_mainLightWorldDirection;
+    float g_mainLightIntensity;
+    
+    float3 g_mainLightColor;
+    float g_maxHDRNits;
+    
+    float g_exposure;
     int g_shadowMapSize;
     int g_useShadowPCF;
     int g_pcfSize;
+    
     int g_useIBL;
+    float __pad1_global[3];
 }
 
-cbuffer Material : register(b2)
+cbuffer Material : register(b1)
 {
-    float4 g_materialDiffuse;
-    float4 g_materialAmbient;
-    float4 g_materialSpecular;
-    float g_shininess;
-    float __pad2[3];
+    float4 g_materialBaseColor;
+    
+    float3 g_materialEmissive;
+    float g_materialEmissiveIntensity;
+    
+    float g_materialRoughness;
+    float g_materialMetalness;
+    float g_materialAmbientOcclusion;
+    int g_overrideMaterial;
 }
 
-cbuffer BonePoseMatrix : register(b3)
-{
-    matrix g_bonePose[128];
-}
-
-cbuffer BoneOffsetMatrix : register(b4)
-{
-    matrix g_boneOffset[128];
-}
-
-cbuffer WorldTransform : register(b5)
+cbuffer Object : register(b2)
 {
     matrix g_world;
-    uint g_refBoneIndex;
-    float __pad1[3];
+    
+    matrix g_worldInverseTranspose;
+    
+    int g_boneIndex;
+    float __pad1_object[3];
 }
 
-cbuffer OverrideMaterial : register(b6)
+cbuffer Bone : register(b3)
 {
-    float4 g_overrideBaseColor;
-    float g_overrideMetalness;
-    float g_overrideRoughness;
-    int g_overrideMaterial;
-    float g_ambientOcclusion;
+    matrix g_boneTransform[128];
 }
 
-cbuffer HDR : register(b7)
+
+
+struct VS_INPUT_POSITION
 {
-    float g_exposure;
-    float g_maxHDRNits;
-}
+    float3 position : POSITION;
+};
+
+struct PS_INPUT_LOCAL_POSITION
+{
+    float4 position : SV_Position;
+    float3 localPosition : TEXCOORD0;
+};
+
+struct VS_INPUT_TEXCOORD
+{
+    float3 position : POSITION;
+    float2 texCoord : TEXCOORD0;
+};
+
+struct PS_INPUT_TEXCOORD
+{
+    float4 position : SV_Position;
+    float2 texCoord : TEXCOORD0;
+};
 
 struct VS_INPUT_SKINNING
 {
-    float3 pos : POSITION;
-    float2 tex : TEXCOORD0;
-    float3 norm : NORMAL;
-    float3 tan : TANGENT;
-    float3 binorm : BINORMAL;
+    float3 position : POSITION;
+    float2 texCoord : TEXCOORD0;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 binormal : BINORMAL;
     uint4 blendIndices : BLENDINDICES;
     float4 blendWeights : BLENDWEIGHT;
 };
 
 struct VS_INPUT_COMMON
 {
-    float3 pos : POSITION;
-    float2 tex : TEXCOORD0;
-    float3 norm : NORMAL;
-    float3 tan : TANGENT;
-    float3 binorm : BINORMAL;
+    float3 position : POSITION;
+    float2 texCoord : TEXCOORD0;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 binormal : BINORMAL;
 };
 
-struct PS_INPUT
+struct PS_INPUT_GBUFFER
 {
-    float4 pos : SV_Position;
-    float2 tex : TEXCOORD0;
-    float3 norm : TEXCOORD1;
-    float3 tan : TEXCOORD2;
-    float3 binorm : TEXCOORD3;
-    float3 worldPos : TEXCOORD4;
+    float4 position : SV_Position;
+    float2 texCoord : TEXCOORD0;
+    float3 normal : TEXCOORD1;
+    float3 tangent : TEXCOORD2;
+    float3 binormal : TEXCOORD3;
+    float3 worldPosition : TEXCOORD4;
 };
 
-struct PS_INPUT_SHADOW
+struct PS_OUTPUT_GBUFFER
 {
-    float4 pos : SV_Position;
-    float2 tex : TEXCOORD0;
-    float3 norm : TEXCOORD1;
-    float3 tan : TEXCOORD2;
-    float3 binorm : TEXCOORD3;
-    float3 worldPos : TEXCOORD4;
-    float4 lightViewPos : TEXCOORD5;
+    float4 baseColor : SV_Target0;
+    float4 position : SV_Target1;
+    float4 normal : SV_Target2;
+    float4 orm : SV_Target3;
+    float4 emissive : SV_Target4;
 };
+
+
+
 
 static const float PI = 3.141592f;
 static const float EPSILON = 0.00001f;
+static const float3 DielectricFactor = float3(0.04f, 0.04f, 0.04f);
 
 float3 EncodeNormal(float3 n)
 {

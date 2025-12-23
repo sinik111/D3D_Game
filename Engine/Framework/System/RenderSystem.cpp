@@ -3,16 +3,23 @@
 
 #include "Core/Graphics/Resource/ResourceManager.h"
 #include "Core/Graphics/Data/ConstantBufferTypes.h"
+#include "Core/Graphics/Data/ShaderSlotTypes.h"
 #include "Core/Graphics/Resource/ConstantBuffer.h"
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/Scene/Scene.h"
 #include "Framework/Object/Component/Camera.h"
+#include "Framework/Object/Component/Transform.h"
 
 namespace engine
 {
+    namespace
+    {
+        TimePoint g_startTime = Clock::now();
+    }
+
     RenderSystem::RenderSystem()
     {
-        m_transformCB = ResourceManager::Get().GetOrCreateConstantBuffer("Transform", sizeof(TransformBuffer));
+        m_globalConstantBuffer = ResourceManager::Get().GetOrCreateConstantBuffer("Transform", sizeof(CbGlobal));
     }
 
     void RenderSystem::Register(Renderer* renderer)
@@ -56,12 +63,20 @@ namespace engine
         auto deviceContext = GraphicsDevice::Get().GetDeviceContext();
         const auto camera = SceneManager::Get().GetCurrentScene()->GetMainCamera();
         camera->Update();
-        TransformBuffer transformBuffer;
-        transformBuffer.view = camera->GetView().Transpose();
-        transformBuffer.projection = camera->GetProjection().Transpose();
 
-        deviceContext->VSSetConstantBuffers(static_cast<UINT>(ConstantBufferSlot::Transform), 1, m_transformCB->GetBuffer().GetAddressOf());
-        deviceContext->UpdateSubresource(m_transformCB->GetRawBuffer(), 0, nullptr, &transformBuffer, 0, 0);
+        CbGlobal cbGlobal;
+        cbGlobal.view = camera->GetView().Transpose();
+        cbGlobal.projection = camera->GetProjection().Transpose();
+        cbGlobal.viewProjection = (camera->GetView() * camera->GetProjection()).Transpose();
+        cbGlobal.cameraWorldPoistion = camera->GetWorld().Translation();
+        cbGlobal.elapsedTime = Time::GetElapsedSeconds(g_startTime);
+
+        deviceContext->VSSetConstantBuffers(
+            static_cast<UINT>(ConstantBufferSlot::Global),
+            1,
+            m_globalConstantBuffer->GetBuffer().GetAddressOf());
+
+        deviceContext->UpdateSubresource(m_globalConstantBuffer->GetRawBuffer(), 0, nullptr, &cbGlobal, 0, 0);
         for (auto renderer : m_opaqueList)
         {
             renderer->Draw();

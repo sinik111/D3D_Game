@@ -65,7 +65,7 @@ namespace engine
     
     void WinApp::Initialize()
     {
-        SetWindowMode(m_settings.isFullScreen);
+        SetWindowMode(m_settings.isFullscreen);
 
         m_hInstance = GetModuleHandleW(nullptr);
         if (m_hCursor == nullptr)
@@ -89,7 +89,7 @@ namespace engine
         FATAL_CHECK(RegisterClassExW(&wc), "RegisterClassExW failed");
 
         RECT rc{};
-        if (m_settings.isFullScreen)
+        if (m_settings.isFullscreen)
         {
             rc.right = m_screenWidth;
             rc.bottom = m_screenHeight;
@@ -134,7 +134,7 @@ namespace engine
             static_cast<UINT>(m_settings.resolutionHeight),
             static_cast<UINT>(m_screenWidth),
             static_cast<UINT>(m_screenHeight),
-            m_settings.isFullScreen,
+            m_settings.isFullscreen,
             m_settings.useVsync);
 
         Input::Initialize(m_hWnd);
@@ -150,7 +150,7 @@ namespace engine
         float viewX = 0.0f;
         float viewY = 0.0f;
 
-        if (m_settings.isFullScreen)
+        if (m_settings.isFullscreen)
         {
             if (screenAspectRatio > targetAspectRatio)
             {
@@ -313,7 +313,7 @@ namespace engine
         {
             if (supported == currentRes)
             {
-                if (m_settings.isFullScreen)
+                if (m_settings.isFullscreen)
                 {
                     if (supported <= screenRes)
                     {
@@ -340,7 +340,7 @@ namespace engine
             {
                 const auto& supported = *it;
 
-                if (m_settings.isFullScreen)
+                if (m_settings.isFullscreen)
                 {
                     if (supported <= screenRes)
                     {
@@ -371,9 +371,9 @@ namespace engine
         ConfigLoader::Save(m_settingFilePath, m_settings);
     }
 
-    void WinApp::SetWindowMode(bool isFullScreen)
+    void WinApp::SetWindowMode(bool isFullscreen)
     {
-        if (isFullScreen)
+        if (isFullscreen)
         {
             m_windowStyle = WS_POPUP | WS_VISIBLE;
         }
@@ -383,7 +383,7 @@ namespace engine
         }
     }
 
-    void WinApp::SetResolution(int width, int height, bool isFullScreen)
+    void WinApp::SetResolution(int width, int height, bool isFullscreen)
     {
         if (width == 0)
         {
@@ -394,11 +394,11 @@ namespace engine
             height = m_settings.resolutionHeight;
         }
 
-        SetWindowMode(isFullScreen);
+        SetWindowMode(isFullscreen);
         SetWindowLongPtrW(m_hWnd, GWL_STYLE, m_windowStyle);
 
         RECT rc{};
-        if (isFullScreen)
+        if (isFullscreen)
         {
             rc = { 0, 0, m_screenWidth, m_screenHeight };
         }
@@ -422,7 +422,7 @@ namespace engine
             y = 0;
         }
 
-        m_settings.isFullScreen = isFullScreen;
+        m_settings.isFullscreen = isFullscreen;
         
         SetWindowPos(m_hWnd, HWND_TOP, x, y, actualW, actualH, SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 
@@ -431,7 +431,7 @@ namespace engine
             m_settings.resolutionHeight,
             m_screenWidth,
             m_screenHeight,
-            isFullScreen
+            isFullscreen
         );
 
         // Calculate Input Coordinate Transform
@@ -443,7 +443,7 @@ namespace engine
         float viewX = 0.0f;
         float viewY = 0.0f;
 
-        if (isFullScreen)
+        if (isFullscreen)
         {
             if (screenAspectRatio > targetAspectRatio)
             {

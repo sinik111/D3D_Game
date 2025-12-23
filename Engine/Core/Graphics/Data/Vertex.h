@@ -45,7 +45,7 @@ namespace engine
 
         }
 
-        CommonVertex(
+        constexpr CommonVertex(
             const Vector3& position,
             const Vector2& texCoord,
             const Vector3& normal,
