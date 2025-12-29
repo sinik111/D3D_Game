@@ -18,17 +18,25 @@ namespace engine
         std::function<void()> m_onEnter;
 
     public:
-        Scene(const std::string& name, std::function<void()>&& onEnter);
+        Scene();
 
     public:
-        void Enter();
-        void Exit();
-        void Save(const std::string& path);
-        void Load(const std::string& path);
+        void Save();
+        void SaveToJson(json& outJson);
+
+        void Load();
+        void LoadFromJson(const json& inJson);
 
     public:
         GameObject* CreateGameObject(const std::string& name = "GameObject");
         Camera* GetMainCamera() const;
         const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const;
+        const std::string& GetName() const;
+
+        void SetName(std::string_view name);
+
+        GameObject* FindGameObject(const std::string& name);
+
+        void Reset();
     };
 }

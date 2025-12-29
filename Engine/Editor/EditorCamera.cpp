@@ -83,7 +83,6 @@ namespace engine
     void EditorCamera::OnGui()
     {
         ImGui::PushID(this);
-        ImGui::SeparatorText("Editor Camera");
         if (ImGui::DragFloat3("Position", &m_position.x))
         {
             m_isDirty = true;

@@ -8,51 +8,36 @@ namespace engine
     SceneManager::SceneManager() = default;
     SceneManager::~SceneManager() = default;
 
-    void SceneManager::Shutdown()
+    void SceneManager::Initialize()
     {
-        if (m_currentScene != nullptr)
-        {
-            m_currentScene->Exit();
-        }
-
-        m_scenes.clear();
+        m_activeScene = std::make_unique<Scene>();
+        m_activeScene->SetName("SampleScene");
     }
 
-    void SceneManager::CreateScene(const std::string& name, std::function<void()>&& onEnter)
+    void SceneManager::Shutdown()
     {
-        if (m_scenes.find(name) == m_scenes.end())
-        {
-            m_scenes.emplace(name, std::make_unique<Scene>(name, std::move(onEnter)));
-        }
+        m_activeScene.reset();
     }
 
     void SceneManager::ChangeScene(const std::string& name)
     {
-        if (auto it = m_scenes.find(name); it != m_scenes.end())
-        {
-            m_nextScene = it->second.get();
-        }
+        m_nextSceneName = name;
+        m_isSceneChanged = true;
     }
 
     void SceneManager::CheckSceneChanged()
     {
-        if (m_nextScene != nullptr)
+        if (m_isSceneChanged)
         {
-            if (m_currentScene != nullptr)
-            {
-                m_currentScene->Exit();
-            }
+            m_activeScene->SetName(m_nextSceneName);
+            m_activeScene->Load();
 
-            m_currentScene = m_nextScene;
-
-            m_nextScene = nullptr;
-
-            m_currentScene->Enter();
+            m_isSceneChanged = false;
         }
     }
 
-    Scene* SceneManager::GetCurrentScene() const
+    Scene* SceneManager::GetScene() const
     {
-        return m_currentScene;
+        return m_activeScene.get();
     }
 }

@@ -5,11 +5,17 @@
 
 #include "Common/Math/MathUtility.h"
 #include "Common/Utility/JsonHelper.h"
+#include "Common/Utility/StaticMemoryPool.h"
 #include "Framework/System/SystemManager.h"
 #include "Framework/System/TransformSystem.h"
 
 namespace engine
 {
+    namespace
+    {
+        StaticMemoryPool<Transform, 4096> g_transformPool;
+    }
+
     Transform::Transform()
     {
         SystemManager::Get().GetTransformSystem().Register(this);
@@ -29,6 +35,16 @@ namespace engine
         }
 
         SystemManager::Get().GetTransformSystem().Unregister(this);
+    }
+
+    void* Transform::operator new(size_t size)
+    {
+        return g_transformPool.Allocate(size);
+    }
+
+    void Transform::operator delete(void* ptr)
+    {
+        g_transformPool.Deallocate(ptr);
     }
 
     const Vector3& Transform::GetLocalPosition() const
@@ -176,14 +192,12 @@ namespace engine
 
     void Transform::OnGui()
     {
-        Vector3 rotation = GetLocalEulerAngles();
-
-        ImGui::DragFloat3("Position##Transform", &m_localPosition.x, 0.1f);
-        if (ImGui::DragFloat3("Rotation##Transform", &rotation.x, 0.1f))
+        ImGui::DragFloat3("Position", &m_localPosition.x, 0.1f);
+        if (auto euler = GetLocalEulerAngles(); ImGui::DragFloat3("Rotation", &euler.x, 0.1f))
         {
-            SetLocalRotation(rotation);
+            SetLocalRotation(euler);
         }
-        ImGui::DragFloat3("Scale##Transform", &m_localScale.x, 0.1f);
+        ImGui::DragFloat3("Scale", &m_localScale.x, 0.1f);
     }
 
     void Transform::Save(json& j) const

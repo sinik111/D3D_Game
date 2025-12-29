@@ -12,13 +12,16 @@ namespace engine
         public Object
     {
     private:
-        std::string m_name;
+        std::string m_name = "GameObject";
         std::vector<std::unique_ptr<Component>> m_components;
         Transform* m_transform;
 
     public:
-        GameObject(const std::string& name = "GameObject");
+        GameObject();
         ~GameObject() = default;
+
+        static void* operator new(size_t size);
+        static void operator delete(void* ptr);
 
     public:
         Transform* GetTransform() const;

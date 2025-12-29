@@ -24,6 +24,9 @@ namespace engine
         Transform();
         ~Transform();
 
+        static void* operator new(size_t size);
+        static void operator delete(void* ptr);
+
     public:
         const Vector3& GetLocalPosition() const;
         const Quaternion& GetLocalRotation() const;

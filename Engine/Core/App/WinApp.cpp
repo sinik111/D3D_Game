@@ -183,7 +183,9 @@ namespace engine
 
         AssetManager::Get().Initialize();
         ResourceManager::Get().Initialize();
+        SceneManager::Get().Initialize();
         EditorManager::Get().Initialize();
+
 
         IMGUI_CHECKVERSION();
 

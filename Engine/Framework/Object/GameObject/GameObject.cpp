@@ -2,16 +2,33 @@
 #include "GameObject.h"
 
 #include "Common/Utility/JsonHelper.h"
+#include "Common/Utility/StaticMemoryPool.h"
 #include "Framework/Object/Component/Component.h"
 #include "Framework/Object/Component/Transform.h"
 #include "Framework/Object/Component/ComponentFactory.h"
 
 namespace engine
 {
-    GameObject::GameObject(const std::string& name)
-        : m_name{ name }
+    namespace
     {
+        StaticMemoryPool<GameObject, 4096> g_gameObjectPool;
+    }
+
+    GameObject::GameObject()
+    {
+        m_components.reserve(8);
+
         m_transform = AddComponent<Transform>();
+    }
+
+    void* GameObject::operator new(size_t size)
+    {
+        return g_gameObjectPool.Allocate(size);
+    }
+
+    void GameObject::operator delete(void* ptr)
+    {
+        g_gameObjectPool.Deallocate(ptr);
     }
 
     Transform* GameObject::GetTransform() const

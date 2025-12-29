@@ -45,7 +45,8 @@
         <PostBuildEvent>
             <Command>
 				xcopy /Y /D "$(Vendor)\$(TripletDynamic)\debug\bin\*.dll" "$(OutDir)"
-				xcopy /E /Y /D "$(SolutionDir)Resource" "$(OutDir)Resource\"
+				if exist "$(OutDir)Resource" rmdir /S /Q "$(OutDir)Resource"
+				if not exist "$(OutDir)Resource" mklink /J "$(OutDir)Resource" "$(SolutionDir)Resource"
 				if exist "$(ProjectDir)Shader" xcopy /E /Y /D "$(ProjectDir)Shader" "$(OutDir)Shader\"
 			</Command>
 		</PostBuildEvent>
@@ -74,7 +75,8 @@
         <PostBuildEvent>
             <Command>
 				xcopy /Y /D "$(Vendor)\$(TripletDynamic)\bin\*.dll" "$(OutDir)"
-				xcopy /E /Y /D "$(SolutionDir)Resource" "$(OutDir)Resource\"
+				if exist "$(OutDir)Resource" rmdir /S /Q "$(OutDir)Resource"
+				if not exist "$(OutDir)Resource" mklink /J "$(OutDir)Resource" "$(SolutionDir)Resource"
 				if exist "$(ProjectDir)Shader" xcopy /E /Y /D "$(ProjectDir)Shader" "$(OutDir)Shader\"
 			</Command>
 		</PostBuildEvent>

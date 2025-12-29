@@ -69,6 +69,28 @@ namespace engine
         //}
     }
 
+    void Camera::OnGui()
+    {
+        ImGui::DragFloat("Near", &m_near, 0.1f, 0.01f, 10.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::DragFloat("Far", &m_far, 0.1f, 100.0f, 100000.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::DragFloat("FOV", &m_fov, 0.1f, 1.0f, 179.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+    }
+
+    void Camera::Save(json& j) const
+    {
+        j["Type"] = "Camera";
+        j["Near"] = m_near;
+        j["Far"] = m_far;
+        j["FOV"] = m_fov;
+    }
+
+    void Camera::Load(const json& j)
+    {
+        JsonGet(j, "Near", m_near);
+        JsonGet(j, "Far", m_far);
+        JsonGet(j, "FOV", m_fov);
+    }
+
     std::string Camera::GetType() const
     {
         return "Camera";

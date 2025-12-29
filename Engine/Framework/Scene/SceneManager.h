@@ -12,23 +12,23 @@ namespace engine
         public Singleton<SceneManager>
     {
     private:
-        std::unordered_map<std::string, std::unique_ptr<Scene>> m_scenes;
+        std::unique_ptr<Scene> m_activeScene;
 
-        Scene* m_currentScene = nullptr;
-        Scene* m_nextScene = nullptr;
+        std::string m_nextSceneName;
+        bool m_isSceneChanged = false;
 
     private:
         SceneManager();
         ~SceneManager();
 
     public:
+        void Initialize();
         void Shutdown();
 
     public:
-        void CreateScene(const std::string& name, std::function<void()>&& onEnter);
         void ChangeScene(const std::string& name);
         void CheckSceneChanged();
-        Scene* GetCurrentScene() const;
+        Scene* GetScene() const;
 
     private:
         friend class Singleton<SceneManager>;

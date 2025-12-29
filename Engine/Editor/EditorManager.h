@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "Editor/ProjectSettings.h"
+
 namespace engine
 {
     class GameObject;
@@ -17,8 +19,20 @@ namespace engine
     {
     private:
         GameObject* m_selectedObject = nullptr;
-        EditorState m_editorState = EditorState::Edit;
         std::unique_ptr<EditorCamera> m_editorCamera = nullptr;
+        EditorState m_editorState = EditorState::Edit;
+
+        ProjectSettings m_projectSettings;
+        std::vector<std::string> m_cachedSceneFiles;
+        std::string m_nextScenePending;
+        std::string m_sceneToDelete;
+        std::string m_sceneToRename;
+
+        int m_selectedSceneIndex = -1;
+        int m_selectedBuildSceneIndex = -1;
+
+        bool m_shouldOpenUnsavedPopup = false;
+
 
     private:
         EditorManager();
@@ -36,10 +50,18 @@ namespace engine
         void SetSelectedObject(GameObject* gameObject);
 
     private:
+        void DrawPlayController();
         void DrawEditorController();
         void DrawHierarchy();
         void DrawEntityNode(GameObject* gameObject);
         void DrawInspector();
+
+        void ValidateSettingsList();
+        void RefreshFileCache();
+        bool IsSceneDirty();
+        void RequestSceneChange(const std::string& nextSceneName);
+        void RequestNewScene();
+        void CreateNewScene();
 
     private:
         friend class Singleton<EditorManager>;
