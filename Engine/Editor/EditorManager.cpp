@@ -131,7 +131,6 @@ namespace engine
 
         ImGui::SameLine();
 
-        // 3. Pause/Resume 버튼
         if (m_editorState == EditorState::Pause)
         {
             if (ImGui::Button("Resume"))
@@ -196,6 +195,19 @@ namespace engine
 
                         ImGui::EndDragDropTarget();
                     }
+
+                    if (ImGui::BeginPopupContextItem())
+                    {
+                        if (ImGui::MenuItem("Remove"))
+                        {
+                            m_projectSettings.sceneList.erase(m_projectSettings.sceneList.begin() + i);
+                            m_projectSettings.Save();
+
+                            ImGui::EndPopup();
+                            break;
+                        }
+                        ImGui::EndPopup();
+                    }
                 }
             }
 
@@ -224,15 +236,6 @@ namespace engine
                     }
                 }
                 ImGui::EndDragDropTarget();
-            }
-
-            if (ImGui::Button("Remove Selected") &&
-                m_selectedBuildSceneIndex >= 0 &&
-                m_selectedBuildSceneIndex < m_projectSettings.sceneList.size())
-            {
-                m_projectSettings.sceneList.erase(m_projectSettings.sceneList.begin() + m_selectedBuildSceneIndex);
-                m_selectedBuildSceneIndex = -1;
-                m_projectSettings.Save();
             }
         }
 
