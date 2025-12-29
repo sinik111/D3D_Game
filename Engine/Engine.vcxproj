@@ -170,7 +170,7 @@
     <ClCompile Include="Core\System\MyTime.cpp" />
     <ClCompile Include="Editor\EditorCamera.cpp" />
     <ClCompile Include="Editor\EditorManager.cpp" />
-    <ClCompile Include="Editor\ProjectSettings.cpp" />
+    <ClCompile Include="Core\System\ProjectSettings.cpp" />
     <ClCompile Include="Framework\Asset\AnimationData.cpp" />
     <ClCompile Include="Framework\Asset\AssetManager.cpp" />
     <ClCompile Include="Framework\Asset\FBXData.cpp" />
@@ -210,7 +210,7 @@
     <ClInclude Include="Core\Graphics\Data\ShaderSlotTypes.h" />
     <ClInclude Include="Editor\EditorCamera.h" />
     <ClInclude Include="Editor\EditorManager.h" />
-    <ClInclude Include="Editor\ProjectSettings.h" />
+    <ClInclude Include="Core\System\ProjectSettings.h" />
     <ClInclude Include="Framework\Asset\DefaultAssetTypes.h" />
     <ClInclude Include="Core\Graphics\Resource\MaterialHelper.h" />
     <ClInclude Include="Common\Utility\Profiling.h" />

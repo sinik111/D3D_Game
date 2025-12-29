@@ -8,7 +8,6 @@
 #include "Framework/Object/Component/Camera.h"
 
 #include "Script/TestScript.h"
-#include "Script/EditorCameraController.h"
 
 namespace game
 {

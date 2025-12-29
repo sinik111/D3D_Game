@@ -10,6 +10,7 @@
 #include "Core/Graphics/Device/GraphicsDevice.h"
 #include "Core/Graphics/Resource/ResourceManager.h"
 #include "Core/App/ConfigLoader.h"
+#include "Core/System/ProjectSettings.h"
 #include "Framework/Asset/AssetManager.h"
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/System/SystemManager.h"
@@ -181,18 +182,33 @@ namespace engine
 
         Input::SetCoordinateTransform(viewX, viewY, scaleX, scaleY);
 
-        AssetManager::Get().Initialize();
-        ResourceManager::Get().Initialize();
-        SceneManager::Get().Initialize();
-        EditorManager::Get().Initialize();
-
-
         IMGUI_CHECKVERSION();
 
         ImGui::CreateContext();
 
         ImGui_ImplWin32_Init(m_hWnd);
         ImGui_ImplDX11_Init(GraphicsDevice::Get().GetDevice().Get(), GraphicsDevice::Get().GetDeviceContext().Get());
+
+        AssetManager::Get().Initialize();
+        ResourceManager::Get().Initialize();
+        SceneManager::Get().Initialize();
+
+#ifdef _DEBUG
+        EditorManager::Get().Initialize();
+#else
+        ProjectSettings settings;
+        settings.Load();
+        
+        if (!settings.sceneList.empty())
+        {
+            SceneManager::Get().ChangeScene(settings.sceneList[0]);
+        }
+        else
+        {
+            FATAL_CHECK(false, "프로젝트 세팅 파일 오류");
+        }
+#endif // _DEBUG
+        
     }
 
     void WinApp::Shutdown()
@@ -237,6 +253,7 @@ namespace engine
         Time::Update();
         Input::Update();
 
+#ifdef _DEBUG
         switch (EditorManager::Get().GetEditorState())
         {
         case EditorState::Edit:
@@ -256,7 +273,13 @@ namespace engine
         case EditorState::Pause:
             break;
         }
+#else
+        SceneManager::Get().CheckSceneChanged();
 
+        SystemManager::Get().GetScriptSystem().CallStart();
+        SystemManager::Get().GetScriptSystem().CallUpdate();
+        SystemManager::Get().GetCameraSystem().Update();
+#endif // _DEBUG
     }
 
     void WinApp::Render()

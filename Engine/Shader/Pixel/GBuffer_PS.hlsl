@@ -7,12 +7,12 @@ PS_OUTPUT_GBUFFER main(PS_INPUT_GBUFFER input)
     output.baseColor = g_texBaseColor.Sample(g_samLinear, input.texCoord);
     clip(output.baseColor.a - 0.5f);
     
-    output.baseColor = float4(pow(output.baseColor.rgb, 2.2f), output.baseColor.a);
+    output.baseColor = float4(pow(abs(output.baseColor.rgb), 2.2f), output.baseColor.a);
     
     output.position = float4(input.worldPosition, 1.0f);
     
     float3 encodedNormal = g_texNormal.Sample(g_samLinear, input.texCoord).rgb;
-    output.emissive = float4(pow(g_texEmissive.Sample(g_samLinear, input.texCoord).rgb, 2.2f), 1.0f);
+    output.emissive = float4(pow(abs(g_texEmissive.Sample(g_samLinear, input.texCoord).rgb), 2.2f), 1.0f);
     output.orm.r = g_texAmbientOcclusion.Sample(g_samLinear, input.texCoord).r;
     output.orm.g = g_texRoughness.Sample(g_samLinear, input.texCoord).r;
     output.orm.b = g_texMetalness.Sample(g_samLinear, input.texCoord).r;

@@ -148,6 +148,7 @@ namespace engine
         Matrix view, projection;
         Vector3 cameraPosition;
 
+#ifdef _DEBUG
         switch (EditorManager::Get().GetEditorState())
         {
         case EditorState::Edit:
@@ -174,6 +175,17 @@ namespace engine
         }
             break;
         }
+#else
+        auto* cam = SystemManager::Get().GetCameraSystem().GetMainCamera();
+        if (cam == nullptr)
+        {
+            return;
+        }
+
+        view = cam->GetView();
+        projection = cam->GetProjection();
+        cameraPosition = GetTranslation(cam->GetWorld());
+#endif // _DEBUG
 
 
         CbGlobal cbGlobal;

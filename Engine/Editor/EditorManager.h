@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Editor/ProjectSettings.h"
+#include "Core/System/ProjectSettings.h"
 
 namespace engine
 {
