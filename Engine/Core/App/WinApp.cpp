@@ -3,16 +3,24 @@
 
 #include <DirectXColors.h>
 
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
+
 #include "Common/Utility/Profiling.h"
 #include "Core/Graphics/Device/GraphicsDevice.h"
 #include "Core/Graphics/Resource/ResourceManager.h"
 #include "Core/App/ConfigLoader.h"
+#include "Core/System/ProjectSettings.h"
 #include "Framework/Asset/AssetManager.h"
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/System/SystemManager.h"
 #include "Framework/System/ScriptSystem.h"
 #include "Framework/System/TransformSystem.h"
 #include "Framework/System/RenderSystem.h"
+#include "Framework/System/CameraSystem.h"
+#include "Editor/EditorManager.h"
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace engine
 {
@@ -174,12 +182,41 @@ namespace engine
 
         Input::SetCoordinateTransform(viewX, viewY, scaleX, scaleY);
 
+        IMGUI_CHECKVERSION();
+
+        ImGui::CreateContext();
+
+        ImGui_ImplWin32_Init(m_hWnd);
+        ImGui_ImplDX11_Init(GraphicsDevice::Get().GetDevice().Get(), GraphicsDevice::Get().GetDeviceContext().Get());
+
         AssetManager::Get().Initialize();
         ResourceManager::Get().Initialize();
+        SceneManager::Get().Initialize();
+
+#ifdef _DEBUG
+        EditorManager::Get().Initialize();
+#else
+        ProjectSettings settings;
+        settings.Load();
+        
+        if (!settings.sceneList.empty())
+        {
+            SceneManager::Get().ChangeScene(settings.sceneList[0]);
+        }
+        else
+        {
+            FATAL_CHECK(false, "프로젝트 세팅 파일 오류");
+        }
+#endif // _DEBUG
+        
     }
 
     void WinApp::Shutdown()
     {
+        ImGui_ImplDX11_Shutdown();
+        ImGui_ImplWin32_Shutdown();
+        ImGui::DestroyContext();
+
         SceneManager::Get().Shutdown();
         SystemManager::Get().Shutdown();
         ResourceManager::Get().Cleanup();
@@ -216,21 +253,61 @@ namespace engine
         Time::Update();
         Input::Update();
 
-        SceneManager::Get().CheckSceneChanged();
+#ifdef _DEBUG
+        switch (EditorManager::Get().GetEditorState())
+        {
+        case EditorState::Edit:
+            SceneManager::Get().CheckSceneChanged();
+            SceneManager::Get().ProcessPendingAdds(false);
 
-        SystemManager::Get().Script().CallStart();
-        SystemManager::Get().Script().CallUpdate();
+            EditorManager::Get().Update();
+            break;
+
+        case EditorState::Play:
+            SceneManager::Get().CheckSceneChanged();
+            SceneManager::Get().ProcessPendingAdds(true);
+            SceneManager::Get().ProcessPendingKills();
+
+            SystemManager::Get().GetScriptSystem().CallStart();
+            SystemManager::Get().GetScriptSystem().CallUpdate();
+
+            SystemManager::Get().GetCameraSystem().Update();
+            break;
+
+        case EditorState::Pause:
+            break;
+        }
+#else
+        SceneManager::Get().CheckSceneChanged();
+        SceneManager::Get().ProcessPendingAdds(true);
+        SceneManager::Get().ProcessPendingKills();
+
+        SystemManager::Get().GetScriptSystem().CallStart();
+        SystemManager::Get().GetScriptSystem().CallUpdate();
+        SystemManager::Get().GetCameraSystem().Update();
+#endif // _DEBUG
     }
 
     void WinApp::Render()
     {
-        SystemManager::Get().Render().Render();
+        SystemManager::Get().GetRenderSystem().Render();
 
-        SystemManager::Get().Transform().UnmarkDirtyThisFrame();
+#ifdef _DEBUG
+        EditorManager::Get().Render();
+#endif //_DEBUG
+
+        GraphicsDevice::Get().EndDraw();
+
+        SystemManager::Get().GetTransformSystem().UnmarkDirtyThisFrame();
     }
 
     LRESULT WinApp::MessageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
+        if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+        {
+            return 0;
+        }
+
         switch (uMsg)
         {
         case WM_DESTROY:

@@ -2,6 +2,8 @@
 #include "Component.h"
 
 #include "Framework/Object/GameObject/GameObject.h"
+#include "Framework/Scene/SceneManager.h"
+#include "Framework/Scene/Scene.h"
 
 namespace engine
 {
@@ -15,8 +17,20 @@ namespace engine
         return m_owner->GetTransform();
     }
 
-    void Component::SetOwner(GameObject* owner)
+    void Component::Destroy()
     {
-        m_owner = owner;
+        if (m_isPendingKill)
+        {
+            return;
+        }
+
+        m_isPendingKill = true;
+
+        SceneManager::Get().GetScene()->RegisterPendingKill(this);
+    }
+
+    bool Component::IsPendingKill() const
+    {
+        return m_isPendingKill;
     }
 }

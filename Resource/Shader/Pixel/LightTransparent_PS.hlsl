@@ -1,0 +1,158 @@
+#include "../Include/Shared.hlsli"
+
+float NDFGGXTR(float nDotH, float roughness)
+{
+    float a = roughness * roughness;
+    float aSq = a * a;
+    
+    float denom = (nDotH * nDotH) * (aSq - 1.0f) + 1.0f;
+    
+    return aSq / (PI * denom * denom);
+}
+
+float3 FresnelSchlick(float3 f0, float cosTheta)
+{
+    return f0 + (1.0f - f0) * pow(1.0f - cosTheta, 5.0f);
+}
+
+float GAFSchlickGGXSub(float cosTheta, float k)
+{
+    return cosTheta / (cosTheta * (1.0f - k) + k);
+}
+
+float GAFSchlickGGX(float nDotV, float nDotL, float roughness)
+{
+    float a = roughness + 1.0f;
+    float k = (a * a) / 8.0f;
+    
+    return GAFSchlickGGXSub(nDotV, k) * GAFSchlickGGXSub(nDotL, k);
+}
+
+float4 main(PS_INPUT_GBUFFER input) : SV_Target
+{
+    float4 baseColor = g_texBaseColor.Sample(g_samLinear, input.texCoord);
+    float3 encodedNormal = g_texNormal.Sample(g_samLinear, input.texCoord).rgb;
+    float3 worldPosition = input.worldPosition;
+    float3 emissive = g_texEmissive.Sample(g_samLinear, input.texCoord).rgb;
+    float ao = g_texAmbientOcclusion.Sample(g_samLinear, input.texCoord).r;
+    float roughness = g_texRoughness.Sample(g_samLinear, input.texCoord).r;
+    float metalness = g_texMetalness.Sample(g_samLinear, input.texCoord).r;
+    
+    // normal
+    float3 n = DecodeNormal(encodedNormal);
+    
+    // view
+    float3 v = normalize(g_cameraWorldPosition - worldPosition);
+    
+    // light
+    float3 l = -g_mainLightWorldDirection;
+    
+    // l-v half
+    float3 h = normalize(l + v);
+    
+    float nDotH = max(0.0f, dot(n, h));
+    
+    float nDotL = max(0.0f, dot(n, l));
+    
+    float nDotV = max(0.0f, dot(n, v));
+    
+    float hDotV = max(0.0f, dot(h, v));
+    
+    // shadow
+    float4 lightClipPos = mul(float4(worldPosition, 1.0f), g_mainLightViewProjection);
+    
+    float shadowFactor = 1.0f;
+    //float currentShadowDepth = lightClipPos.z / lightClipPos.w;
+    //float2 shadowMapUV = lightClipPos.xy / lightClipPos.w;
+    
+    //shadowMapUV.y = -shadowMapUV.y;
+    //shadowMapUV = shadowMapUV * 0.5f + 0.5f;
+    
+    //if (all(shadowMapUV >= 0.0f) && all(shadowMapUV <= 1.0f))
+    //{
+    //    if (g_useShadowPCF)
+    //    {
+    //        if (currentShadowDepth > 1.0f)
+    //        {
+    //            shadowFactor = 1.0f;
+    //        }
+    //        else
+    //        {
+    //            float texelSize = 1.0f / g_shadowMapSize;
+
+    //            int max = g_pcfSize;
+    //            float sum = 0.0f;
+    //            for (int y = -max; y <= max; ++y)
+    //            {
+    //                for (int x = -max; x <= max; ++x)
+    //                {
+    //                    float2 offset = float2(x, y) * texelSize;
+    //                    float2 sampleUV = shadowMapUV + offset;
+
+    //                    sum += g_texShadowMap.SampleCmpLevelZero(g_samComparison, sampleUV, currentShadowDepth - 0.0001f);
+    //                }
+    //            }
+    //            shadowFactor = sum / ((max * 2 + 1) * (max * 2 + 1));
+    //        }
+    //    }
+    //    else
+    //    {
+    //        float sampleShadowDepth = g_texShadowMap.Sample(g_samLinear, shadowMapUV).r;
+    //        if (currentShadowDepth > 1.0f)
+    //        {
+    //            shadowFactor = 1.0f;
+    //        }
+    //        else if (currentShadowDepth > sampleShadowDepth + 0.001f)
+    //        {
+    //            shadowFactor = 0.0f;
+    //        }
+    //    }
+    //}
+    
+    float3 f0 = lerp(DielectricFactor, baseColor.rgb, metalness);
+    
+    float g = GAFSchlickGGX(nDotV, nDotL, roughness);
+    
+    float3 directLighting = 0.0f;
+    {
+        float d = NDFGGXTR(nDotH, max(0.1f, roughness));
+        
+        float3 f = FresnelSchlick(f0, hDotV);
+        
+        float3 kd = lerp(1.0f - f, 0.0f, metalness);
+        
+        float3 diffuseBRDF = kd * baseColor.rgb / PI;
+        float3 specularBRDF = (f * d * g) / max(EPSILON, 4.0f * nDotL * nDotV);
+    
+        directLighting = (diffuseBRDF + specularBRDF) * g_mainLightColor * g_mainLightIntensity * nDotL * shadowFactor;
+    }
+    
+    float3 ambientLighting = 0.0f;
+    if (g_useIBL)
+    {
+        float3 f = FresnelSchlick(f0, nDotV);
+        
+        float3 kd = lerp(1.0f - f, 0.0f, metalness);
+        
+        float3 irradiance = g_texIBLIrradiance.Sample(g_samLinear, n).rgb;
+    
+        float3 diffuseIBL = kd * baseColor.rgb / PI * irradiance;
+    
+        uint specularTextureLevels, width, height;
+        g_texIBLSpecular.GetDimensions(0, width, height, specularTextureLevels);
+    
+        float3 viewReflect = -(v - 2.0 * nDotV * n);
+    
+        float3 prefilteredColor = g_texIBLSpecular.SampleLevel(g_samLinear, viewReflect, roughness * specularTextureLevels).rgb;
+    
+        float2 specularBRDF = g_texIBLSpecularBRDFLUT.Sample(g_samClamp, float2(nDotV, roughness)).rg;
+    
+        float3 specularIBL = prefilteredColor * (f0 * specularBRDF.x + specularBRDF.y);
+        
+        ambientLighting = (diffuseIBL + specularIBL) * ao;
+    }
+    
+    float3 final = directLighting + ambientLighting + emissive;
+    
+    return float4(final, baseColor.a);
+}

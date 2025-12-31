@@ -4,14 +4,16 @@
 #include <imgui.h>
 
 #include "Common/Math/MathUtility.h"
+#include "Common/Utility/JsonHelper.h"
+#include "Common/Utility/StaticMemoryPool.h"
 #include "Framework/System/SystemManager.h"
 #include "Framework/System/TransformSystem.h"
 
 namespace engine
 {
-    Transform::Transform()
+    namespace
     {
-        SystemManager::Get().Transform().Register(this);
+        StaticMemoryPool<Transform, 4096> g_transformPool;
     }
 
     Transform::~Transform()
@@ -27,7 +29,22 @@ namespace engine
             child->MarkDirty();
         }
 
-        SystemManager::Get().Transform().Unregister(this);
+        SystemManager::Get().GetTransformSystem().Unregister(this);
+    }
+
+    void* Transform::operator new(size_t size)
+    {
+        return g_transformPool.Allocate(size);
+    }
+
+    void Transform::operator delete(void* ptr)
+    {
+        g_transformPool.Deallocate(ptr);
+    }
+
+    void Transform::Initialize()
+    {
+        SystemManager::Get().GetTransformSystem().Register(this);
     }
 
     const Vector3& Transform::GetLocalPosition() const
@@ -64,19 +81,20 @@ namespace engine
 
         return m_world;
     }
+
     Vector3 Transform::GetForward() const
     {
-        return Vector3::Transform(-Vector3::Forward, m_localRotation);
+        return engine::GetForward(m_world);
     }
 
     Vector3 Transform::GetUp() const
     {
-        return Vector3::Transform(Vector3::Up, m_localRotation);
+        return engine::GetUp(m_world);
     }
 
     Vector3 Transform::GetRight() const
     {
-        return Vector3::Transform(Vector3::Right, m_localRotation);
+        return engine::GetRight(m_world);
     }
 
     bool Transform::IsDirtyThisFrame() const
@@ -146,21 +164,88 @@ namespace engine
         return m_children;
     }
 
+    Transform* Transform::GetParent() const
+    {
+        return m_parent;
+    }
+
     void Transform::UnmarkDirtyThisFrame()
     {
         m_isDirtyThisFrame = false;
     }
 
+    bool Transform::IsAncestorOf(Transform* other) const
+    {
+        Transform* current = other;
+        while (current != nullptr)
+        {
+            if (current == this)
+            {
+                return true;
+            }
+
+            current = current->GetParent();
+        }
+
+        return false;
+    }
+
+    bool Transform::IsDescendantOf(Transform* other) const
+    {
+        if (other == nullptr)
+        {
+            return false;
+        }
+
+        Transform* current = m_parent;
+        while (current != nullptr)
+        {
+            if (current == other)
+            {
+                return true;
+            }
+
+            current = current->GetParent();
+        }
+        return false;
+    }
+
     void Transform::OnGui()
     {
-        Vector3 rotation = GetLocalEulerAngles();
-
-        ImGui::DragFloat3("Position##Transform", &m_localPosition.x, 0.1f);
-        if (ImGui::DragFloat3("Rotation##Transform", &rotation.x, 0.1f))
+        if (ImGui::DragFloat3("Position", &m_localPosition.x, 0.1f))
         {
-            SetLocalRotation(rotation);
+            MarkDirty();
         }
-        ImGui::DragFloat3("Scale##Transform", &m_localScale.x, 0.1f);
+
+        if (auto euler = GetLocalEulerAngles(); ImGui::DragFloat3("Rotation", &euler.x, 0.1f))
+        {
+            SetLocalRotation(euler);
+        }
+
+        if (ImGui::DragFloat3("Scale", &m_localScale.x, 0.1f))
+        {
+            MarkDirty();
+        }
+    }
+
+    void Transform::Save(json& j) const
+    {
+        j["Type"] = "Transform";
+        j["Position"] = m_localPosition;
+        j["Rotation"] = m_localRotation;
+        j["Scale"] = m_localScale;
+    }
+
+    void Transform::Load(const json& j)
+    {
+        JsonGet(j, "Position", m_localPosition);
+        JsonGet(j, "Rotation", m_localRotation);
+        JsonGet(j, "Scale", m_localScale);
+    }
+
+    std::string Transform::GetType() const
+    {
+        return "Transform";
     }
 
     void Transform::RecalculateWorldMatrix()

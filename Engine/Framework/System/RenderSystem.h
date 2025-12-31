@@ -22,9 +22,10 @@ namespace engine
     {
     private:
         std::vector<Renderer*> m_opaqueList;
+        std::vector<Renderer*> m_cutoutList;
         std::vector<Renderer*> m_transparentList;
         std::vector<Renderer*> m_screenList;
-        std::vector<Renderer*> m_shadowList;
+
         std::shared_ptr<ConstantBuffer> m_globalConstantBuffer;
         std::shared_ptr<SamplerState> m_comparisonSamplerState;
         std::shared_ptr<SamplerState> m_clampSamplerState;

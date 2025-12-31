@@ -4,6 +4,8 @@
 #include <dxgi1_5.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
 
 #include "Common/Utility/Profiling.h"
 #include "Core/Graphics/Data/Vertex.h"
@@ -166,15 +168,31 @@ namespace engine
         m_deviceContext->DrawIndexed(m_quadIndexCount, 0, 0);
     }
 
+    void GraphicsDevice::ClearAllViews()
+    {
+        constexpr float clearColor[4]{ 0.0f, 0.0f, 0.0f, 1.0f };
+
+        m_deviceContext->ClearDepthStencilView(m_shadowDepthBuffer->GetRawDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+        m_deviceContext->ClearDepthStencilView(m_gameDepthBuffer->GetRawDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+        m_deviceContext->ClearRenderTargetView(m_gBuffer.baseColor->GetRawRTV(), clearColor);
+        m_deviceContext->ClearRenderTargetView(m_gBuffer.position->GetRawRTV(), clearColor);
+        m_deviceContext->ClearRenderTargetView(m_gBuffer.normal->GetRawRTV(), clearColor);
+        m_deviceContext->ClearRenderTargetView(m_gBuffer.orm->GetRawRTV(), clearColor);
+        m_deviceContext->ClearRenderTargetView(m_gBuffer.emissive->GetRawRTV(), clearColor);
+        m_deviceContext->ClearRenderTargetView(m_hdrBuffer->GetRawRTV(), clearColor);
+        m_deviceContext->ClearRenderTargetView(m_finalBuffer->GetRawRTV(), clearColor);
+        m_deviceContext->ClearRenderTargetView(m_backBufferRTV.Get(), clearColor);
+    }
+
     void GraphicsDevice::BeginDrawShadowPass()
     {
-        m_deviceContext->ClearDepthStencilView(m_shadowDepthBuffer->GetRawDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-        m_deviceContext->OMSetRenderTargets(0, nullptr, m_shadowDepthBuffer->GetRawDSV());
-        m_deviceContext->OMSetDepthStencilState(nullptr, 0);
+        m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         m_deviceContext->RSSetViewports(1, &m_shadowViewport);
         m_deviceContext->RSSetState(m_shadowMapRSS->GetRawRasterizerState());
+
+        m_deviceContext->OMSetRenderTargets(0, nullptr, m_shadowDepthBuffer->GetRawDSV());
+        m_deviceContext->OMSetDepthStencilState(nullptr, 0);
     }
 
     void GraphicsDevice::EndDrawShadowPass()
@@ -184,16 +202,6 @@ namespace engine
 
     void GraphicsDevice::BeginDrawGeometryPass()
     {
-        constexpr float clearColor[4]{ 0.0f, 0.0f, 0.0f, 1.0f };
-
-        m_deviceContext->ClearRenderTargetView(m_gBuffer.baseColor->GetRawRTV(), clearColor);
-        m_deviceContext->ClearRenderTargetView(m_gBuffer.position->GetRawRTV(), clearColor);
-        m_deviceContext->ClearRenderTargetView(m_gBuffer.normal->GetRawRTV(), clearColor);
-        m_deviceContext->ClearRenderTargetView(m_gBuffer.orm->GetRawRTV(), clearColor);
-        m_deviceContext->ClearRenderTargetView(m_gBuffer.emissive->GetRawRTV(), clearColor);
-
-        m_deviceContext->ClearDepthStencilView(m_gameDepthBuffer->GetRawDSV(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
         m_deviceContext->RSSetViewports(1, &m_gameViewport);
         m_deviceContext->RSSetState(nullptr);
 
@@ -212,12 +220,6 @@ namespace engine
 
     void GraphicsDevice::BeginDrawLightPass()
     {
-        constexpr float clearColor[4]{ 0.0f, 0.0f, 0.0f, 1.0f };
-
-        m_deviceContext->ClearRenderTargetView(m_hdrBuffer->GetRawRTV(), clearColor);
-
-        m_deviceContext->OMSetRenderTargets(1, m_hdrBuffer->GetRTV().GetAddressOf(), nullptr);
-
         m_deviceContext->RSSetState(nullptr);
 
         m_deviceContext->PSSetShader(m_globalLightPS.Get(), nullptr, 0);
@@ -225,6 +227,9 @@ namespace engine
 
         auto srvs = m_gBuffer.GetRawSRVs();
         m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::GBufferBaseColor), 5, srvs.data());
+        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::ShadowMap), 1, m_shadowDepthBuffer->GetSRV().GetAddressOf());
+
+        m_deviceContext->OMSetRenderTargets(1, m_hdrBuffer->GetRTV().GetAddressOf(), nullptr);
     }
 
     void GraphicsDevice::EndDrawLightPass()
@@ -233,14 +238,17 @@ namespace engine
 
         ID3D11ShaderResourceView* nullSRVs[5]{};
         m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::GBufferBaseColor), 5, nullSRVs);
+        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::ShadowMap), 1, nullSRVs);
     }
 
     void GraphicsDevice::BeginDrawForwardPass()
     {
-        m_deviceContext->OMSetRenderTargets(1, m_hdrBuffer->GetRTV().GetAddressOf(), m_gameDepthBuffer->GetRawDSV());
+        m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         m_deviceContext->RSSetViewports(1, &m_gameViewport);
         m_deviceContext->RSSetState(nullptr);
+
+        m_deviceContext->OMSetRenderTargets(1, m_hdrBuffer->GetRTV().GetAddressOf(), m_gameDepthBuffer->GetRawDSV());
     }
 
     void GraphicsDevice::EndDrawForwardPass()
@@ -250,9 +258,8 @@ namespace engine
 
     void GraphicsDevice::BeginDrawPostProccessingPass()
     {
-        m_deviceContext->ClearRenderTargetView(m_finalBuffer->GetRawRTV(), Color(0.0f, 0.0f, 0.0f, 1.0f));
 
-        m_deviceContext->OMSetRenderTargets(1, m_finalBuffer->GetRTV().GetAddressOf(), nullptr);
+        m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         m_deviceContext->RSSetViewports(1, &m_gameViewport);
         m_deviceContext->RSSetState(nullptr);
@@ -270,6 +277,8 @@ namespace engine
 
         m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::HDR), 1, m_hdrBuffer->GetSRV().GetAddressOf());
         m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerSlot::Linear), 1, m_samplerLinear.GetAddressOf());
+
+        m_deviceContext->OMSetRenderTargets(1, m_finalBuffer->GetRTV().GetAddressOf(), nullptr);
     }
 
     void GraphicsDevice::EndDrawPostProccessingPass()
@@ -280,19 +289,40 @@ namespace engine
         m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::HDR), 1, &nullSRV);
     }
 
+    void GraphicsDevice::BeginDrawScreenPass()
+    {
+        m_deviceContext->OMSetRenderTargets(1, m_finalBuffer->GetRTV().GetAddressOf(), nullptr);
+    }
+
+    void GraphicsDevice::EndDrawScreenPass()
+    {
+        m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    }
+
     void GraphicsDevice::BeginDrawGUIPass()
     {
+        m_deviceContext->OMSetRenderTargets(1, m_finalBuffer->GetRTV().GetAddressOf(), nullptr);
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+        ImGui_ImplDX11_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+
+        ImGui::NewFrame();
     }
 
     void GraphicsDevice::EndDrawGUIPass()
     {
+        ImGui::Render();
+
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+        m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     }
 
     void GraphicsDevice::EndDraw()
     {
-        m_deviceContext->ClearRenderTargetView(m_backBufferRTV.Get(), Color(0.0f, 0.0f, 0.0f, 1.0f));
-
-        m_deviceContext->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), nullptr);
 
         m_deviceContext->RSSetViewports(1, &m_backBufferViewport);
         m_deviceContext->RSSetState(nullptr);
@@ -300,6 +330,8 @@ namespace engine
         m_deviceContext->PSSetShader(m_blitPS.Get(), nullptr, 0);
         m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_finalBuffer->GetSRV().GetAddressOf());
         m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerSlot::Linear), 1, m_samplerLinear.GetAddressOf());
+
+        m_deviceContext->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), nullptr);
 
         DrawFullscreenQuad();
 
@@ -596,6 +628,13 @@ namespace engine
             Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
             HR_CHECK(m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)));
             HR_CHECK(m_device->CreateRenderTargetView(backBuffer.Get(), nullptr, &m_backBufferRTV));
+
+            Microsoft::WRL::ComPtr<IDXGISwapChain3> swapChain3;
+            m_swapChain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&swapChain3);
+            if (m_format == DXGI_FORMAT_R10G10B10A2_UNORM)
+            {
+                swapChain3->SetColorSpace1(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+            }
         }
 
         // final buffer
@@ -605,7 +644,7 @@ namespace engine
             desc.Height = m_resolutionHeight;
             desc.MipLevels = 1;
             desc.ArraySize = 1;
-            desc.Format = m_format;
+            desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
             desc.SampleDesc.Count = 1;
             desc.Usage = D3D11_USAGE_DEFAULT;
             desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
@@ -795,7 +834,7 @@ namespace engine
         // Create default shader, layout
         {
             Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
-            CompileShaderFromFile("Shader/Vertex/FullscreenQuad_VS.hlsl", "main", "vs_5_0", vsBlob);
+            CompileShaderFromFile("Resource/Shader/Vertex/FullscreenQuad_VS.hlsl", "main", "vs_5_0", vsBlob);
 
 
             HR_CHECK(m_device->CreateVertexShader(
@@ -816,7 +855,7 @@ namespace engine
         {
             {
                 Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-                CompileShaderFromFile("Shader/Pixel/Blit_PS.hlsl", "main", "ps_5_0", psBlob);
+                CompileShaderFromFile("Resource/Shader/Pixel/Blit_PS.hlsl", "main", "ps_5_0", psBlob);
 
                 HR_CHECK(m_device->CreatePixelShader(
                     psBlob->GetBufferPointer(),
@@ -827,7 +866,7 @@ namespace engine
 
             {
                 Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-                CompileShaderFromFile("Shader/Pixel/HDR_PS.hlsl", "main", "ps_5_0", psBlob);
+                CompileShaderFromFile("Resource/Shader/Pixel/HDR_PS.hlsl", "main", "ps_5_0", psBlob);
 
                 HR_CHECK(m_device->CreatePixelShader(
                     psBlob->GetBufferPointer(),
@@ -838,7 +877,7 @@ namespace engine
 
             {
                 Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-                CompileShaderFromFile("Shader/Pixel/LDR_PS.hlsl", "main", "ps_5_0", psBlob);
+                CompileShaderFromFile("Resource/Shader/Pixel/LDR_PS.hlsl", "main", "ps_5_0", psBlob);
 
                 HR_CHECK(m_device->CreatePixelShader(
                     psBlob->GetBufferPointer(),
@@ -849,7 +888,7 @@ namespace engine
 
             {
                 Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-                CompileShaderFromFile("Shader/Pixel/DeferredGlobalLight_PS.hlsl", "main", "ps_5_0", psBlob);
+                CompileShaderFromFile("Resource/Shader/Pixel/DeferredGlobalLight_PS.hlsl", "main", "ps_5_0", psBlob);
 
                 HR_CHECK(m_device->CreatePixelShader(
                     psBlob->GetBufferPointer(),

@@ -21,16 +21,13 @@
     <ClCompile Include="Framework\Physics\TestPhysics.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Framework\Serializer\TestSerializer.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Core\App\ConfigLoader.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Common\Utility\StringUtility.cpp">
+    <ClCompile Include="Common\Utility\StringHelper.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Core\Graphics\Device\GraphicsDevice.cpp">
@@ -144,13 +141,37 @@
     <ClCompile Include="Framework\Object\Component\StaticMeshRenderer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Common\Utility\MaterialHelper.cpp">
+    <ClCompile Include="Core\Graphics\Resource\MaterialHelper.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Framework\System\RenderSystem.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Framework\Object\Component\Renderer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\Object\Component\Light.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\Object\Component\ComponentFactory.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\System\CameraSystem.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorCamera.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\System\ProjectSettings.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\Object\Component\Animator.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\Object\Component\SkeletalMeshRenderer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -164,7 +185,7 @@
     <ClInclude Include="Core\App\ConfigLoader.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Common\Utility\StringUtility.h">
+    <ClInclude Include="Common\Utility\StringHelper.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Core\Graphics\Device\GraphicsDevice.h">
@@ -308,7 +329,7 @@
     <ClInclude Include="Framework\Object\Component\StaticMeshRenderer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Common\Utility\MaterialHelper.h">
+    <ClInclude Include="Core\Graphics\Resource\MaterialHelper.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Core\Graphics\Data\ConstantBufferTypes.h">
@@ -326,6 +347,36 @@
     <ClInclude Include="Core\Graphics\Data\ShaderSlotTypes.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Framework\Object\Component\Light.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Utility\JsonHelper.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Object\Component\ComponentFactory.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\System\CameraSystem.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorCamera.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Utility\StaticMemoryPool.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\System\ProjectSettings.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Object\Component\Animator.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Object\Component\SkeletalMeshRenderer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Vertex\FullscreenQuad_VS.hlsl" />
@@ -339,10 +390,12 @@
     <FxCompile Include="Shader\Vertex\Shadow_Static_VS.hlsl" />
     <FxCompile Include="Shader\Vertex\Shadow_Rigid_VS.hlsl" />
     <FxCompile Include="Shader\Vertex\Shadow_Skinned_VS.hlsl" />
-    <FxCompile Include="Shader\Pixel\Shadow_AlphaTest_PS.hlsl" />
+    <FxCompile Include="Shader\Pixel\Shadow_Cutout_PS.hlsl" />
     <FxCompile Include="Shader\Vertex\Static_VS.hlsl" />
     <FxCompile Include="Shader\Vertex\Rigid_VS.hlsl" />
     <FxCompile Include="Shader\Vertex\Skinned_VS.hlsl" />
+    <FxCompile Include="Shader\Pixel\GBuffer_Cutout_PS.hlsl" />
+    <FxCompile Include="Shader\Pixel\LightTransparent_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Include\Shared.hlsli" />

@@ -12,7 +12,7 @@ namespace engine
     struct SkeletalMeshSection
     {
         std::string name;
-        unsigned int m_boneReference = 0;
+        unsigned int boneIndex = 0;
         unsigned int materialIndex = 0;
         INT vertexOffset;
         UINT indexOffset;

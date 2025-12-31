@@ -4,11 +4,12 @@
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/Scene/Scene.h"
 #include "Framework/Object/Component/StaticMeshRenderer.h"
+#include "Framework/Object/Component/SkeletalMeshRenderer.h"
+#include "Framework/Object/Component/Animator.h"
 #include "Framework/Object/Component/Transform.h"
 #include "Framework/Object/Component/Camera.h"
 
 #include "Script/TestScript.h"
-#include "Script/EditorCameraController.h"
 
 namespace game
 {
@@ -33,24 +34,5 @@ namespace game
 	void TestGameApp::Initialize()
 	{
 		engine::WinApp::Initialize();
-
-		auto OnEnter = []()
-			{
-				engine::Scene* scene = engine::SceneManager::Get().GetCurrentScene();
-				
-				auto camera = scene->GetMainCamera();
-				camera->GetTransform()->SetLocalPosition({ 0.0f, 0.0f, -10.0f });
-				camera->GetGameObject()->AddComponent<EditorCameraController>();
-
-				engine::Ptr<engine::GameObject> gameObject = scene->CreateGameObject("TestGameObject");
-				engine::Ptr<TestScript> testScript = gameObject->AddComponent<TestScript>();
-				gameObject->AddComponent<engine::StaticMeshRenderer>("Resource/Model/char.fbx", "Shader/Pixel/BlinnPhongPS.hlsl");
-				auto transform = gameObject->GetTransform();
-				transform->SetLocalPosition({ 0.0f, 0.0f, 0.0f });
-			};
-
-		engine::SceneManager::Get().CreateScene("SampleScene1", OnEnter);
-
-		engine::SceneManager::Get().ChangeScene("SampleScene1");
 	}
 }

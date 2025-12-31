@@ -103,6 +103,8 @@ namespace engine
 
         void DrawFullscreenQuad();
 
+        void ClearAllViews();
+
         void BeginDrawShadowPass();
         void EndDrawShadowPass();
 
@@ -117,6 +119,9 @@ namespace engine
 
         void BeginDrawPostProccessingPass();
         void EndDrawPostProccessingPass();
+
+        void BeginDrawScreenPass();
+        void EndDrawScreenPass();
 
         void BeginDrawGUIPass();
         void EndDrawGUIPass();

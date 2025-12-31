@@ -1,19 +1,31 @@
 ﻿#include "pch.h"
 #include "Camera.h"
 
-#include "Framework/Object/Component/Transform.h"
 #include "Common/Math/MathUtility.h"
+#include "Framework/Object/Component/Transform.h"
+#include "Framework/System/SystemManager.h"
+#include "Framework/System/CameraSystem.h"
 
 namespace engine
 {
+    Camera::~Camera()
+    {
+        SystemManager::Get().GetCameraSystem().Unregister(this);
+    }
+
+    void Camera::Initialize()
+    {
+        SystemManager::Get().GetCameraSystem().Register(this);
+    }
+
     void Camera::Update()
     {
         auto transform = GetTransform();
 
-        if (bool isDirtyThisFrame = transform->IsDirtyThisFrame(); m_isDirty || isDirtyThisFrame)
-        {
-            if (isDirtyThisFrame)
-            {
+        //if (bool isDirtyThisFrame = transform->IsDirtyThisFrame(); m_isDirty || isDirtyThisFrame)
+        //{
+        //    if (isDirtyThisFrame)
+        //    {
                 Matrix world = transform->GetWorld();
 
                 Vector3 scale;
@@ -21,18 +33,15 @@ namespace engine
                 Vector3 translation;
                 world.Decompose(scale, rotation, translation);
 
-                const Vector3 forward = Vector3::Transform(Vector3::Forward, rotation);
-                const Vector3 up = Vector3::Transform(Vector3::Up, rotation);
+                const Vector3 forward = Vector3::Transform(Vector3::UnitZ, rotation);
+                const Vector3 up = Vector3::Transform(Vector3::UnitY, rotation);
 
                 m_world = Matrix::CreateWorld(translation, forward, up);
-            }
+            //}
 
             // view
             {
-                m_view = DirectX::XMMatrixLookAtLH(
-                    m_world.Translation(),
-                    m_world.Translation() - m_world.Forward(),
-                    m_world.Up());
+                m_view = DirectX::XMMatrixLookToLH(translation, forward, up);
             }
 
             // projection
@@ -56,8 +65,35 @@ namespace engine
                 m_frustum.Transform(m_frustum, m_world);
             }
 
-            m_isDirty = false;
-        }
+        //    m_isDirty = false;
+        //}
+    }
+
+    void Camera::OnGui()
+    {
+        ImGui::DragFloat("Near", &m_near, 0.1f, 0.01f, 10.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::DragFloat("Far", &m_far, 0.1f, 100.0f, 100000.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::DragFloat("FOV", &m_fov, 0.1f, 1.0f, 179.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+    }
+
+    void Camera::Save(json& j) const
+    {
+        j["Type"] = "Camera";
+        j["Near"] = m_near;
+        j["Far"] = m_far;
+        j["FOV"] = m_fov;
+    }
+
+    void Camera::Load(const json& j)
+    {
+        JsonGet(j, "Near", m_near);
+        JsonGet(j, "Far", m_far);
+        JsonGet(j, "FOV", m_fov);
+    }
+
+    std::string Camera::GetType() const
+    {
+        return "Camera";
     }
 
     void Camera::SetProjectionType(ProjectionType type)

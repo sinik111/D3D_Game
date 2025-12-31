@@ -21,38 +21,60 @@ namespace engine
     class StaticMeshRenderer :
         public Renderer
     {
+        REGISTER_COMPONENT(StaticMeshRenderer)
+
     private:
         std::string m_meshFilePath;
-        std::string m_shaderFilePath;
+        std::string m_vsFilePath;
+        std::string m_opaquePSFilePath;
+        std::string m_cutoutPSFilePath;
+        std::string m_transparentPSFilePath;
 
         std::shared_ptr<StaticMeshData> m_staticMeshData;
         std::shared_ptr<MaterialData> m_materialData;
 
         std::shared_ptr<VertexBuffer> m_vertexBuffer;
         std::shared_ptr<IndexBuffer> m_indexBuffer;
+
         std::shared_ptr<ConstantBuffer> m_materialConstantBuffer;
         std::shared_ptr<ConstantBuffer> m_objectConstantBuffer;
-        std::shared_ptr<VertexShader> m_finalPassVertexShader;
-        std::shared_ptr<VertexShader> m_shadowPassVertexShader;
-        std::shared_ptr<PixelShader> m_finalPassPixelShader;
-        std::shared_ptr<PixelShader> m_shadowPassPixelShader;
+
+        std::shared_ptr<VertexShader> m_vs;
+        std::shared_ptr<VertexShader> m_shadowVS;
+
+        std::shared_ptr<PixelShader> m_opaquePS;
+        std::shared_ptr<PixelShader> m_cutoutPS;
+        std::shared_ptr<PixelShader> m_transparentPS;
+        std::shared_ptr<PixelShader> m_shadowCutoutPS;
+
         std::vector<Textures> m_textures;
         std::shared_ptr<InputLayout> m_inputLayout;
         std::shared_ptr<SamplerState> m_samplerState;
 
     public:
-        StaticMeshRenderer();
-        StaticMeshRenderer(const std::string& meshFilePath, const std::string& shaderFilePath);
         ~StaticMeshRenderer();
 
     public:
+        void Initialize() override;
+
         void SetMesh(const std::string& meshFilePath);
-        void SetPixelShader(const std::string& shaderFilePath);
+        void SetVertexShader(const std::string& shaderFilePath);
+        void SetOpaquePixelShader(const std::string& shaderFilePath);
+        void SetCutoutPixelShader(const std::string& shaderFilePath);
+        void SetTransparentPixelShader(const std::string& shaderFilePath);
+
+    public:
+        void OnGui() override;
+        void Save(json& j) const override;
+        void Load(const json& j) override;
+        std::string GetType() const override;
 
     public:
         bool HasRenderType(RenderType type) const override;
-        void Draw() const override;
+        void Draw(RenderType type) const override;
         DirectX::BoundingBox GetBounds() const override;
-        //void DrawShadow() const;
+
+    private:
+        void Refresh();
     };
 }

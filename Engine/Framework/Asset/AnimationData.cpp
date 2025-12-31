@@ -13,14 +13,15 @@ namespace engine
         Quaternion& outRotation,
         Vector3& outScale) const
     {
+        // position
         size_t positionKeyIndex = inOutLastKeyIndex.position;
-        size_t rotationKeyIndex = inOutLastKeyIndex.rotation;
-        size_t scaleKeyIndex = inOutLastKeyIndex.scale;
 
         if (positionKeys[positionKeyIndex].time >= time)
         {
             positionKeyIndex = 0;
         }
+
+        outPosition = positionKeys[positionKeyIndex].value;
 
         while (true)
         {
@@ -42,12 +43,18 @@ namespace engine
             }
 
             positionKeyIndex = nextIndex;
+            outPosition = positionKeys[positionKeyIndex].value;
         }
+
+        // rotation
+        size_t rotationKeyIndex = inOutLastKeyIndex.rotation;
 
         if (rotationKeys[rotationKeyIndex].time >= time)
         {
             rotationKeyIndex = 0;
         }
+
+        outRotation = rotationKeys[rotationKeyIndex].value;
 
         while (true)
         {
@@ -71,12 +78,18 @@ namespace engine
             }
 
             rotationKeyIndex = nextIndex;
+            outRotation = rotationKeys[rotationKeyIndex].value;
         }
+
+        // scale
+        size_t scaleKeyIndex = inOutLastKeyIndex.scale;
 
         if (scaleKeys[scaleKeyIndex].time >= time)
         {
             scaleKeyIndex = 0;
         }
+
+        outScale = scaleKeys[scaleKeyIndex].value;
 
         while (true)
         {
@@ -100,6 +113,7 @@ namespace engine
             }
 
             scaleKeyIndex = nextIndex;
+            outScale = scaleKeys[scaleKeyIndex].value;
         }
     }
 

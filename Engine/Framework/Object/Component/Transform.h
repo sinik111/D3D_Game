@@ -21,8 +21,14 @@ namespace engine
         bool m_isDirtyThisFrame = true;
 
     public:
-        Transform();
+        Transform() = default;
         ~Transform();
+
+        static void* operator new(size_t size);
+        static void operator delete(void* ptr);
+
+    public:
+        void Initialize() override;
 
     public:
         const Vector3& GetLocalPosition() const;
@@ -37,6 +43,9 @@ namespace engine
         Vector3 GetUp() const;
         Vector3 GetRight() const;
 
+        const std::vector<Transform*>& GetChildren() const;
+        Transform* GetParent() const;
+
         bool IsDirtyThisFrame() const;
 
         void SetLocalPosition(const Vector3& position);
@@ -46,12 +55,16 @@ namespace engine
         void SetLocalScale(float scale);
 
         void SetParent(Transform* parent);
-        const std::vector<Transform*>& GetChildren() const;
 
         void UnmarkDirtyThisFrame();
+        bool IsAncestorOf(Transform* other) const;
+        bool IsDescendantOf(Transform* other) const;
 
     public:
         void OnGui() override;
+        void Save(json& j) const override;
+        void Load(const json& j) override;
+        std::string GetType() const override;
 
     private:
         void RecalculateWorldMatrix();

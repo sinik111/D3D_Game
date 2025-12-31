@@ -9,12 +9,15 @@ namespace engine
 	Renderer::Renderer()
 	{
 		m_systemIndices.fill(-1);
-
-		SystemManager::Get().Render().Register(this);
 	}
 
 	Renderer::~Renderer()
 	{
-		SystemManager::Get().Render().Unregister(this);
+		SystemManager::Get().GetRenderSystem().Unregister(this);
+	}
+
+	void Renderer::Initialize()
+	{
+		SystemManager::Get().GetRenderSystem().Register(this);
 	}
 }
