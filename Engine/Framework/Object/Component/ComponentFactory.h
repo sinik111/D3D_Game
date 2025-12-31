@@ -37,6 +37,7 @@ namespace engine
         {                                                               \
             Registrar()                                                 \
             {                                                           \
+                LOG_PRINT(#type);                                       \
                 engine::ComponentFactory::Get().Register(#type, []()    \
                     {                                                   \
                         return std::make_unique<type>();                \

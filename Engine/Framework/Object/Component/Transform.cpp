@@ -212,12 +212,20 @@ namespace engine
 
     void Transform::OnGui()
     {
-        ImGui::DragFloat3("Position", &m_localPosition.x, 0.1f);
+        if (ImGui::DragFloat3("Position", &m_localPosition.x, 0.1f))
+        {
+            MarkDirty();
+        }
+
         if (auto euler = GetLocalEulerAngles(); ImGui::DragFloat3("Rotation", &euler.x, 0.1f))
         {
             SetLocalRotation(euler);
         }
-        ImGui::DragFloat3("Scale", &m_localScale.x, 0.1f);
+
+        if (ImGui::DragFloat3("Scale", &m_localScale.x, 0.1f))
+        {
+            MarkDirty();
+        }
     }
 
     void Transform::Save(json& j) const

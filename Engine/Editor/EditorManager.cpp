@@ -367,7 +367,7 @@ namespace engine
                     }
                     m_sceneToDelete.clear();
                     ImGui::CloseCurrentPopup();
-
+                    m_selectedObject = nullptr;
                 }
                 ImGui::SetItemDefaultFocus();
                 ImGui::SameLine();

@@ -16,6 +16,7 @@
 #include <cassert>
 #include <array>
 #include <cstdint>
+#include <cmath>
 
 
 // d3d

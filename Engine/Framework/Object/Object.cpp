@@ -9,7 +9,7 @@ namespace engine
     {
         struct ObjectEntry
         {
-            class Object* object = nullptr;
+            Object* object = nullptr;
             std::uint32_t generation = 0;
             bool active = false;
         };

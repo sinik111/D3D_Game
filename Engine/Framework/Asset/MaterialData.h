@@ -14,22 +14,20 @@ namespace engine
         METALNESS_TEXTURE          = 1ULL << 3,
         ROUGHNESS_TEXTURE          = 1ULL << 4,
         AMBIENT_OCCLUSION_TEXTURE  = 1ULL << 5,
+    };
 
-        BASE_COLOR                 = 1ULL << 6,
-        EMISSIVE_COLOR             = 1ULL << 7,
-
-        ROUGHNESS                  = 1ULL << 8,
-        METALNESS                  = 1ULL << 9,
-        EMISSIVE_INTENSITY         = 1ULL << 10,
-        AMBIENT_OCCLUSION          = 1ULL << 11,
+    enum class MaterialRenderType
+    {
+        Opaque,
+        Cutout,
+        Transparent
     };
 
     struct Material
     {
         std::unordered_map<MaterialKey, std::string> texturePaths;
-        std::unordered_map<MaterialKey, Vector4> vectorValues;
-        std::unordered_map<MaterialKey, float> scalarValues;
         std::uint64_t materialFlags = 0;
+        MaterialRenderType renderType = MaterialRenderType::Opaque;
     };
 
     class MaterialData :

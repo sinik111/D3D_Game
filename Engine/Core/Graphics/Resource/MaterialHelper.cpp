@@ -9,6 +9,7 @@ namespace engine
 {
     void SetupTextures(const std::shared_ptr<MaterialData>& data, std::vector<Textures>& out)
     {
+		out.clear();
 		out.reserve(data->GetMaterials().size());
 
 		for (const auto& material : data->GetMaterials())

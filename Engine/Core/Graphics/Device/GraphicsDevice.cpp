@@ -227,6 +227,7 @@ namespace engine
 
         auto srvs = m_gBuffer.GetRawSRVs();
         m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::GBufferBaseColor), 5, srvs.data());
+        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::ShadowMap), 1, m_shadowDepthBuffer->GetSRV().GetAddressOf());
 
         m_deviceContext->OMSetRenderTargets(1, m_hdrBuffer->GetRTV().GetAddressOf(), nullptr);
     }
@@ -237,6 +238,7 @@ namespace engine
 
         ID3D11ShaderResourceView* nullSRVs[5]{};
         m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::GBufferBaseColor), 5, nullSRVs);
+        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::ShadowMap), 1, nullSRVs);
     }
 
     void GraphicsDevice::BeginDrawForwardPass()
@@ -285,6 +287,16 @@ namespace engine
 
         ID3D11ShaderResourceView* nullSRV = nullptr;
         m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::HDR), 1, &nullSRV);
+    }
+
+    void GraphicsDevice::BeginDrawScreenPass()
+    {
+        m_deviceContext->OMSetRenderTargets(1, m_finalBuffer->GetRTV().GetAddressOf(), nullptr);
+    }
+
+    void GraphicsDevice::EndDrawScreenPass()
+    {
+        m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     }
 
     void GraphicsDevice::BeginDrawGUIPass()
@@ -822,7 +834,7 @@ namespace engine
         // Create default shader, layout
         {
             Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
-            CompileShaderFromFile("Shader/Vertex/FullscreenQuad_VS.hlsl", "main", "vs_5_0", vsBlob);
+            CompileShaderFromFile("Resource/Shader/Vertex/FullscreenQuad_VS.hlsl", "main", "vs_5_0", vsBlob);
 
 
             HR_CHECK(m_device->CreateVertexShader(
@@ -843,7 +855,7 @@ namespace engine
         {
             {
                 Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-                CompileShaderFromFile("Shader/Pixel/Blit_PS.hlsl", "main", "ps_5_0", psBlob);
+                CompileShaderFromFile("Resource/Shader/Pixel/Blit_PS.hlsl", "main", "ps_5_0", psBlob);
 
                 HR_CHECK(m_device->CreatePixelShader(
                     psBlob->GetBufferPointer(),
@@ -854,7 +866,7 @@ namespace engine
 
             {
                 Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-                CompileShaderFromFile("Shader/Pixel/HDR_PS.hlsl", "main", "ps_5_0", psBlob);
+                CompileShaderFromFile("Resource/Shader/Pixel/HDR_PS.hlsl", "main", "ps_5_0", psBlob);
 
                 HR_CHECK(m_device->CreatePixelShader(
                     psBlob->GetBufferPointer(),
@@ -865,7 +877,7 @@ namespace engine
 
             {
                 Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-                CompileShaderFromFile("Shader/Pixel/LDR_PS.hlsl", "main", "ps_5_0", psBlob);
+                CompileShaderFromFile("Resource/Shader/Pixel/LDR_PS.hlsl", "main", "ps_5_0", psBlob);
 
                 HR_CHECK(m_device->CreatePixelShader(
                     psBlob->GetBufferPointer(),
@@ -876,7 +888,7 @@ namespace engine
 
             {
                 Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-                CompileShaderFromFile("Shader/Pixel/DeferredGlobalLight_PS.hlsl", "main", "ps_5_0", psBlob);
+                CompileShaderFromFile("Resource/Shader/Pixel/DeferredGlobalLight_PS.hlsl", "main", "ps_5_0", psBlob);
 
                 HR_CHECK(m_device->CreatePixelShader(
                     psBlob->GetBufferPointer(),

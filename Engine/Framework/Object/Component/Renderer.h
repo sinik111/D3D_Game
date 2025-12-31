@@ -1,15 +1,17 @@
 ﻿#pragma once
 
 #include "Framework/Object/Component/Component.h"
+#include "Framework/Asset/MaterialData.h"
 
 namespace engine
 {
 	enum class RenderType
 	{
+		Shadow,
 		Opaque,
+		Cutout,
 		Transparent,
 		Screen,
-		Shadow,
 		Count
 	};
 
@@ -28,7 +30,7 @@ namespace engine
 
 	public:
 		virtual bool HasRenderType(RenderType type) const = 0;
-		virtual void Draw(/*RenderType type*/) const = 0;
+		virtual void Draw(RenderType type) const = 0;
 		virtual DirectX::BoundingBox GetBounds() const = 0;
 
 	private:

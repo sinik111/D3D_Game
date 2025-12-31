@@ -120,6 +120,9 @@ namespace engine
         void BeginDrawPostProccessingPass();
         void EndDrawPostProccessingPass();
 
+        void BeginDrawScreenPass();
+        void EndDrawScreenPass();
+
         void BeginDrawGUIPass();
         void EndDrawGUIPass();
 

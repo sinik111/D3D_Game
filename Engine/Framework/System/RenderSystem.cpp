@@ -30,7 +30,7 @@ namespace engine
 
     RenderSystem::RenderSystem()
     {
-        m_globalConstantBuffer = ResourceManager::Get().GetOrCreateConstantBuffer("Transform", sizeof(CbGlobal));
+        m_globalConstantBuffer = ResourceManager::Get().GetOrCreateConstantBuffer("CbGlobal", sizeof(CbGlobal));
 
         m_comparisonSamplerState = ResourceManager::Get().GetDefaultSamplerState(DefaultSamplerType::Comparison);
         m_clampSamplerState = ResourceManager::Get().GetDefaultSamplerState(DefaultSamplerType::Clamp);
@@ -43,63 +43,50 @@ namespace engine
         // cube
         {
             std::vector<PositionVertex> vertices{
-                // position
-                { { -0.5f,  0.5f, -0.5f } }, // 0 - 0
-                { {  0.5f,  0.5f, -0.5f } }, // 1 - 1
-                { { -0.5f, -0.5f, -0.5f } }, // 2 - 2
-                { {  0.5f, -0.5f, -0.5f } }, // 3 - 3
+                // Back Face (Z = -0.5)
+                { { -0.5f,  0.5f, -0.5f } }, // 0: Top-Left-Back
+                { {  0.5f,  0.5f, -0.5f } }, // 1: Top-Right-Back
+                { { -0.5f, -0.5f, -0.5f } }, // 2: Bottom-Left-Back
+                { {  0.5f, -0.5f, -0.5f } }, // 3: Bottom-Right-Back
 
-                { {  0.5f,  0.5f,  0.5f } }, // 4 - 4
-                { { -0.5f,  0.5f,  0.5f } }, // 5 - 5
-                { {  0.5f, -0.5f,  0.5f } }, // 6 - 6
-                { { -0.5f, -0.5f,  0.5f } }, // 7 - 7
-
-                { { -0.5f,  0.5f,  0.5f } }, // 5 - 8
-                { { -0.5f,  0.5f, -0.5f } }, // 0 - 9
-                { { -0.5f, -0.5f,  0.5f } }, // 7 - 10
-                { { -0.5f, -0.5f, -0.5f } }, // 2 - 11
-
-                { {  0.5f,  0.5f, -0.5f } }, // 1 - 12
-                { {  0.5f,  0.5f,  0.5f } }, // 4 - 13
-                { {  0.5f, -0.5f, -0.5f } }, // 3 - 14
-                { {  0.5f, -0.5f,  0.5f } }, // 6 - 15
-
-                { { -0.5f, -0.5f, -0.5f } }, // 2 - 16
-                { {  0.5f, -0.5f, -0.5f } }, // 3 - 17
-                { { -0.5f, -0.5f,  0.5f } }, // 7 - 18
-                { {  0.5f, -0.5f,  0.5f } }, // 6 - 19
-
-                { { -0.5f,  0.5f,  0.5f } }, // 5 - 20
-                { {  0.5f,  0.5f,  0.5f } }, // 4 - 21
-                { { -0.5f,  0.5f, -0.5f } }, // 0 - 22
-                { {  0.5f,  0.5f, -0.5f } }, // 1 - 23
+                // Front Face (Z = +0.5)
+                { { -0.5f,  0.5f,  0.5f } }, // 4: Top-Left-Front
+                { {  0.5f,  0.5f,  0.5f } }, // 5: Top-Right-Front
+                { { -0.5f, -0.5f,  0.5f } }, // 6: Bottom-Left-Front
+                { {  0.5f, -0.5f,  0.5f } }, // 7: Bottom-Right-Front
             };
 
             std::vector<DWORD> indices{
+                // Back Face
                 0, 1, 2,
                 2, 1, 3,
 
-                4, 5, 6,
-                6, 5, 7,
+                // Front Face
+                5, 4, 7,
+                7, 4, 6,
 
-                8, 9, 10,
-                10, 9, 11,
+                // Left Face
+                4, 0, 6,
+                6, 0, 2,
 
-                12, 13, 14,
-                14, 13, 15,
+                // Right Face
+                1, 5, 3,
+                3, 5, 7,
 
-                16, 17, 18,
-                18, 17, 19,
+                // Top Face
+                4, 5, 0,
+                0, 5, 1,
 
-                20, 21, 22,
-                22, 21, 23,
+                // Bottom Face
+                2, 3, 6,
+                6, 3, 7
             };
 
             m_indexCount = static_cast<UINT>(indices.size());
-            m_cubeVertexBuffer = ResourceManager::Get().GetOrCreateVertexBuffer<PositionVertex>("Cube", vertices);
-            m_cubeIndexBuffer = ResourceManager::Get().GetOrCreateIndexBuffer("Cube", indices);
-            m_skyboxVertexShader = ResourceManager::Get().GetOrCreateVertexShader("Shader/Vertex/Skybox_VS.hlsl");
-            m_skyboxPixelShader = ResourceManager::Get().GetOrCreatePixelShader("Shader/Pixel/Skybox_PS.hlsl");
+            m_cubeVertexBuffer = ResourceManager::Get().GetOrCreateVertexBuffer<PositionVertex>("SkyboxCube", vertices);
+            m_cubeIndexBuffer = ResourceManager::Get().GetOrCreateIndexBuffer("SkyboxCube", indices);
+            m_skyboxVertexShader = ResourceManager::Get().GetOrCreateVertexShader("Resource/Shader/Vertex/Skybox_VS.hlsl");
+            m_skyboxPixelShader = ResourceManager::Get().GetOrCreatePixelShader("Resource/Shader/Pixel/Skybox_PS.hlsl");
             m_cubeInputLayout = m_skyboxVertexShader->GetOrCreateInputLayout<PositionVertex>();
 
             m_skyboxRSState = ResourceManager::Get().GetDefaultRasterizerState(DefaultRasterizerType::SolidFront);
@@ -111,33 +98,33 @@ namespace engine
 
     void RenderSystem::Register(Renderer* renderer)
     {
-        //if (renderer->HasRenderType(RenderType::Opaque))
-        //{
+        if (renderer->HasRenderType(RenderType::Opaque))
+        {
             AddRenderer(m_opaqueList, renderer, RenderType::Opaque);
-        //}
+        }
 
-        //if (renderer->HasRenderType(RenderType::Transparent))
-        //{
-        //    AddRenderer(m_transparentList, renderer, RenderType::Transparent);
-        //}
+        if (renderer->HasRenderType(RenderType::Cutout))
+        {
+            AddRenderer(m_cutoutList, renderer, RenderType::Cutout);
+        }
 
-        //if (renderer->HasRenderType(RenderType::Screen))
-        //{
-        //    AddRenderer(m_screenList, renderer, RenderType::Screen);
-        //}
+        if (renderer->HasRenderType(RenderType::Transparent))
+        {
+            AddRenderer(m_transparentList, renderer, RenderType::Transparent);
+        }
 
-        //if (renderer->HasRenderType(RenderType::Shadow))
-        //{
-        //    AddRenderer(m_shadowList, renderer, RenderType::Shadow);
-        //}
+        if (renderer->HasRenderType(RenderType::Screen))
+        {
+            AddRenderer(m_screenList, renderer, RenderType::Screen);
+        }
     }
 
     void RenderSystem::Unregister(Renderer* renderer)
     {
         RemoveRenderer(m_opaqueList, renderer, RenderType::Opaque);
+        RemoveRenderer(m_cutoutList, renderer, RenderType::Cutout);
         RemoveRenderer(m_transparentList, renderer, RenderType::Transparent);
         RemoveRenderer(m_screenList, renderer, RenderType::Screen);
-        RemoveRenderer(m_shadowList, renderer, RenderType::Shadow);
     }
 
     void RenderSystem::Render()
@@ -225,7 +212,15 @@ namespace engine
         {
             graphics.BeginDrawShadowPass();
             {
+                for (auto renderer : m_opaqueList)
+                {
+                    renderer->Draw(RenderType::Shadow);
+                }
 
+                for (auto renderer : m_cutoutList)
+                {
+                    renderer->Draw(RenderType::Shadow);
+                }
             }
             graphics.EndDrawShadowPass();
 
@@ -233,7 +228,12 @@ namespace engine
             {
                 for (auto renderer : m_opaqueList)
                 {
-                    renderer->Draw();
+                    renderer->Draw(RenderType::Opaque);
+                }
+
+                for (auto renderer : m_cutoutList)
+                {
+                    renderer->Draw(RenderType::Cutout);
                 }
             }
             graphics.EndDrawGeometryPass();
@@ -275,6 +275,11 @@ namespace engine
 
                 context->RSSetState(nullptr);
                 context->OMSetDepthStencilState(nullptr, 0);
+
+                for (auto renderer : m_transparentList)
+                {
+                    renderer->Draw(RenderType::Transparent);
+                }
             }
             graphics.EndDrawForwardPass();
         }
@@ -284,6 +289,15 @@ namespace engine
             graphics.DrawFullscreenQuad();
         }
         graphics.EndDrawPostProccessingPass();
+
+        graphics.BeginDrawScreenPass();
+        {
+            for (auto renderer : m_screenList)
+            {
+                renderer->Draw(RenderType::Screen);
+            }
+        }
+        graphics.EndDrawScreenPass();
     }
 
     void RenderSystem::AddRenderer(std::vector<Renderer*>& v, Renderer* renderer, RenderType type)

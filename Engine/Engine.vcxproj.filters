@@ -168,6 +168,12 @@
     <ClCompile Include="Core\System\ProjectSettings.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Framework\Object\Component\Animator.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\Object\Component\SkeletalMeshRenderer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App\WinApp.h">
@@ -365,6 +371,12 @@
     <ClInclude Include="Core\System\ProjectSettings.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Framework\Object\Component\Animator.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Object\Component\SkeletalMeshRenderer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Vertex\FullscreenQuad_VS.hlsl" />
@@ -378,10 +390,12 @@
     <FxCompile Include="Shader\Vertex\Shadow_Static_VS.hlsl" />
     <FxCompile Include="Shader\Vertex\Shadow_Rigid_VS.hlsl" />
     <FxCompile Include="Shader\Vertex\Shadow_Skinned_VS.hlsl" />
-    <FxCompile Include="Shader\Pixel\Shadow_AlphaTest_PS.hlsl" />
+    <FxCompile Include="Shader\Pixel\Shadow_Cutout_PS.hlsl" />
     <FxCompile Include="Shader\Vertex\Static_VS.hlsl" />
     <FxCompile Include="Shader\Vertex\Rigid_VS.hlsl" />
     <FxCompile Include="Shader\Vertex\Skinned_VS.hlsl" />
+    <FxCompile Include="Shader\Pixel\GBuffer_Cutout_PS.hlsl" />
+    <FxCompile Include="Shader\Pixel\LightTransparent_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Include\Shared.hlsli" />

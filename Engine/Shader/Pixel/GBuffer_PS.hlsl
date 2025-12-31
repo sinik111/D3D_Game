@@ -4,10 +4,8 @@ PS_OUTPUT_GBUFFER main(PS_INPUT_GBUFFER input)
 {
     PS_OUTPUT_GBUFFER output = (PS_OUTPUT_GBUFFER) 0;
     
-    output.baseColor = g_texBaseColor.Sample(g_samLinear, input.texCoord);
-    clip(output.baseColor.a - 0.5f);
-    
-    output.baseColor = float4(pow(abs(output.baseColor.rgb), 2.2f), output.baseColor.a);
+    output.baseColor = g_texBaseColor.Sample(g_samLinear, input.texCoord);    
+    output.baseColor = float4(pow(abs(output.baseColor.rgb), 2.2f), 1.0f);
     
     output.position = float4(input.worldPosition, 1.0f);
     

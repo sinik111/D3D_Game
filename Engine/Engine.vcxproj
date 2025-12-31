@@ -122,7 +122,7 @@
     </Link>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
-      <ObjectFileOutput>$(OutDir)%(RelativeDir)%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput>$(OutDir)Resource\%(RelativeDir)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,7 +143,7 @@
     </Link>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
-      <ObjectFileOutput>$(OutDir)%(RelativeDir)%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput>$(OutDir)Resource\%(RelativeDir)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -178,12 +178,14 @@
     <ClCompile Include="Framework\Asset\SkeletonData.cpp" />
     <ClCompile Include="Framework\Asset\StaticMeshData.cpp" />
     <ClCompile Include="Framework\Asset\MaterialData.cpp" />
+    <ClCompile Include="Framework\Object\Component\Animator.cpp" />
     <ClCompile Include="Framework\Object\Component\Camera.cpp" />
     <ClCompile Include="Framework\Object\Component\Component.cpp" />
     <ClCompile Include="Framework\Object\Component\ComponentFactory.cpp" />
     <ClCompile Include="Framework\Object\Component\Light.cpp" />
     <ClCompile Include="Framework\Object\Component\Renderer.cpp" />
     <ClCompile Include="Framework\Object\Component\Script.cpp" />
+    <ClCompile Include="Framework\Object\Component\SkeletalMeshRenderer.cpp" />
     <ClCompile Include="Framework\Object\Component\StaticMeshRenderer.cpp" />
     <ClCompile Include="Framework\Object\Component\Transform.cpp" />
     <ClCompile Include="Framework\Object\GameObject\GameObject.cpp" />
@@ -246,12 +248,14 @@
     <ClInclude Include="Framework\Asset\SkeletalMeshData.h" />
     <ClInclude Include="Framework\Asset\SkeletonData.h" />
     <ClInclude Include="Framework\Asset\StaticMeshData.h" />
+    <ClInclude Include="Framework\Object\Component\Animator.h" />
     <ClInclude Include="Framework\Object\Component\Camera.h" />
     <ClInclude Include="Framework\Object\Component\Component.h" />
     <ClInclude Include="Framework\Object\Component\ComponentFactory.h" />
     <ClInclude Include="Framework\Object\Component\Light.h" />
     <ClInclude Include="Framework\Object\Component\Renderer.h" />
     <ClInclude Include="Framework\Object\Component\Script.h" />
+    <ClInclude Include="Framework\Object\Component\SkeletalMeshRenderer.h" />
     <ClInclude Include="Framework\Object\Component\StaticMeshRenderer.h" />
     <ClInclude Include="Framework\Object\Component\Transform.h" />
     <ClInclude Include="Framework\Object\GameObject\GameObject.h" />
@@ -282,6 +286,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
+    <FxCompile Include="Shader\Pixel\GBuffer_Cutout_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="Shader\Pixel\GBuffer_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -300,13 +310,19 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="Shader\Pixel\Shadow_AlphaTest_PS.hlsl">
+    <FxCompile Include="Shader\Pixel\Shadow_Cutout_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="Shader\Pixel\Skybox_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\Pixel\LightTransparent_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>

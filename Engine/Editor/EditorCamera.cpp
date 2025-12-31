@@ -66,7 +66,14 @@ namespace engine
         if (moveDir != Vector3::Zero)
         {
             moveDir.Normalize();
-            m_position += moveDir * m_moveSpeed * deltaTime;
+
+            float speed = m_moveSpeed;
+            if (Input::IsKeyHeld(Keys::LeftShift))
+            {
+                speed *= 2.0f;
+            }
+
+            m_position += moveDir * speed * deltaTime;
             m_isDirty = true;
         }
 
