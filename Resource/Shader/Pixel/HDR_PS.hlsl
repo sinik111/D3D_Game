@@ -40,13 +40,15 @@ float3 LinearToPQ(float3 linearColor, float maxNits)
 
 float4 main(PS_INPUT_TEXCOORD input) : SV_Target
 {
-    float3 C_linear709 = g_texHDR.Sample(g_samLinear, input.texCoord).rgb;
+    float3 linear709 = g_texHDR.Sample(g_samLinear, input.texCoord).rgb;
+    float3 bloom = g_texBlit.Sample(g_samLinear, input.texCoord).rgb;
     
     float exposureFactor = pow(2.0f, g_exposure);
-    C_linear709 *= exposureFactor;
-      
+    linear709 *= exposureFactor;
+    linear709 += (bloom * g_bloomStrength);
+    
     // PQ로 변환 (HDR10 출력용)
-    float3 C_pq = LinearToPQ(C_linear709, g_maxHDRNits);
+    float3 pq = LinearToPQ(linear709, g_maxHDRNits);
     // 최종 PQ 인코딩된 값 [0.0, 1.0]을 R10G10B10A2_UNORM 백버퍼에 출력
-    return float4(C_pq, 1.0);
+    return float4(pq, 1.0);
 }

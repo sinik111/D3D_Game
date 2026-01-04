@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "ConstantBuffer.h"
 
+#include "Core/Graphics/Device/GraphicsDevice.h"
+
 namespace engine
 {
     void ConstantBuffer::Create(UINT byteWidth)

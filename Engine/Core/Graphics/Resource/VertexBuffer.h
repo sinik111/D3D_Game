@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Core/Graphics/Resource/Resource.h"
+#include "Core/Graphics/Device/GraphicsDevice.h"
 
 namespace engine
 {

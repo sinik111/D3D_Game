@@ -396,6 +396,9 @@
     <FxCompile Include="Shader\Vertex\Skinned_VS.hlsl" />
     <FxCompile Include="Shader\Pixel\GBuffer_Cutout_PS.hlsl" />
     <FxCompile Include="Shader\Pixel\LightTransparent_PS.hlsl" />
+    <FxCompile Include="Shader\Pixel\BrightPass_PS.hlsl" />
+    <FxCompile Include="Shader\Pixel\Blur_PS.hlsl" />
+    <FxCompile Include="Shader\Pixel\FXAA_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Include\Shared.hlsli" />

@@ -54,7 +54,6 @@ namespace engine
 #include "Common/Math/MathUtility.h"
 #include "Common/Debug/Debug.h"
 
-#include "Core/Graphics/Device/GraphicsDevice.h"
 #include "Core/System/MyTime.h"
 #include "Core/System/Input.h"
 

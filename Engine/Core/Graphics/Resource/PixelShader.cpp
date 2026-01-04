@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "PixelShader.h"
 
-#include <d3dcompiler.h>
+#include "Core/Graphics/Device/GraphicsDevice.h"
 
 namespace engine
 {

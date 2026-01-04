@@ -30,19 +30,20 @@ float GAFSchlickGGX(float nDotV, float nDotL, float roughness)
 
 float4 main(PS_INPUT_TEXCOORD input) : SV_Target
 {
-    float3 baseColor = g_gBufferBaseColor.Sample(g_samPoint, input.texCoord).rgb;
-    float3 encodedNormal = g_gBufferNormal.Sample(g_samPoint, input.texCoord).rgb;
-    float depth = g_gBufferDepth.Sample(g_samPoint, input.texCoord).r;
-    float3 emissive = g_gBufferEmissive.Sample(g_samPoint, input.texCoord).rgb;
-    float3 orm = g_gBufferORM.Sample(g_samPoint, input.texCoord).rgb;
+    float2 uv = input.texCoord;
+    float3 baseColor = g_gBufferBaseColor.Sample(g_samPoint, uv).rgb;
+    float3 encodedNormal = g_gBufferNormal.Sample(g_samPoint, uv).rgb;
+    float depth = g_gBufferDepth.Sample(g_samPoint, uv).r;
+    float3 emissive = g_gBufferEmissive.Sample(g_samPoint, uv).rgb;
+    float3 orm = g_gBufferORM.Sample(g_samPoint, uv).rgb;
     float ao = orm.r;
     float roughness = orm.g;
     float metalness = orm.b;
     
     // world position
     float4 clipPosition;
-    clipPosition.x = input.texCoord.x * 2.0f - 1.0f;
-    clipPosition.y = -(input.texCoord.y * 2.0f - 1.0f);
+    clipPosition.x = uv.x * 2.0f - 1.0f;
+    clipPosition.y = -(uv.y * 2.0f - 1.0f);
     clipPosition.z = depth;
     clipPosition.w = 1.0f;
     

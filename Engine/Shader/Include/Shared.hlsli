@@ -61,7 +61,14 @@ cbuffer Global : register(b0) // 프레임 당 한번만 갱신되는 버퍼
     int g_pcfSize;
     
     int g_useIBL;
-    float3 __pad1_global;
+    float g_bloomStrength;
+    float g_bloomThreshold;
+    float g_bloomSoftKnee;
+    
+    float g_fxaaQualitySubpix; // 0.0 to 1.0 (default: 0.75)
+    float g_fxaaQualityEdgeThreshold; // 0.063 to 0.333 (default: 0.166)
+    float g_fxaaQualityEdgeThresholdMin; // 0.0312 to 0.0833 (default: 0.0833)
+    float __pad1_Global;
 }
 
 cbuffer Material : register(b1)
@@ -92,6 +99,11 @@ cbuffer Bone : register(b3)
     matrix g_boneTransform[128];
 }
 
+cbuffer Blur : register(b4)
+{
+    float2 g_blurDir;
+    float2 __pad1_Blur;
+}
 
 
 struct VS_INPUT_POSITION
@@ -176,6 +188,21 @@ float3 EncodeNormal(float3 n)
 float3 DecodeNormal(float3 n)
 {
     return n * 2.0f - 1.0f;
+}
+
+float GetLuminance(float3 color)
+{
+    return dot(color, float3(0.2126f, 0.7152f, 0.0722f));
+}
+
+float3 LinearToSRGB(float3 linearColor)
+{
+    return pow(linearColor, 1.0f / 2.2f);
+}
+
+float3 SRGBToLinear(float3 linearColor)
+{
+    return pow(linearColor, 2.2f);
 }
 
 #endif //SHARED_HLSLI

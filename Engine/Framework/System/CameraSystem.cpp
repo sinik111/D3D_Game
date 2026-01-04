@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "CameraSystem.h"
 
+#include "Core/Graphics/Device/GraphicsDevice.h"
+
 namespace engine
 {
     void CameraSystem::Register(Camera* camera)

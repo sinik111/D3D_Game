@@ -34,6 +34,17 @@ namespace engine
         ID3D11ShaderResourceView* normal;
         ID3D11ShaderResourceView* orm;
         ID3D11ShaderResourceView* emissive;
+        ID3D11ShaderResourceView* bloomHalfBuffer;
+        ID3D11ShaderResourceView* bloomQuarterBuffer;
+        ID3D11ShaderResourceView* bloomEighthBuffer;
+        ID3D11ShaderResourceView* bloomWorkBuffer;
+        ID3D11ShaderResourceView* aaBuffer;
+    };
+
+    struct CbBlur
+    {
+        Vector2 blurDir;
+        float __pad[2];
     };
 
     class GraphicsDevice :
@@ -51,21 +62,36 @@ namespace engine
         std::unique_ptr<Texture> m_gameDepthBuffer;
         std::unique_ptr<Texture> m_shadowDepthBuffer;
 
+        // bloom
+        std::unique_ptr<Texture> m_bloomHalfBuffer;
+        std::unique_ptr<Texture> m_bloomQuarterBuffer;
+        std::unique_ptr<Texture> m_bloomEighthBuffer;
+        std::unique_ptr<Texture> m_bloomWorkBuffer;
+
+        // fxaa
+        std::unique_ptr<Texture> m_aaBuffer;
+
         std::unique_ptr<RasterizerState> m_shadowMapRSS;
 
         GBufferResources m_gBuffer;
 
         Microsoft::WRL::ComPtr<IDXGIAdapter3> m_dxgiAdapter;
 
-        // Resources for Blit
+        // shaders
         Microsoft::WRL::ComPtr<ID3D11VertexShader> m_fullscreenQuadVS;
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_blitPS;
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_globalLightPS;
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_hdrPS;
         Microsoft::WRL::ComPtr<ID3D11PixelShader> m_ldrPS;
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> m_brightPassPS;
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> m_blurPS;
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> m_fxaaPS;
+
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_quadInputLayout;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerLinear;
         Microsoft::WRL::ComPtr<ID3D11SamplerState> m_samplerPoint;
+
+        Microsoft::WRL::ComPtr<ID3D11Buffer> m_blurConstantBuffer;
 
         // quad
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_quadVertexBuffer;
@@ -132,8 +158,7 @@ namespace engine
         void BeginDrawForwardPass();
         void EndDrawForwardPass();
 
-        void BeginDrawPostProccessingPass();
-        void EndDrawPostProccessingPass();
+        void ExecutePostProcessing();
 
         void BeginDrawScreenPass();
         void EndDrawScreenPass();
@@ -164,8 +189,12 @@ namespace engine
         void CreateCoreResources();
         void CreateShadowBuffer();
         void CreateSizeDependentResources();
-        void CreateFullscreenQuadResources();
+        void CreateAdditionalResources();
         Microsoft::WRL::ComPtr<IDXGIAdapter1> GetHighPerformanceAdapter(Microsoft::WRL::ComPtr<IDXGIFactory5> factory);
+
+        void ProcessBloom();
+        void ProcessToneMapping();
+        void ProcessFXAA();
 
     private:
         friend class Singleton<GraphicsDevice>;

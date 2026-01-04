@@ -149,38 +149,7 @@ namespace engine
 
         Input::SetMouseMode(DirectX::Mouse::MODE_ABSOLUTE);
 
-        // Calculate Input Coordinate Transform
-        float targetAspectRatio = static_cast<float>(m_settings.resolutionWidth) / static_cast<float>(m_settings.resolutionHeight);
-        float screenAspectRatio = static_cast<float>(m_screenWidth) / static_cast<float>(m_screenHeight);
-
-        float viewWidth = static_cast<float>(m_screenWidth);
-        float viewHeight = static_cast<float>(m_screenHeight);
-        float viewX = 0.0f;
-        float viewY = 0.0f;
-
-        if (m_settings.isFullscreen)
-        {
-            if (screenAspectRatio > targetAspectRatio)
-            {
-                viewWidth = m_screenHeight * targetAspectRatio;
-                viewX = (m_screenWidth - viewWidth) * 0.5f;
-            }
-            else
-            {
-                viewHeight = m_screenWidth / targetAspectRatio;
-                viewY = (m_screenHeight - viewHeight) * 0.5f;
-            }
-        }
-        else
-        {
-            viewWidth = static_cast<float>(m_settings.resolutionWidth);
-            viewHeight = static_cast<float>(m_settings.resolutionHeight);
-        }
-
-        float scaleX = viewWidth / static_cast<float>(m_settings.resolutionWidth);
-        float scaleY = viewHeight / static_cast<float>(m_settings.resolutionHeight);
-
-        Input::SetCoordinateTransform(viewX, viewY, scaleX, scaleY);
+        UpdateViewportTransformData();
 
         IMGUI_CHECKVERSION();
 
@@ -303,9 +272,18 @@ namespace engine
 
     LRESULT WinApp::MessageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
-        if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+        // ImGui 컨텍스트가 있을 때만 처리
+        if (ImGui::GetCurrentContext() != nullptr)
         {
-            return 0;
+            // [수정] 우리가 만든 함수로 가로채기
+            if (HandleImGuiInput(hWnd, uMsg, wParam, lParam))
+            {
+                // ImGui가 입력을 먹었으면(예: 창 위에서 클릭), 게임 로직으로 안 넘길 수도 있음
+                // 하지만 게임 특성에 따라 ImGui가 먹어도 게임 로직을 돌려야 할 수도 있으니
+                // 여기서는 return true를 하되, 필요하다면 return 0을 안 하고 아래로 흘려보낼 수도 있음.
+                // 보통 ImGui가 처리했으면 OS 기본 처리는 막는 게 정석.
+                return true;
+            }
         }
 
         switch (uMsg)
@@ -505,7 +483,11 @@ namespace engine
             isFullscreen
         );
 
-        // Calculate Input Coordinate Transform
+        UpdateViewportTransformData();
+    }
+
+    void WinApp::UpdateViewportTransformData()
+    {
         float targetAspectRatio = static_cast<float>(m_settings.resolutionWidth) / static_cast<float>(m_settings.resolutionHeight);
         float screenAspectRatio = static_cast<float>(m_screenWidth) / static_cast<float>(m_screenHeight);
 
@@ -514,7 +496,7 @@ namespace engine
         float viewX = 0.0f;
         float viewY = 0.0f;
 
-        if (isFullscreen)
+        if (m_settings.isFullscreen)
         {
             if (screenAspectRatio > targetAspectRatio)
             {
@@ -529,13 +511,63 @@ namespace engine
         }
         else
         {
+            // 창 모드일 때는 창 크기 = 해상도 크기라고 가정 (필러박스 없음)
+            // 만약 창 모드에서도 레터박스를 쓴다면 로직 수정 필요
             viewWidth = static_cast<float>(m_settings.resolutionWidth);
             viewHeight = static_cast<float>(m_settings.resolutionHeight);
         }
 
-        float scaleX = viewWidth / static_cast<float>(m_settings.resolutionWidth);
-        float scaleY = viewHeight / static_cast<float>(m_settings.resolutionHeight);
+        // [중요] 멤버 변수에 저장
+        m_viewportData.viewX = viewX;
+        m_viewportData.viewY = viewY;
+        m_viewportData.width = viewWidth;
+        m_viewportData.height = viewHeight;
 
-        Input::SetCoordinateTransform(viewX, viewY, scaleX, scaleY);
+        // 모니터 뷰포트 크기 -> 게임 해상도 크기로 가는 비율
+        m_viewportData.scaleX = static_cast<float>(m_settings.resolutionWidth) / viewWidth;
+        m_viewportData.scaleY = static_cast<float>(m_settings.resolutionHeight) / viewHeight;
+
+        // 기존 Input 시스템에도 적용 (사용자 코드 유지)
+        Input::SetCoordinateTransform(viewX, viewY, m_viewportData.scaleX, m_viewportData.scaleY);
+    }
+
+    bool WinApp::HandleImGuiInput(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+    {
+        // 1. 마우스 좌표가 포함된 메시지인지 확인 (휠 제외)
+        bool isMouseCoordMsg = false;
+        switch (uMsg)
+        {
+        case WM_MOUSEMOVE:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONUP:
+        case WM_MOUSEHOVER:
+            isMouseCoordMsg = true;
+            break;
+        }
+
+        // 2. 좌표 변환이 필요한 경우
+        if (isMouseCoordMsg)
+        {
+            // LPARAM에서 OS 기준 좌표 추출 (GET_X_LPARAM 매크로 사용 권장)
+            // #include <windowsx.h> 필요. 없으면 아래처럼 직접 비트 연산
+            int x = (short)LOWORD(lParam);
+            int y = (short)HIWORD(lParam);
+
+            // 좌표 변환 (Window -> Game Resolution)
+            float localX = (x - m_viewportData.viewX) * m_viewportData.scaleX;
+            float localY = (y - m_viewportData.viewY) * m_viewportData.scaleY;
+
+            LPARAM newLParam = MAKELPARAM((short)localX, (short)localY);
+            return ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, newLParam);
+        }
+
+        // 3. 마우스 좌표와 상관없는 메시지 (키보드, 휠 등)는 그대로 전달
+        return ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
     }
 }

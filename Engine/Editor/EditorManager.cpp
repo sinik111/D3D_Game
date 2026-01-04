@@ -3,11 +3,14 @@
 
 #include <fstream>
 
+#include "Core/Graphics/Device/GraphicsDevice.h"
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/Scene/Scene.h"
 #include "Framework/Object/GameObject/GameObject.h"
 #include "Framework/Object/Component/Transform.h"
 #include "Framework/Object/Component/ComponentFactory.h"
+#include "Framework/System/SystemManager.h"
+#include "Framework/System/RenderSystem.h"
 
 #include "Editor/EditorCamera.h"
 
@@ -517,7 +520,22 @@ namespace engine
         {
             m_editorCamera->OnGui();
         }
-        
+
+        if (ImGui::CollapsingHeader("Post Processing Params", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float bloomStrength;
+            float bloomThreshold;
+            float bloomSoftKnee;
+
+            SystemManager::Get().GetRenderSystem().GetBloomSettings(bloomStrength, bloomThreshold, bloomSoftKnee);
+
+            ImGui::DragFloat("Bloom Strength", &bloomStrength, 0.001f, 0.0001f, 999999.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+            ImGui::DragFloat("Bloom Threshold", &bloomThreshold, 0.001f, 0.0001f, 999999.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+            ImGui::DragFloat("Bloom SoftKnee", &bloomSoftKnee, 0.001f, 0.0001f, 999999.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp);
+
+            SystemManager::Get().GetRenderSystem().SetBloomSettings(bloomStrength, bloomThreshold, bloomSoftKnee);
+        }
+
         ImGui::End();
     }
 
@@ -766,6 +784,37 @@ namespace engine
             ImGui::BeginGroup();
             ImGui::Text("Emissive");
             ImGui::Image((ImTextureID)bufferTextures.emissive, ImVec2(128, 128));
+            ImGui::EndGroup();
+
+            ImGui::SameLine();
+
+            ImGui::BeginGroup();
+            ImGui::Text("Bloom Half");
+            ImGui::Image((ImTextureID)bufferTextures.bloomHalfBuffer, ImVec2(128, 128));
+            ImGui::EndGroup();
+
+            ImGui::BeginGroup();
+            ImGui::Text("Bloom Quarter");
+            ImGui::Image((ImTextureID)bufferTextures.bloomQuarterBuffer, ImVec2(128, 128));
+            ImGui::EndGroup();
+
+            ImGui::SameLine();
+
+            ImGui::BeginGroup();
+            ImGui::Text("Bloom Eighth");
+            ImGui::Image((ImTextureID)bufferTextures.bloomEighthBuffer, ImVec2(128, 128));
+            ImGui::EndGroup();
+
+            ImGui::BeginGroup();
+            ImGui::Text("Bloom Work");
+            ImGui::Image((ImTextureID)bufferTextures.bloomWorkBuffer, ImVec2(128, 128));
+            ImGui::EndGroup();
+
+            ImGui::SameLine();
+
+            ImGui::BeginGroup();
+            ImGui::Text("FXAA");
+            ImGui::Image((ImTextureID)bufferTextures.aaBuffer, ImVec2(128, 128));
             ImGui::EndGroup();
         }
 

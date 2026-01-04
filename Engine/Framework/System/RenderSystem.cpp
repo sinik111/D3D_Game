@@ -196,6 +196,12 @@ namespace engine
         cbGlobal.useShadowPCF = 0;
         cbGlobal.pcfSize = 2;
         cbGlobal.useIBL = 1;
+        cbGlobal.bloomStrength = m_bloomStrength;
+        cbGlobal.bloomThreshold = m_bloomThreshold;
+        cbGlobal.bloomSoftKnee = m_bloomSoftKnee;
+        cbGlobal.fxaaQualitySubpix = 0.75f;           // 0.0 to 1.0 (default: 0.75)
+        cbGlobal.fxaaQualityEdgeThreshold = 0.166f;    // 0.063 to 0.333 (default: 0.166)
+        cbGlobal.fxaaQualityEdgeThresholdMin = 0.0833f; // 0.0312 to 0.0833 (default: 0.0833)
 
         context->VSSetConstantBuffers(
             static_cast<UINT>(ConstantBufferSlot::Global),
@@ -247,8 +253,6 @@ namespace engine
 
                 ID3D11ShaderResourceView* srvs[3]{ m_irradianceMap->GetRawSRV(), m_specularMap->GetRawSRV(), m_brdfLut->GetRawSRV() };
                 context->PSSetShaderResources(static_cast<UINT>(TextureSlot::IBLIrradiance), 3, srvs);
-
-                graphics.DrawFullscreenQuad();
             }
             graphics.EndDrawLightPass();
 
@@ -286,11 +290,7 @@ namespace engine
             graphics.EndDrawForwardPass();
         }
 
-        graphics.BeginDrawPostProccessingPass();
-        {
-            graphics.DrawFullscreenQuad();
-        }
-        graphics.EndDrawPostProccessingPass();
+        graphics.ExecutePostProcessing();
 
         graphics.BeginDrawScreenPass();
         {
@@ -300,6 +300,20 @@ namespace engine
             }
         }
         graphics.EndDrawScreenPass();
+    }
+
+    void RenderSystem::GetBloomSettings(float& bloomStrength, float& bloomThreshold, float& bloomSoftKnee)
+    {
+        bloomStrength = m_bloomStrength;
+        bloomThreshold = m_bloomThreshold;
+        bloomSoftKnee = m_bloomSoftKnee;
+    }
+
+    void RenderSystem::SetBloomSettings(float bloomStrength, float bloomThreshold, float bloomSoftKnee)
+    {
+        m_bloomStrength = bloomStrength;
+        m_bloomThreshold = bloomThreshold;
+        m_bloomSoftKnee = bloomSoftKnee;
     }
 
     void RenderSystem::AddRenderer(std::vector<Renderer*>& v, Renderer* renderer, RenderType type)

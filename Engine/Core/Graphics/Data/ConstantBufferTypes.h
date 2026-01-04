@@ -39,7 +39,14 @@ namespace engine
 		int pcfSize;
 
 		int useIBL;
-		float __pad1[3];
+		float bloomStrength;
+		float bloomThreshold;
+		float bloomSoftKnee;
+
+		float fxaaQualitySubpix;           // 0.0 to 1.0 (default: 0.75)
+		float fxaaQualityEdgeThreshold;    // 0.063 to 0.333 (default: 0.166)
+		float fxaaQualityEdgeThresholdMin; // 0.0312 to 0.0833 (default: 0.0833)
+		float pad1;
 	};
 
 	struct CbMaterial

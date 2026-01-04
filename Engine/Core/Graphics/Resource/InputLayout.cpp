@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "InputLayout.h"
 
+#include "Core/Graphics/Device/GraphicsDevice.h"
+
 namespace engine
 {
     void InputLayout::Create(

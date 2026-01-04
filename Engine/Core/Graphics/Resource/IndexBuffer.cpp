@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "IndexBuffer.h"
 
+#include "Core/Graphics/Device/GraphicsDevice.h"
+
 namespace engine
 {
     void IndexBuffer::Create(const std::vector<DWORD>& indices)

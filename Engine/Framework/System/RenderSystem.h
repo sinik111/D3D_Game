@@ -46,6 +46,10 @@ namespace engine
         std::shared_ptr<RasterizerState> m_skyboxRSState;
         std::shared_ptr<DepthStencilState> m_skyboxDSState;
 
+        float m_bloomStrength = 3.5f;
+        float m_bloomThreshold = 1.0f;
+        float m_bloomSoftKnee = 2.0f;
+
     public:
         RenderSystem();
 
@@ -55,6 +59,9 @@ namespace engine
 
     public:
         void Render();
+
+        void GetBloomSettings(float& bloomStrength, float& bloomThreshold, float& bloomSoftKnee);
+        void SetBloomSettings(float bloomStrength, float bloomThreshold, float bloomSoftKnee);
 
     private:
         void AddRenderer(std::vector<Renderer*>& v, Renderer* renderer, RenderType type);

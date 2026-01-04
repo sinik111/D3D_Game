@@ -6,6 +6,8 @@
 #include <DirectXTex.h>
 #include <filesystem>
 
+#include "Core/Graphics/Device/GraphicsDevice.h"
+
 namespace engine
 {
     namespace

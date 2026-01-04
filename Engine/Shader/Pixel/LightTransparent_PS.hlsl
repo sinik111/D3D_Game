@@ -30,13 +30,14 @@ float GAFSchlickGGX(float nDotV, float nDotL, float roughness)
 
 float4 main(PS_INPUT_GBUFFER input) : SV_Target
 {
-    float4 baseColor = g_texBaseColor.Sample(g_samLinear, input.texCoord);
-    float3 encodedNormal = g_texNormal.Sample(g_samLinear, input.texCoord).rgb;
+    float2 uv = input.texCoord;
+    float4 baseColor = g_texBaseColor.Sample(g_samLinear, uv);
+    float3 encodedNormal = g_texNormal.Sample(g_samLinear, uv).rgb;
     float3 worldPosition = input.worldPosition;
-    float3 emissive = g_texEmissive.Sample(g_samLinear, input.texCoord).rgb;
-    float ao = g_texAmbientOcclusion.Sample(g_samLinear, input.texCoord).r;
-    float roughness = g_texRoughness.Sample(g_samLinear, input.texCoord).r;
-    float metalness = g_texMetalness.Sample(g_samLinear, input.texCoord).r;
+    float3 emissive = g_texEmissive.Sample(g_samLinear, uv).rgb;
+    float ao = g_texAmbientOcclusion.Sample(g_samLinear, uv).r;
+    float roughness = g_texRoughness.Sample(g_samLinear, uv).r;
+    float metalness = g_texMetalness.Sample(g_samLinear, uv).r;
     
     // normal
     float3 n = DecodeNormal(encodedNormal);

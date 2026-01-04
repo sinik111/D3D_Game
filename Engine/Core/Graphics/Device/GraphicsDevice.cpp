@@ -76,7 +76,7 @@ namespace engine
         dxgiDevice->GetAdapter(dxgiAdapter.GetAddressOf());
         dxgiAdapter.As(&m_dxgiAdapter);
 
-        CreateFullscreenQuadResources();
+        CreateAdditionalResources();
         CreateShadowBuffer();
     }
 
@@ -85,6 +85,7 @@ namespace engine
         m_quadIndexBuffer.Reset();
         m_quadVertexBuffer.Reset();
         m_samplerLinear.Reset();
+        m_samplerPoint.Reset();
         m_quadInputLayout.Reset();
         m_ldrPS.Reset();
         m_hdrPS.Reset();
@@ -228,6 +229,8 @@ namespace engine
 
     void GraphicsDevice::EndDrawLightPass()
     {
+        DrawFullscreenQuad();
+
         m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 
         ID3D11ShaderResourceView* nullSRVs[m_gBuffer.count]{};
@@ -251,10 +254,99 @@ namespace engine
         m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     }
 
-    void GraphicsDevice::BeginDrawPostProccessingPass()
+    void GraphicsDevice::ProcessBloom()
     {
-
         m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        // 모든 단계에서 Linear Sampler 사용 (부드러운 다운샘플링)
+        m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerSlot::Linear), 1, m_samplerLinear.GetAddressOf());
+
+        ID3D11ShaderResourceView* nullSRV = nullptr;
+
+        // [Pass 1] HDR -> 1/2 (Bright Pass)
+        {
+            D3D11_VIEWPORT vp{ 0, 0, (float)m_resolutionWidth / 2, (float)m_resolutionHeight / 2, 0, 1 };
+            m_deviceContext->RSSetViewports(1, &vp);
+            m_deviceContext->OMSetRenderTargets(1, m_bloomHalfBuffer->GetRTV().GetAddressOf(), nullptr);
+
+            m_deviceContext->PSSetShader(m_brightPassPS.Get(), nullptr, 0);
+            m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_hdrBuffer->GetSRV().GetAddressOf());
+
+            DrawFullscreenQuad();
+
+            m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+            m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
+        }
+
+        //// [Pass 2] 1/2 -> 1/4 (Downsample)
+        //{
+        //    D3D11_VIEWPORT vp{ 0, 0, (float)m_resolutionWidth / 4, (float)m_resolutionHeight / 4, 0, 1 };
+        //    m_deviceContext->RSSetViewports(1, &vp);
+        //    m_deviceContext->OMSetRenderTargets(1, m_bloomQuarterBuffer->GetRTV().GetAddressOf(), nullptr);
+
+        //    m_deviceContext->PSSetShader(m_blitPS.Get(), nullptr, 0); // 단순 복사
+        //    m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_bloomHalfBuffer->GetSRV().GetAddressOf());
+
+        //    DrawFullscreenQuad();
+
+        //    m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+        //    m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
+        //}
+
+        //// [Pass 3] 1/4 -> 1/8 (Downsample - Final Target Size)
+        //{
+        //    D3D11_VIEWPORT vp{ 0, 0, (float)m_resolutionWidth / 8, (float)m_resolutionHeight / 8, 0, 1 };
+        //    m_deviceContext->RSSetViewports(1, &vp);
+        //    m_deviceContext->OMSetRenderTargets(1, m_bloomEighthBuffer->GetRTV().GetAddressOf(), nullptr);
+
+        //    m_deviceContext->PSSetShader(m_blitPS.Get(), nullptr, 0);
+        //    m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_bloomQuarterBuffer->GetSRV().GetAddressOf());
+
+        //    DrawFullscreenQuad();
+
+        //    m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+        //    m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
+        //}
+
+        // [Pass 4] 1/8 -> Work (Horizontal Blur)
+        {
+            m_deviceContext->OMSetRenderTargets(1, m_bloomWorkBuffer->GetRTV().GetAddressOf(), nullptr);
+            m_deviceContext->PSSetShader(m_blurPS.Get(), nullptr, 0);
+            m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_bloomHalfBuffer->GetSRV().GetAddressOf());
+
+            CbBlur cb{};
+            cb.blurDir = Vector2(1.0f / (m_resolutionWidth / 2.0f), 0.0f);
+            m_deviceContext->PSSetConstantBuffers(4, 1, m_blurConstantBuffer.GetAddressOf());
+            m_deviceContext->UpdateSubresource(m_blurConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
+
+            DrawFullscreenQuad();
+
+            m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+            m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
+        }
+
+        // [Pass 5] Work -> 1/8 (Vertical Blur - Final Bloom Texture)
+        {
+            m_deviceContext->OMSetRenderTargets(1, m_bloomHalfBuffer->GetRTV().GetAddressOf(), nullptr);
+            m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_bloomWorkBuffer->GetSRV().GetAddressOf());
+
+            CbBlur cb{};
+            cb.blurDir = Vector2(0.0f, 1.0f / (m_resolutionHeight / 2.0f));
+            m_deviceContext->PSSetConstantBuffers(4, 1, m_blurConstantBuffer.GetAddressOf());
+            m_deviceContext->UpdateSubresource(m_blurConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
+
+            DrawFullscreenQuad();
+
+            m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+            m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
+        }
+
+        m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    }
+
+    void GraphicsDevice::ProcessToneMapping()
+    {
+        m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerSlot::Linear), 1, m_samplerLinear.GetAddressOf());
 
         m_deviceContext->RSSetViewports(1, &m_gameViewport);
         m_deviceContext->RSSetState(nullptr);
@@ -270,18 +362,40 @@ namespace engine
             break;
         }
 
-        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::HDR), 1, m_hdrBuffer->GetSRV().GetAddressOf());
+        ID3D11ShaderResourceView* srvs[2]{ m_bloomHalfBuffer->GetRawSRV(), m_hdrBuffer->GetRawSRV() };
+
+        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 2, srvs);
         m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerSlot::Linear), 1, m_samplerLinear.GetAddressOf());
 
-        m_deviceContext->OMSetRenderTargets(1, m_finalBuffer->GetRTV().GetAddressOf(), nullptr);
-    }
+        m_deviceContext->OMSetRenderTargets(1, m_aaBuffer->GetRTV().GetAddressOf(), nullptr);
 
-    void GraphicsDevice::EndDrawPostProccessingPass()
-    {
+        DrawFullscreenQuad();
+
         m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 
+        ID3D11ShaderResourceView* nullSRVs[2]{};
+        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 2, nullSRVs);
+    }
+
+    void GraphicsDevice::ProcessFXAA()
+    {
+        m_deviceContext->OMSetRenderTargets(1, m_finalBuffer->GetRTV().GetAddressOf(), nullptr);
+
+        m_deviceContext->PSSetShader(m_fxaaPS.Get(), nullptr, 0);
+        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_aaBuffer->GetSRV().GetAddressOf());
+        m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerSlot::Linear), 1, m_samplerLinear.GetAddressOf());
+
+        DrawFullscreenQuad();
+
         ID3D11ShaderResourceView* nullSRV = nullptr;
-        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::HDR), 1, &nullSRV);
+        m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
+    }
+
+    void GraphicsDevice::ExecutePostProcessing()
+    {
+        ProcessBloom();
+        ProcessToneMapping();
+        ProcessFXAA();
     }
 
     void GraphicsDevice::BeginDrawScreenPass()
@@ -300,6 +414,8 @@ namespace engine
 
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+        io.DisplaySize = ImVec2((float)m_resolutionWidth, (float)m_resolutionHeight);
 
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
@@ -379,7 +495,12 @@ namespace engine
             m_gBuffer.baseColor->GetRawSRV(),
             m_gBuffer.normal->GetRawSRV(),
             m_gBuffer.orm->GetRawSRV(),
-            m_gBuffer.emissive->GetRawSRV()
+            m_gBuffer.emissive->GetRawSRV(),
+            m_bloomHalfBuffer->GetRawSRV(),
+            m_bloomQuarterBuffer->GetRawSRV(),
+            m_bloomEighthBuffer->GetRawSRV(),
+            m_bloomWorkBuffer->GetRawSRV(),
+            m_aaBuffer->GetRawSRV()
         };
     }
 
@@ -663,6 +784,24 @@ namespace engine
             m_finalBuffer->Create(desc);
         }
 
+        // aa buffer
+        {
+            D3D11_TEXTURE2D_DESC desc{};
+            desc.Width = m_resolutionWidth;
+            desc.Height = m_resolutionHeight;
+            desc.MipLevels = 1;
+            desc.ArraySize = 1;
+            desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            desc.SampleDesc.Count = 1;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+            desc.CPUAccessFlags = 0;
+            desc.MiscFlags = 0;
+
+            m_aaBuffer = std::make_unique<Texture>();
+            m_aaBuffer->Create(desc);
+        }
+
         // hdr buffer
         {
             D3D11_TEXTURE2D_DESC desc{};
@@ -735,6 +874,40 @@ namespace engine
             m_gBuffer.emissive->Create(desc);
         }
 
+        // bloom textures
+        {
+            // 메모리 절약을 위해 R11G11B10_FLOAT 사용 권장 (없으면 R16G16B16A16_FLOAT)
+            D3D11_TEXTURE2D_DESC desc = {};
+            desc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+            desc.SampleDesc.Count = 1;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+            desc.MipLevels = 1;
+            desc.ArraySize = 1;
+
+            // 1/2 (Bright Pass)
+            desc.Width = m_resolutionWidth / 2;
+            desc.Height = m_resolutionHeight / 2;
+            m_bloomHalfBuffer = std::make_unique<Texture>();
+            m_bloomHalfBuffer->Create(desc);
+
+            // 1/4
+            desc.Width = m_resolutionWidth / 4;
+            desc.Height = m_resolutionHeight / 4;
+            m_bloomQuarterBuffer = std::make_unique<Texture>();
+            m_bloomQuarterBuffer->Create(desc);
+
+            // 1/8 (Final & Work)
+            desc.Width = m_resolutionWidth / 2;
+            desc.Height = m_resolutionHeight / 2;
+
+            m_bloomEighthBuffer = std::make_unique<Texture>();
+            m_bloomEighthBuffer->Create(desc);
+
+            m_bloomWorkBuffer = std::make_unique<Texture>();
+            m_bloomWorkBuffer->Create(desc);
+        }
+
         m_gameViewport.TopLeftX = 0.0f;
         m_gameViewport.TopLeftY = 0.0f;
         m_gameViewport.Width = static_cast<float>(m_resolutionWidth);
@@ -780,7 +953,7 @@ namespace engine
         }
     }
 
-    void GraphicsDevice::CreateFullscreenQuadResources()
+    void GraphicsDevice::CreateAdditionalResources()
     {
         // Create vertex, index buffer
         {
@@ -899,6 +1072,42 @@ namespace engine
                     nullptr,
                     &m_globalLightPS));
             }
+
+            // bright pass
+            {
+                Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
+                CompileShaderFromFile("Resource/Shader/Pixel/BrightPass_PS.hlsl", "main", "ps_5_0", psBlob);
+
+                HR_CHECK(m_device->CreatePixelShader(
+                    psBlob->GetBufferPointer(),
+                    psBlob->GetBufferSize(),
+                    nullptr,
+                    &m_brightPassPS));
+            }
+
+            // blur
+            {
+                Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
+                CompileShaderFromFile("Resource/Shader/Pixel/Blur_PS.hlsl", "main", "ps_5_0", psBlob);
+
+                HR_CHECK(m_device->CreatePixelShader(
+                    psBlob->GetBufferPointer(),
+                    psBlob->GetBufferSize(),
+                    nullptr,
+                    &m_blurPS));
+            }
+
+            // fxaa
+            {
+                Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
+                CompileShaderFromFile("Resource/Shader/Pixel/FXAA_PS.hlsl", "main", "ps_5_0", psBlob);
+
+                HR_CHECK(m_device->CreatePixelShader(
+                    psBlob->GetBufferPointer(),
+                    psBlob->GetBufferSize(),
+                    nullptr,
+                    &m_fxaaPS));
+            }
         }
 
         // Create Sampler State
@@ -926,6 +1135,17 @@ namespace engine
             samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
             HR_CHECK(m_device->CreateSamplerState(&samplerDesc, &m_samplerPoint));
+        }
+
+        // Blur Constant Buffer
+        {
+            D3D11_BUFFER_DESC desc{};
+            desc.ByteWidth = sizeof(CbBlur);
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+            desc.CPUAccessFlags = 0;
+
+            HR_CHECK(m_device->CreateBuffer(&desc, nullptr, &m_blurConstantBuffer));
         }
     }
 

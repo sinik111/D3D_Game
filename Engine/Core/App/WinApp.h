@@ -6,6 +6,16 @@
 
 namespace engine
 {
+    struct ViewportTransformData
+    {
+        float viewX = 0.0f;
+        float viewY = 0.0f;
+        float width = 0.0f;
+        float height = 0.0f;
+        float scaleX = 1.0f;
+        float scaleY = 1.0f;
+    };
+
     class WinApp
     {
     protected:
@@ -19,6 +29,7 @@ namespace engine
         std::string m_windowName = "Default";
         std::filesystem::path m_settingFilePath;
         WindowSettings m_settings;
+        ViewportTransformData m_viewportData;
 
         UINT m_classStyle = 0;
         DWORD m_windowStyle = 0;
@@ -43,6 +54,9 @@ namespace engine
         void ValidateSettings();
         void SetWindowMode(bool isFullscreen);
         void SetResolution(int width, int height, bool isFullscreen);
+        void UpdateViewportTransformData();
+
+        bool HandleImGuiInput(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
     protected:
         virtual LRESULT MessageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
