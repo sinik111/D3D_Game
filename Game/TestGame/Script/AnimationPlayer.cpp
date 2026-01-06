@@ -1,7 +1,6 @@
-﻿#include "pch.h"
+﻿#include "GamePCH.h"
 #include "AnimationPlayer.h"
 
-#include "Framework/Object/GameObject/GameObject.h"
 #include "Framework/Object/Component/SkeletalAnimator.h"
 
 namespace game

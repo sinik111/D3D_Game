@@ -35,8 +35,6 @@ namespace engine
         ID3D11ShaderResourceView* orm;
         ID3D11ShaderResourceView* emissive;
         ID3D11ShaderResourceView* bloomHalfBuffer;
-        ID3D11ShaderResourceView* bloomQuarterBuffer;
-        ID3D11ShaderResourceView* bloomEighthBuffer;
         ID3D11ShaderResourceView* bloomWorkBuffer;
         ID3D11ShaderResourceView* aaBuffer;
     };
@@ -64,8 +62,6 @@ namespace engine
 
         // bloom
         std::unique_ptr<Texture> m_bloomHalfBuffer;
-        std::unique_ptr<Texture> m_bloomQuarterBuffer;
-        std::unique_ptr<Texture> m_bloomEighthBuffer;
         std::unique_ptr<Texture> m_bloomWorkBuffer;
 
         // fxaa

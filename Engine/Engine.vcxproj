@@ -42,13 +42,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -114,7 +114,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>EnginePCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -135,7 +135,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>EnginePCH.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -174,6 +174,7 @@
     <ClCompile Include="Framework\Asset\AnimationData.cpp" />
     <ClCompile Include="Framework\Asset\AssetManager.cpp" />
     <ClCompile Include="Framework\Asset\FBXData.cpp" />
+    <ClCompile Include="Framework\Asset\SimpleMeshData.cpp" />
     <ClCompile Include="Framework\Asset\SkeletalMeshData.cpp" />
     <ClCompile Include="Framework\Asset\SkeletonData.cpp" />
     <ClCompile Include="Framework\Asset\StaticMeshData.cpp" />
@@ -187,6 +188,7 @@
     <ClCompile Include="Framework\Object\Component\Renderer.cpp" />
     <ClCompile Include="Framework\Object\Component\Script.cpp" />
     <ClCompile Include="Framework\Object\Component\SkeletalMeshRenderer.cpp" />
+    <ClCompile Include="Framework\Object\Component\SpriteRenderer.cpp" />
     <ClCompile Include="Framework\Object\Component\StaticMeshRenderer.cpp" />
     <ClCompile Include="Framework\Object\Component\Transform.cpp" />
     <ClCompile Include="Framework\Object\GameObject\GameObject.cpp" />
@@ -199,7 +201,7 @@
     <ClCompile Include="Framework\System\SystemManager.cpp" />
     <ClCompile Include="Framework\System\ScriptSystem.cpp" />
     <ClCompile Include="Framework\System\TransformSystem.cpp" />
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="EnginePCH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
@@ -211,6 +213,7 @@
     <ClInclude Include="Common\Math\MathUtility.h" />
     <ClInclude Include="Common\Utility\JsonHelper.h" />
     <ClInclude Include="Common\Utility\StaticMemoryPool.h" />
+    <ClInclude Include="Common\Utility\TextureHelper.h" />
     <ClInclude Include="Core\Graphics\Data\ShaderSlotTypes.h" />
     <ClInclude Include="Editor\EditorCamera.h" />
     <ClInclude Include="Editor\EditorManager.h" />
@@ -247,6 +250,7 @@
     <ClInclude Include="Framework\Asset\AssetManager.h" />
     <ClInclude Include="Framework\Asset\FBXData.h" />
     <ClInclude Include="Framework\Asset\MaterialData.h" />
+    <ClInclude Include="Framework\Asset\SimpleMeshData.h" />
     <ClInclude Include="Framework\Asset\SkeletalMeshData.h" />
     <ClInclude Include="Framework\Asset\SkeletonData.h" />
     <ClInclude Include="Framework\Asset\StaticMeshData.h" />
@@ -259,6 +263,7 @@
     <ClInclude Include="Framework\Object\Component\Renderer.h" />
     <ClInclude Include="Framework\Object\Component\Script.h" />
     <ClInclude Include="Framework\Object\Component\SkeletalMeshRenderer.h" />
+    <ClInclude Include="Framework\Object\Component\SpriteRenderer.h" />
     <ClInclude Include="Framework\Object\Component\StaticMeshRenderer.h" />
     <ClInclude Include="Framework\Object\Component\Transform.h" />
     <ClInclude Include="Framework\Object\GameObject\GameObject.h" />
@@ -274,10 +279,16 @@
     <ClInclude Include="Framework\System\System.h" />
     <ClInclude Include="Framework\System\TransformSystem.h" />
     <ClInclude Include="Framework\System\AnimatorSystem.h" />
-    <ClInclude Include="pch.h" />
+    <ClInclude Include="EnginePCH.h" />
     <ClInclude Include="Core\App\WinApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shader\Pixel\Blit_Cutout_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="Shader\Pixel\Blit_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -349,6 +360,18 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="Shader\Vertex\FullscreenQuad_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\Vertex\NormalQuad_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Shader\Vertex\Quad_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "EnginePCH.h"
 #include "AssetManager.h"
 
 #include "Framework/Asset/FBXData.h"
@@ -7,6 +7,7 @@
 #include "Framework/Asset/SkeletalMeshData.h"
 #include "Framework/Asset/SkeletonData.h"
 #include "Framework/Asset/AnimationData.h"
+#include "Framework/Asset/SimpleMeshData.h"
 
 namespace engine
 {
@@ -101,6 +102,24 @@ namespace engine
         m_tempAssets[m_tempAssetIndex++ % MAX_TEMP_ASSET] = fbx;
 
         return fbx->GetAnimationData();
+    }
+
+    std::shared_ptr<SimpleMeshData> AssetManager::GetOrCreateSimpleMeshData(const std::string& filePath)
+    {
+        if (auto find = m_simpleMeshDatas.find(filePath); find != m_simpleMeshDatas.end())
+        {
+            if (!find->second.expired())
+            {
+                return find->second.lock();
+            }
+        }
+
+        auto simpleMeshData = std::make_shared<SimpleMeshData>();
+        simpleMeshData->Create(filePath);
+
+        m_simpleMeshDatas[filePath] = simpleMeshData;
+
+        return simpleMeshData;
     }
 
     std::shared_ptr<SkeletonData> AssetManager::GetOrCreateSkeletonData(const std::string& filePath)

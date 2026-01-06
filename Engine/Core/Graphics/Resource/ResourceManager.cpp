@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "EnginePCH.h"
 #include "ResourceManager.h"
 
 #include "Core/Graphics/Resource/IndexBuffer.h"
@@ -37,6 +37,24 @@ namespace engine
     }
 
     std::shared_ptr<IndexBuffer> ResourceManager::GetOrCreateIndexBuffer(const std::string& filePath, const std::vector<DWORD>& indices)
+    {
+        if (auto find = m_indexBuffers.find(filePath); find != m_indexBuffers.end())
+        {
+            if (!find->second.expired())
+            {
+                return find->second.lock();
+            }
+        }
+
+        auto indexBuffer = std::make_shared<IndexBuffer>();
+        indexBuffer->Create(indices);
+
+        m_indexBuffers[filePath] = indexBuffer;
+
+        return indexBuffer;
+    }
+
+    std::shared_ptr<IndexBuffer> ResourceManager::GetOrCreateIndexBuffer(const std::string& filePath, const std::vector<WORD>& indices)
     {
         if (auto find = m_indexBuffers.find(filePath); find != m_indexBuffers.end())
         {

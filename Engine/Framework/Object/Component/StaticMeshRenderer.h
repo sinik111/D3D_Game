@@ -17,7 +17,6 @@ namespace engine
     class InputLayout;
     class SamplerState;
 
-
     class StaticMeshRenderer :
         public Renderer
     {

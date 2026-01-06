@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "EnginePCH.h"
 #include "StaticMeshRenderer.h"
 
 #include <filesystem>
@@ -11,16 +11,15 @@
 #include "Core/Graphics/Resource/PixelShader.h"
 #include "Core/Graphics/Resource/InputLayout.h"
 #include "Core/Graphics/Resource/SamplerState.h"
-#include "Core/Graphics/Data/ConstantBufferTypes.h"
 #include "Core/Graphics/Resource/MaterialHelper.h"
+#include "Core/Graphics/Data/ConstantBufferTypes.h"
+#include "Core/Graphics/Data/ShaderSlotTypes.h"
 #include "Framework/Asset/AssetManager.h"
 #include "Framework/Asset/StaticMeshData.h"
 #include "Framework/Asset/MaterialData.h"
 #include "Framework/System/SystemManager.h"
 #include "Framework/System/RenderSystem.h"
-#include "Framework/Object/GameObject/GameObject.h"
 #include "Framework/Object/Component/Transform.h"
-#include "Core/Graphics/Data/ShaderSlotTypes.h"
 
 
 namespace engine
@@ -168,25 +167,33 @@ namespace engine
         ImGui::Spacing();
         // 2. Shader Selectors
         // (Shader 폴더 경로가 Resource/Shader인지 Shader인지 확인 필요)
-        static const std::string shaderPath = "Resource/Shader/Pixel";
+        static const std::string pixelShaderPath = "Resource/Shader/Pixel";
+        static const std::string vertexShaderPath = "Resource/Shader/Vertex";
         ImGui::Text("Shaders:");
         std::string selectedShader;
         // Opaque
-        if (DrawFileSelector("Opaque PS", shaderPath, ".hlsl", selectedShader))
+        if (DrawFileSelector("VS", vertexShaderPath, ".hlsl", selectedShader))
+        {
+            SetVertexShader(selectedShader);
+        }
+        ImGui::SameLine();
+        ImGui::Text("%s", std::filesystem::path(m_vsFilePath).filename().string().c_str());
+        // Opaque
+        if (DrawFileSelector("Opaque PS", pixelShaderPath, ".hlsl", selectedShader))
         {
             SetOpaquePixelShader(selectedShader);
         }
         ImGui::SameLine();
         ImGui::Text("%s", std::filesystem::path(m_opaquePSFilePath).filename().string().c_str());
         // Cutout
-        if (DrawFileSelector("Cutout PS", shaderPath, ".hlsl", selectedShader))
+        if (DrawFileSelector("Cutout PS", pixelShaderPath, ".hlsl", selectedShader))
         {
             SetCutoutPixelShader(selectedShader);
         }
         ImGui::SameLine();
         ImGui::Text("%s", std::filesystem::path(m_cutoutPSFilePath).filename().string().c_str());
         // Transparent
-        if (DrawFileSelector("Trans PS", shaderPath, ".hlsl", selectedShader))
+        if (DrawFileSelector("Trans PS", pixelShaderPath, ".hlsl", selectedShader))
         {
             SetTransparentPixelShader(selectedShader);
         }

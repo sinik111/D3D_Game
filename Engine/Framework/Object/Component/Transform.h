@@ -39,9 +39,9 @@ namespace engine
 
         const Matrix& GetWorld();
 
-        Vector3 GetForward() const;
-        Vector3 GetUp() const;
-        Vector3 GetRight() const;
+        Vector3 GetForward();
+        Vector3 GetUp();
+        Vector3 GetRight();
 
         const std::vector<Transform*>& GetChildren() const;
         Transform* GetParent() const;

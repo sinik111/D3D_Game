@@ -1,0 +1,82 @@
+﻿#pragma once
+
+#include "Framework/Object/Component/Renderer.h"
+
+namespace engine
+{
+    class SimpleMeshData;
+
+    class VertexBuffer;
+    class IndexBuffer;
+    class ConstantBuffer;
+    class VertexShader;
+    class PixelShader;
+    class Texture;
+    class InputLayout;
+    class SamplerState;
+
+    class SpriteRenderer :
+        public Renderer
+    {
+        REGISTER_COMPONENT(SpriteRenderer)
+
+    private:
+        std::string m_textureFilePath;
+        std::string m_vsFilePath;
+        std::string m_opaquePSFilePath;
+        std::string m_cutoutPSFilePath;
+        std::string m_transparentPSFilePath;
+
+        std::shared_ptr<SimpleMeshData> m_simpleMeshData;
+
+        std::shared_ptr<VertexBuffer> m_vertexBuffer;
+        std::shared_ptr<IndexBuffer> m_indexBuffer;
+        
+        std::shared_ptr<ConstantBuffer> m_materialConstantBuffer;
+        std::shared_ptr<ConstantBuffer> m_objectConstantBuffer;
+
+        std::shared_ptr<VertexShader> m_vs;
+        std::shared_ptr<VertexShader> m_shadowVS;
+
+        std::shared_ptr<PixelShader> m_opaquePS;
+        std::shared_ptr<PixelShader> m_cutoutPS;
+        std::shared_ptr<PixelShader> m_transparentPS;
+        std::shared_ptr<PixelShader> m_shadowCutoutPS;
+
+        std::shared_ptr<Texture> m_texture;
+        std::shared_ptr<InputLayout> m_inputLayout;
+        std::shared_ptr<SamplerState> m_samplerState;
+
+        MaterialRenderType m_renderType = MaterialRenderType::Opaque;
+        float m_width = 100.0f;
+        float m_height = 100.0f;
+        bool m_castShadow = false;
+
+    public:
+        ~SpriteRenderer();
+
+    public:
+        void Initialize() override;
+
+        void SetTexture(const std::string& textureFilePath);
+        void SetVertexShader(const std::string& shaderFilePath);
+        void SetOpaquePixelShader(const std::string& shaderFilePath);
+        void SetCutoutPixelShader(const std::string& shaderFilePath);
+        void SetTransparentPixelShader(const std::string& shaderFilePath);
+        void SetCastShadow(bool castShadow);
+
+    public:
+        void OnGui() override;
+        void Save(json& j) const override;
+        void Load(const json& j) override;
+        std::string GetType() const override;
+
+    public:
+        bool HasRenderType(RenderType type) const override;
+        void Draw(RenderType type) const override;
+        DirectX::BoundingBox GetBounds() const override;
+
+    private:
+        void Refresh();
+    };
+}

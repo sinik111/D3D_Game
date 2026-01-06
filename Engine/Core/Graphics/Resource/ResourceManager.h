@@ -74,6 +74,7 @@ namespace engine
         }
 
         std::shared_ptr<IndexBuffer> GetOrCreateIndexBuffer(const std::string& filePath, const std::vector<DWORD>& indices);
+        std::shared_ptr<IndexBuffer> GetOrCreateIndexBuffer(const std::string& filePath, const std::vector<WORD>& indices);
         std::shared_ptr<Texture> GetOrCreateTexture(const std::string& filePath);
         std::shared_ptr<Texture> GetOrCreateTexture(
             const std::string& name,

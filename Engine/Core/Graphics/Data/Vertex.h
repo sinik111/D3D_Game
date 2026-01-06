@@ -121,6 +121,20 @@ namespace engine
         Vector3 position;
         Vector2 texCoord;
 
+        PositionTexCoordVertex() noexcept = default;
+
+        PositionTexCoordVertex(const float* position, const float* texCoord) noexcept
+            : position{ position }, texCoord{ texCoord }
+        {
+
+        }
+
+        constexpr PositionTexCoordVertex(const Vector3& position, const Vector2& texCoord) noexcept
+            : position{ position }, texCoord{ texCoord }
+        {
+
+        }
+
         static constexpr std::array<D3D11_INPUT_ELEMENT_DESC, 2> layout
         {
             // SemanticName , SemanticIndex , Format , InputSlot , AlignedByteOffset , InputSlotClass , InstanceDataStepRate

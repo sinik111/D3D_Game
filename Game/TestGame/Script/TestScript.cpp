@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "GamePCH.h"
 #include "TestScript.h"
 
 #include "Framework/Object/Component/Transform.h"

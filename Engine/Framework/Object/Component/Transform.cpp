@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "EnginePCH.h"
 #include "Transform.h"
 
 #include <imgui.h>
@@ -82,19 +82,19 @@ namespace engine
         return m_world;
     }
 
-    Vector3 Transform::GetForward() const
+    Vector3 Transform::GetForward()
     {
-        return engine::GetForward(m_world);
+        return engine::GetForward(GetWorld());
     }
 
-    Vector3 Transform::GetUp() const
+    Vector3 Transform::GetUp()
     {
-        return engine::GetUp(m_world);
+        return engine::GetUp(GetWorld());
     }
 
-    Vector3 Transform::GetRight() const
+    Vector3 Transform::GetRight()
     {
-        return engine::GetRight(m_world);
+        return engine::GetRight(GetWorld());
     }
 
     bool Transform::IsDirtyThisFrame() const

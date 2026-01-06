@@ -15,8 +15,7 @@ float4 main(PS_INPUT_TEXCOORD input) : SV_Target
    
     float mask = saturate((luminance - kneeLow) / max(g_bloomSoftKnee, 1e-5));
    
-    float3 brightColor = hdrColor * mask;
-    brightColor = min(brightColor, g_maxBloom);
+    mask = min(mask, g_maxBloom);
     
-    return float4(brightColor, 1.0f);
+    return float4(mask, mask, mask, 1.0f);
 }

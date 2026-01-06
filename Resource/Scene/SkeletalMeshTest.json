@@ -10,8 +10,8 @@
                     "Type": "Transform",
                     "Position": {
                         "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0
+                        "y": 20.0,
+                        "z": -20.0
                     },
                     "Rotation": {
                         "x": 0.0,
@@ -29,7 +29,11 @@
                     "Type": "Camera",
                     "Near": 1.0,
                     "Far": 5000.0,
-                    "FOV": 50.0
+                    "FOV": 80.0
+                },
+                {
+                    "Type": "FreeCameraController",
+                    "MoveSpeed": 30.799999237060547
                 }
             ]
         },

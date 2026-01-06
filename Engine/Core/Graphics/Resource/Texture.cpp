@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "EnginePCH.h"
 #include "Texture.h"
 
 #include <directxtk/WICTextureLoader.h>
@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "Core/Graphics/Device/GraphicsDevice.h"
+#include "Common/Utility/TextureHelper.h"
 
 namespace engine
 {
@@ -110,6 +111,8 @@ namespace engine
         {
             HR_CHECK(DirectX::CreateWICTextureFromFile(device.Get(), path.c_str(), nullptr, &m_srv));
         }
+
+        m_desc = GetTextureDescFromSRV(m_srv.Get());
     }
 
     void Texture::Create(UINT width, UINT height, DXGI_FORMAT format, UINT bindFlags)

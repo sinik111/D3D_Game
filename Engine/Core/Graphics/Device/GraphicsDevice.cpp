@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "EnginePCH.h"
 #include "GraphicsDevice.h"
 
 #include <dxgi1_5.h>
@@ -84,15 +84,22 @@ namespace engine
     {
         m_quadIndexBuffer.Reset();
         m_quadVertexBuffer.Reset();
+
         m_samplerLinear.Reset();
         m_samplerPoint.Reset();
         m_quadInputLayout.Reset();
+
         m_ldrPS.Reset();
         m_hdrPS.Reset();
+        m_brightPassPS.Reset();
+        m_blurPS.Reset();
+        m_fxaaPS.Reset();
         m_globalLightPS.Reset();
         m_blitPS.Reset();
         m_fullscreenQuadVS.Reset();
+
         m_dxgiAdapter.Reset();
+        m_blurConstantBuffer.Reset();
 
         m_gBuffer.Reset();
 
@@ -101,6 +108,9 @@ namespace engine
         m_gameDepthBuffer.reset();
         m_hdrBuffer.reset();
         m_finalBuffer.reset();
+        m_bloomHalfBuffer.reset();
+        m_bloomWorkBuffer.reset();
+        m_aaBuffer.reset();
 
         m_backBufferRTV.Reset();
 
@@ -158,7 +168,7 @@ namespace engine
         m_deviceContext->IASetInputLayout(m_quadInputLayout.Get());
         static const UINT offset = 0;
         m_deviceContext->IASetVertexBuffers(0, 1, m_quadVertexBuffer.GetAddressOf(), &m_quadVertexStride, &offset);
-        m_deviceContext->IASetIndexBuffer(m_quadIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+        m_deviceContext->IASetIndexBuffer(m_quadIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
         
         m_deviceContext->VSSetShader(m_fullscreenQuadVS.Get(), nullptr, 0);
 
@@ -218,6 +228,7 @@ namespace engine
         m_deviceContext->RSSetState(nullptr);
 
         m_deviceContext->PSSetShader(m_globalLightPS.Get(), nullptr, 0);
+        m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerSlot::Linear), 1, m_samplerLinear.GetAddressOf());
         m_deviceContext->PSSetSamplers(static_cast<UINT>(SamplerSlot::Point), 1, m_samplerPoint.GetAddressOf());
 
         m_deviceContext->PSSetShaderResources(m_gBuffer.startSlot, m_gBuffer.count, m_gBuffer.GetRawSRVs().data());
@@ -262,7 +273,6 @@ namespace engine
 
         ID3D11ShaderResourceView* nullSRV = nullptr;
 
-        // [Pass 1] HDR -> 1/2 (Bright Pass)
         {
             D3D11_VIEWPORT vp{ 0, 0, (float)m_resolutionWidth / 2, (float)m_resolutionHeight / 2, 0, 1 };
             m_deviceContext->RSSetViewports(1, &vp);
@@ -277,37 +287,6 @@ namespace engine
             m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
         }
 
-        //// [Pass 2] 1/2 -> 1/4 (Downsample)
-        //{
-        //    D3D11_VIEWPORT vp{ 0, 0, (float)m_resolutionWidth / 4, (float)m_resolutionHeight / 4, 0, 1 };
-        //    m_deviceContext->RSSetViewports(1, &vp);
-        //    m_deviceContext->OMSetRenderTargets(1, m_bloomQuarterBuffer->GetRTV().GetAddressOf(), nullptr);
-
-        //    m_deviceContext->PSSetShader(m_blitPS.Get(), nullptr, 0); // 단순 복사
-        //    m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_bloomHalfBuffer->GetSRV().GetAddressOf());
-
-        //    DrawFullscreenQuad();
-
-        //    m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-        //    m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
-        //}
-
-        //// [Pass 3] 1/4 -> 1/8 (Downsample - Final Target Size)
-        //{
-        //    D3D11_VIEWPORT vp{ 0, 0, (float)m_resolutionWidth / 8, (float)m_resolutionHeight / 8, 0, 1 };
-        //    m_deviceContext->RSSetViewports(1, &vp);
-        //    m_deviceContext->OMSetRenderTargets(1, m_bloomEighthBuffer->GetRTV().GetAddressOf(), nullptr);
-
-        //    m_deviceContext->PSSetShader(m_blitPS.Get(), nullptr, 0);
-        //    m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_bloomQuarterBuffer->GetSRV().GetAddressOf());
-
-        //    DrawFullscreenQuad();
-
-        //    m_deviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-        //    m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
-        //}
-
-        // [Pass 4] 1/8 -> Work (Horizontal Blur)
         {
             m_deviceContext->OMSetRenderTargets(1, m_bloomWorkBuffer->GetRTV().GetAddressOf(), nullptr);
             m_deviceContext->PSSetShader(m_blurPS.Get(), nullptr, 0);
@@ -324,7 +303,6 @@ namespace engine
             m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
         }
 
-        // [Pass 5] Work -> 1/8 (Vertical Blur - Final Bloom Texture)
         {
             m_deviceContext->OMSetRenderTargets(1, m_bloomHalfBuffer->GetRTV().GetAddressOf(), nullptr);
             m_deviceContext->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, m_bloomWorkBuffer->GetSRV().GetAddressOf());
@@ -497,8 +475,6 @@ namespace engine
             m_gBuffer.orm->GetRawSRV(),
             m_gBuffer.emissive->GetRawSRV(),
             m_bloomHalfBuffer->GetRawSRV(),
-            m_bloomQuarterBuffer->GetRawSRV(),
-            m_bloomEighthBuffer->GetRawSRV(),
             m_bloomWorkBuffer->GetRawSRV(),
             m_aaBuffer->GetRawSRV()
         };
@@ -885,24 +861,11 @@ namespace engine
             desc.MipLevels = 1;
             desc.ArraySize = 1;
 
-            // 1/2 (Bright Pass)
+            // 1/2
             desc.Width = m_resolutionWidth / 2;
             desc.Height = m_resolutionHeight / 2;
             m_bloomHalfBuffer = std::make_unique<Texture>();
             m_bloomHalfBuffer->Create(desc);
-
-            // 1/4
-            desc.Width = m_resolutionWidth / 4;
-            desc.Height = m_resolutionHeight / 4;
-            m_bloomQuarterBuffer = std::make_unique<Texture>();
-            m_bloomQuarterBuffer->Create(desc);
-
-            // 1/8 (Final & Work)
-            desc.Width = m_resolutionWidth / 2;
-            desc.Height = m_resolutionHeight / 2;
-
-            m_bloomEighthBuffer = std::make_unique<Texture>();
-            m_bloomEighthBuffer->Create(desc);
 
             m_bloomWorkBuffer = std::make_unique<Texture>();
             m_bloomWorkBuffer->Create(desc);
@@ -967,7 +930,7 @@ namespace engine
                 PositionTexCoordVertex{ {  1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f } },
             };
 
-            constexpr std::array<DWORD, indexCount> indices{
+            constexpr std::array<WORD, indexCount> indices{
                 0, 1, 2,
                 2, 1, 3
             };
@@ -992,7 +955,7 @@ namespace engine
             HR_CHECK(m_device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_quadVertexBuffer));
 
             D3D11_BUFFER_DESC indexBufferDesc{};
-            indexBufferDesc.ByteWidth = sizeof(DWORD) * indexCount;
+            indexBufferDesc.ByteWidth = sizeof(WORD) * indexCount;
             indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
             indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
             indexBufferDesc.CPUAccessFlags = 0;

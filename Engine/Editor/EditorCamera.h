@@ -18,7 +18,7 @@ namespace engine
         Matrix m_projection;
 
         float m_moveSpeed = 10.0f;
-        float m_rotationSpeed = 3.0f;
+        float m_rotationSpeed = 0.002f;
 
         bool m_isDirty = true;
 

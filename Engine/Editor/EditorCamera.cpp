@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "EnginePCH.h"
 #include "EditorCamera.h"
 
 namespace engine
@@ -13,8 +13,8 @@ namespace engine
 
             const Vector2 mouseDelta = Input::GetMouseDelta();
 
-            m_yaw += mouseDelta.x * m_rotationSpeed * deltaTime;
-            m_pitch += mouseDelta.y * m_rotationSpeed * deltaTime;
+            m_yaw += mouseDelta.x * m_rotationSpeed;
+            m_pitch += mouseDelta.y * m_rotationSpeed;
 
             constexpr float limit = ToRadian(89.9f);
             m_pitch = std::clamp(m_pitch, -limit, limit);

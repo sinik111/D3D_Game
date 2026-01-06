@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "EnginePCH.h"
 #include "WinApp.h"
 
 #include <DirectXColors.h>
@@ -238,6 +238,7 @@ namespace engine
             break;
 
         case EditorState::Pause:
+            EditorManager::Get().Update();
             break;
         }
 #else

@@ -1,8 +1,9 @@
-﻿#include "pch.h"
+﻿#include "GamePCH.h"
 #include "TestGameApp.h"
 
 #include "Framework/Scene/SceneManager.h"
 #include "Framework/Scene/Scene.h"
+#include "Framework/Object/Component/SpriteRenderer.h"
 #include "Framework/Object/Component/StaticMeshRenderer.h"
 #include "Framework/Object/Component/SkeletalMeshRenderer.h"
 #include "Framework/Object/Component/SkeletalAnimator.h"

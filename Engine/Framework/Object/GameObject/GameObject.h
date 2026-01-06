@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "Framework/Object/Object.h"
-#include "Framework/Object/Component/Component.h"
 #include "Framework/Scene/SceneManager.h"
 
 namespace engine

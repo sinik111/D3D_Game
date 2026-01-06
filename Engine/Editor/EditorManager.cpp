@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+﻿#include "EnginePCH.h"
 #include "EditorManager.h"
 
 #include <fstream>
@@ -791,18 +791,6 @@ namespace engine
             ImGui::BeginGroup();
             ImGui::Text("Bloom Half");
             ImGui::Image((ImTextureID)bufferTextures.bloomHalfBuffer, ImVec2(128, 128));
-            ImGui::EndGroup();
-
-            ImGui::BeginGroup();
-            ImGui::Text("Bloom Quarter");
-            ImGui::Image((ImTextureID)bufferTextures.bloomQuarterBuffer, ImVec2(128, 128));
-            ImGui::EndGroup();
-
-            ImGui::SameLine();
-
-            ImGui::BeginGroup();
-            ImGui::Text("Bloom Eighth");
-            ImGui::Image((ImTextureID)bufferTextures.bloomEighthBuffer, ImVec2(128, 128));
             ImGui::EndGroup();
 
             ImGui::BeginGroup();

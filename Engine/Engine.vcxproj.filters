@@ -21,7 +21,7 @@
     <ClCompile Include="Framework\Physics\TestPhysics.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="EnginePCH.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Core\App\ConfigLoader.cpp">
@@ -180,12 +180,18 @@
     <ClCompile Include="Framework\System\AnimatorSystem.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Framework\Object\Component\SpriteRenderer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework\Asset\SimpleMeshData.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App\WinApp.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
+    <ClInclude Include="EnginePCH.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Core\App\ConfigLoader.h">
@@ -389,6 +395,15 @@
     <ClInclude Include="Framework\System\AnimatorSystem.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Framework\Object\Component\SpriteRenderer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Utility\TextureHelper.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Asset\SimpleMeshData.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Vertex\FullscreenQuad_VS.hlsl" />
@@ -411,6 +426,9 @@
     <FxCompile Include="Shader\Pixel\BrightPass_PS.hlsl" />
     <FxCompile Include="Shader\Pixel\Blur_PS.hlsl" />
     <FxCompile Include="Shader\Pixel\FXAA_PS.hlsl" />
+    <FxCompile Include="Shader\Vertex\NormalQuad_VS.hlsl" />
+    <FxCompile Include="Shader\Pixel\Blit_Cutout_PS.hlsl" />
+    <FxCompile Include="Shader\Vertex\Quad_VS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Include\Shared.hlsli" />

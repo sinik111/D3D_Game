@@ -12,6 +12,7 @@ namespace engine
 
     public:
         void Create(const std::vector<DWORD>& indices);
+        void Create(const std::vector<WORD>& indices);
 
     public:
         const Microsoft::WRL::ComPtr<ID3D11Buffer>& GetBuffer() const;
