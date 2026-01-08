@@ -298,7 +298,7 @@ namespace engine
                         ImGui::EndDragDropSource();
                     }
                     
-                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && m_editorState == EditorState::Edit)
                     {
                         RequestSceneChange(filename);
                         /*SceneManager::Get().ChangeScene(filename);

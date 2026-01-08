@@ -94,7 +94,7 @@ namespace engine
         {
             m_isDirty = true;
         }
-        ImGui::DragFloat("MoveSpeed", &m_moveSpeed, 1.0f, 0.0f, 2000.0f, "%f", ImGuiSliderFlags_AlwaysClamp);
+        ImGui::DragFloat("MoveSpeed", &m_moveSpeed, 0.1f, 0.0f, 2000.0f, "%.1f", ImGuiSliderFlags_AlwaysClamp);
 
         if (float nearFar[]{ m_near, m_far }; ImGui::DragFloat2("Near/Far", nearFar, 0.1f))
         {
