@@ -33,6 +33,9 @@
 #include <imgui.h>
 #include <json.hpp>
 
+// PhysX
+#include <PxPhysicsAPI.h>
+
 namespace engine
 {
     using Vector2 = DirectX::SimpleMath::Vector2;

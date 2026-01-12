@@ -211,7 +211,18 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Core\App\WinApp.cpp" />
-    <ClCompile Include="Framework\Physics\TestPhysics.cpp" />
+    <ClCompile Include="Framework\Physics\CollisionSystem.cpp" />
+    <ClCompile Include="Framework\Physics\PhysicsCallback.cpp" />
+    <ClCompile Include="Framework\Physics\PhysicsDebugRenderer.cpp" />
+    <ClCompile Include="Framework\Physics\PhysicsMaterial.cpp" />
+    <ClCompile Include="Framework\Physics\PhysicsSystem.cpp" />
+    <ClCompile Include="Framework\Physics\PhysicsUtility.cpp" />
+    <ClCompile Include="Framework\Object\Component\BoxCollider.cpp" />
+    <ClCompile Include="Framework\Object\Component\CapsuleCollider.cpp" />
+    <ClCompile Include="Framework\Object\Component\CharacterController.cpp" />
+    <ClCompile Include="Framework\Object\Component\Collider.cpp" />
+    <ClCompile Include="Framework\Object\Component\Rigidbody.cpp" />
+    <ClCompile Include="Framework\Object\Component\SphereCollider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\Debug\Debug.h" />
@@ -292,6 +303,20 @@
     <ClInclude Include="Framework\System\AnimatorSystem.h" />
     <ClInclude Include="EnginePCH.h" />
     <ClInclude Include="Core\App\WinApp.h" />
+    <ClInclude Include="Framework\Physics\CollisionSystem.h" />
+    <ClInclude Include="Framework\Physics\CollisionTypes.h" />
+    <ClInclude Include="Framework\Physics\PhysicsCallback.h" />
+    <ClInclude Include="Framework\Physics\PhysicsDebugRenderer.h" />
+    <ClInclude Include="Framework\Physics\PhysicsLayer.h" />
+    <ClInclude Include="Framework\Physics\PhysicsMaterial.h" />
+    <ClInclude Include="Framework\Physics\PhysicsSystem.h" />
+    <ClInclude Include="Framework\Physics\PhysicsUtility.h" />
+    <ClInclude Include="Framework\Object\Component\BoxCollider.h" />
+    <ClInclude Include="Framework\Object\Component\CapsuleCollider.h" />
+    <ClInclude Include="Framework\Object\Component\CharacterController.h" />
+    <ClInclude Include="Framework\Object\Component\Collider.h" />
+    <ClInclude Include="Framework\Object\Component\Rigidbody.h" />
+    <ClInclude Include="Framework\Object\Component\SphereCollider.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Pixel\Sprite_Unlit_Transparent_PS.hlsl">

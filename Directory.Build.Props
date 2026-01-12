@@ -3,6 +3,7 @@
 		<Vendor>$(SolutionDir)Vendor</Vendor>
         <TripletStatic>x64-windows-static-md</TripletStatic>
         <TripletDynamic>x64-windows</TripletDynamic>
+		<PhysX>$(Vendor)\PhysX</PhysX>
 		
 		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
 		<RunPostBuildEvent>Always</RunPostBuildEvent>
@@ -13,6 +14,7 @@
             <AdditionalIncludeDirectories>
 				$(Vendor)\$(TripletStatic)\include;
 				$(Vendor)\$(TripletDynamic)\include;
+				$(PhysX)\include;
 				$(SolutionDir)Engine;
 				$(SolutionDir);
 				$(ProjectDir);
@@ -27,6 +29,7 @@
             <AdditionalLibraryDirectories>
 				$(Vendor)\$(TripletStatic)\debug\lib;
 				$(Vendor)\$(TripletDynamic)\debug\lib;
+				$(PhysX)\lib\debug;
 				%(AdditionalLibraryDirectories)
 			</AdditionalLibraryDirectories>
 			
@@ -38,6 +41,13 @@
 				directxtex.lib;
 				imguid.lib;
 				assimp-vc143-mtd.lib;
+				PhysX_64.lib;
+				PhysXCommon_64.lib;
+				PhysXCooking_64.lib;
+				PhysXFoundation_64.lib;
+				PhysXExtensions_static_64.lib;
+				PhysXCharacterKinematic_static_64.lib;
+				PhysXPvdSDK_static_64.lib;
 				%(AdditionalDependencies)
 			</AdditionalDependencies>
         </Link>
@@ -45,6 +55,7 @@
         <PostBuildEvent>
             <Command>
 				xcopy /Y /D "$(Vendor)\$(TripletDynamic)\debug\bin\*.dll" "$(OutDir)"
+				xcopy /Y /D "$(PhysX)\bin\debug\*.dll" "$(OutDir)"
 				if exist "$(ProjectDir)Shader" xcopy /E /Y /D "$(ProjectDir)Shader" "$(OutDir)Resource\Shader\"
 				if exist "$(OutDir)Resource" rmdir /S /Q "$(OutDir)Resource"
 				if not exist "$(OutDir)Resource" mklink /J "$(OutDir)Resource" "$(SolutionDir)Resource"
@@ -57,6 +68,7 @@
             <AdditionalLibraryDirectories>
 				$(Vendor)\$(TripletStatic)\lib;
 				$(Vendor)\$(TripletDynamic)\lib;
+				$(PhysX)\lib\release;
 				%(AdditionalLibraryDirectories)
 			</AdditionalLibraryDirectories>
 			
@@ -68,6 +80,13 @@
 				directxtex.lib;
 				imgui.lib;
 				assimp-vc143-mt.lib;
+				PhysX_64.lib;
+				PhysXCommon_64.lib;
+				PhysXCooking_64.lib;
+				PhysXFoundation_64.lib;
+				PhysXExtensions_static_64.lib;
+				PhysXCharacterKinematic_static_64.lib;
+				PhysXPvdSDK_static_64.lib;
 				%(AdditionalDependencies)
 			</AdditionalDependencies>
         </Link>
@@ -75,6 +94,7 @@
         <PostBuildEvent>
             <Command>
 				xcopy /Y /D "$(Vendor)\$(TripletDynamic)\bin\*.dll" "$(OutDir)"
+				xcopy /Y /D "$(PhysX)\bin\release\*.dll" "$(OutDir)"
 				if exist "$(ProjectDir)Shader" xcopy /E /Y /D "$(ProjectDir)Shader" "$(OutDir)Resource\Shader\"
 				if exist "$(OutDir)Resource" rmdir /S /Q "$(OutDir)Resource"
 				if not exist "$(OutDir)Resource" mklink /J "$(OutDir)Resource" "$(SolutionDir)Resource"
