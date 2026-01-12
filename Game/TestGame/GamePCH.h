@@ -11,3 +11,10 @@
 #include <Engine/Framework/Object/Component/SkeletalAnimator.h>
 #include <Engine/Framework/Object/Component/SpriteAnimator.h>
 #include <Engine/Framework/Object/Component/Camera.h>
+
+// Physics Components
+#include <Engine/Framework/Object/Component/Rigidbody.h>
+#include <Engine/Framework/Object/Component/BoxCollider.h>
+#include <Engine/Framework/Object/Component/SphereCollider.h>
+#include <Engine/Framework/Object/Component/CapsuleCollider.h>
+#include <Engine/Framework/Object/Component/CharacterController.h>
