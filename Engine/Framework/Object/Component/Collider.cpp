@@ -347,8 +347,19 @@ namespace engine
         }
 
         // Static Actor 생성
-        physx::PxTransform transform = PhysicsUtility::ToPxTransform(GetTransform());
-        m_ownedStaticActor = physics->createRigidStatic(transform);
+        physx::PxTransform pxTransform;
+        if (IgnoresWorldRotation())
+        {
+            // 월드 회전 무시 - 위치만 사용
+            Vector3 worldPos = GetTransform()->GetWorldPosition();
+            pxTransform = physx::PxTransform(PhysicsUtility::ToPxVec3(worldPos));
+        }
+        else
+        {
+            // 위치와 회전 모두 사용
+            pxTransform = PhysicsUtility::ToPxTransform(GetTransform());
+        }
+        m_ownedStaticActor = physics->createRigidStatic(pxTransform);
 
         if (!m_ownedStaticActor)
         {

@@ -25,12 +25,6 @@ namespace engine
         UpdateGeometry();
     }
 
-    void CapsuleCollider::SetDirection(CapsuleDirection direction)
-    {
-        m_direction = direction;
-        UpdateLocalPose();
-    }
-
     physx::PxGeometry* CapsuleCollider::CreateGeometry()
     {
         // PhysX 캡슐: 기본적으로 X축 방향
@@ -48,32 +42,7 @@ namespace engine
         physx::PxCapsuleGeometry capsule(m_radius, GetHalfHeight());
         m_shape->setGeometry(capsule);
 
-        // 로컬 회전 갱신 (direction + rotation 조합)
         UpdateLocalPose();
-    }
-
-    physx::PxQuat CapsuleCollider::GetDirectionRotation() const
-    {
-        // PhysX 캡슐은 기본적으로 X축 방향
-        // Y축이나 Z축으로 바꾸려면 회전 필요
-        
-        switch (m_direction)
-        {
-        case CapsuleDirection::X:
-            // 기본값, 회전 없음
-            return physx::PxQuat(physx::PxIdentity);
-            
-        case CapsuleDirection::Y:
-            // X축 → Y축: Z축 기준 90도 회전
-            return physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1));
-            
-        case CapsuleDirection::Z:
-            // X축 → Z축: Y축 기준 -90도 회전
-            return physx::PxQuat(-physx::PxHalfPi, physx::PxVec3(0, 1, 0));
-            
-        default:
-            return physx::PxQuat(physx::PxIdentity);
-        }
     }
 
     void CapsuleCollider::UpdateLocalPose()
@@ -83,16 +52,15 @@ namespace engine
             return;
         }
 
-        // 사용자 회전 (오일러 각도 → 쿼터니언)
+        // 사용자 회전 (오일러 각도 -> 쿼터니언)
         Vector3 radians = m_rotation * (DirectX::XM_PI / 180.0f);
         Quaternion userRot = Quaternion::CreateFromYawPitchRoll(radians.y, radians.x, radians.z);
 
-        // Direction 회전
-        physx::PxQuat dirQuat = GetDirectionRotation();
-        Quaternion dirRot(dirQuat.x, dirQuat.y, dirQuat.z, dirQuat.w);
+        // PhysX 캡슐은 X축 방향이 기본 -> Y축 방향으로 변환 (Z축 90도 회전)
+        Quaternion baseRot = Quaternion::CreateFromAxisAngle(Vector3::UnitZ, DirectX::XM_PIDIV2);
 
-        // Direction 먼저, 그 다음 사용자 회전 적용
-        Quaternion finalRot = dirRot * userRot;
+        // 기본 회전 먼저, 그 다음 사용자 회전 적용
+        Quaternion finalRot = baseRot * userRot;
 
         physx::PxTransform localPose(
             PhysicsUtility::ToPxVec3(m_center),
@@ -120,14 +88,6 @@ namespace engine
         {
             SetHeight(height);
         }
-        
-        // Direction
-        const char* directions[] = { "X", "Y", "Z" };
-        int dir = static_cast<int>(m_direction);
-        if (ImGui::Combo("Direction", &dir, directions, 3))
-        {
-            SetDirection(static_cast<CapsuleDirection>(dir));
-        }
     }
 
     void CapsuleCollider::Save(json& j) const
@@ -135,7 +95,6 @@ namespace engine
         Collider::Save(j);
         j["radius"] = m_radius;
         j["height"] = m_height;
-        j["direction"] = static_cast<int>(m_direction);
     }
 
     void CapsuleCollider::Load(const json& j)
@@ -148,10 +107,6 @@ namespace engine
         if (j.contains("height"))
         {
             m_height = j["height"].get<float>();
-        }
-        if (j.contains("direction"))
-        {
-            m_direction = static_cast<CapsuleDirection>(j["direction"].get<int>());
         }
     }
 }

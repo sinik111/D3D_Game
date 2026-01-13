@@ -80,6 +80,9 @@ namespace engine
         uint64_t GetAttackSourceId() const { return m_attackSourceId; }
         void SetAttackSourceId(uint64_t id) { m_attackSourceId = id; }
 
+        // 월드 회전 무시 여부 (Sphere, Capsule은 true)
+        virtual bool IgnoresWorldRotation() const { return false; }
+
         // ═══════════════════════════════════════
         // Rigidbody 연결
         // ═══════════════════════════════════════
@@ -116,6 +119,6 @@ namespace engine
         void AttachToRigidbody();
         void CreateOwnedStaticActor();
         void UpdateFilterData();
-        void UpdateLocalPose();  // center와 rotation을 shape에 적용
+        virtual void UpdateLocalPose();  // center와 rotation을 shape에 적용
     };
 }
