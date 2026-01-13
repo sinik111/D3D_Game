@@ -62,3 +62,4 @@ dkms.conf
 /Bin/
 *.user
 imgui.ini
+*.cso
