@@ -26,6 +26,8 @@
 #include "Editor/EditorManager.h"
 #include "Editor/EditorCamera.h"
 
+#include "Framework/Physics/PhysicsDebugRenderer.h"
+
 namespace engine
 {
     namespace
@@ -277,8 +279,62 @@ namespace engine
 
             graphics.BeginDrawForwardPass();
             {
-                DrawSkybox();
-                DrawTransparents(cameraPosition);
+                context->OMSetDepthStencilState(m_skyboxDSState->GetRawDepthStencilState(), 0);
+                context->RSSetState(m_skyboxRSState->GetRawRasterizerState());
+
+                const UINT stride = m_cubeVertexBuffer->GetBufferStride();
+                const UINT offset = 0;
+                context->IASetVertexBuffers(0, 1, m_cubeVertexBuffer->GetBuffer().GetAddressOf(), &stride, &offset);
+                context->IASetIndexBuffer(m_cubeIndexBuffer->GetRawBuffer(), m_cubeIndexBuffer->GetIndexFormat(), 0);
+                context->IASetInputLayout(m_cubeInputLayout->GetRawInputLayout());
+
+                context->VSSetShader(m_skyboxVertexShader->GetRawShader(), nullptr, 0);
+
+                context->PSSetShader(m_skyboxPixelShader->GetRawShader(), nullptr, 0);
+                context->PSSetSamplers(0, 1, m_linearSamplerState->GetSamplerState().GetAddressOf());
+                context->PSSetShaderResources(static_cast<UINT>(TextureSlot::IBLEnvironment), 1, m_skyboxEnv->GetSRV().GetAddressOf());
+
+                context->RSSetState(m_skyboxRSState->GetRawRasterizerState());
+
+                context->OMSetDepthStencilState(m_skyboxDSState->GetRawDepthStencilState(), 0);
+
+                context->DrawIndexed(m_cubeIndexBuffer->GetIndexCount(), 0, 0);
+
+                context->RSSetState(nullptr);
+                context->OMSetDepthStencilState(nullptr, 0);
+
+                context->OMSetBlendState(m_transparentBlendState->GetRawBlendState(), nullptr, 0xFFFFFFFF);
+                context->OMSetDepthStencilState(m_transparentDSState->GetRawDepthStencilState(), 0);
+
+                static std::vector<std::pair<float, Renderer*>> sortList;
+                sortList.clear();
+                if (sortList.capacity() < m_transparentList.size())
+                {
+                    sortList.reserve(static_cast<size_t>(m_transparentList.size() * 1.5f));
+                }
+                Vector3 camPos = cameraPosition;
+                
+                for (auto* renderer : m_transparentList)
+                {
+                    if (renderer->IsActive())
+                    {
+                        float distSq = Vector3::DistanceSquared(camPos, renderer->GetTransform()->GetWorld().Translation());
+                        sortList.emplace_back(distSq, renderer);
+                    }
+                }
+                
+                std::sort(sortList.begin(), sortList.end(),
+                    [](const auto& a, const auto& b) {
+                        return a.first > b.first;
+                    });
+
+                for (auto pair : sortList)
+                {
+                    pair.second->Draw(RenderType::Transparent);
+                }
+
+                context->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+                context->OMSetDepthStencilState(nullptr, 0);
             }
             graphics.EndDrawForwardPass();
         }
