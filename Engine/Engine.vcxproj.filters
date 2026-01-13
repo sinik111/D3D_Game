@@ -240,6 +240,9 @@
     <ClCompile Include="Framework\Object\Ptr.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Framework\Object\Component\RectTransform.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\App\WinApp.h">
@@ -519,6 +522,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Framework\System\LightSystem.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Framework\Object\Component\RectTransform.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
