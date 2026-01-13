@@ -113,6 +113,7 @@ namespace engine
 
         m_dxgiAdapter.Reset();
         m_blurConstantBuffer.reset();
+        m_screenSizeCB.reset();
 
         m_gBuffer.Reset();
 
@@ -929,6 +930,14 @@ namespace engine
             m_backBufferViewport.Width = static_cast<float>(m_resolutionWidth);
             m_backBufferViewport.Height = static_cast<float>(m_resolutionHeight);
         }
+
+        if (m_screenSizeCB)
+        {
+            CbScreenSize cb{
+                Vector2(static_cast<float>(m_resolutionWidth), static_cast<float>(m_resolutionHeight)),
+                0.0f, 0.0f };
+            m_deviceContext->UpdateSubresource(m_screenSizeCB->GetRawBuffer(), 0, nullptr, &cb, 0, 0);
+        }
     }
 
     void GraphicsDevice::CreateAdditionalResources()
@@ -971,6 +980,13 @@ namespace engine
         {
             m_blurConstantBuffer = ResourceManager::Get().GetOrCreateConstantBuffer("Blur", sizeof(CbBlur));
         }
+
+        m_screenSizeCB = ResourceManager::Get().GetOrCreateConstantBuffer("ScreenSize", sizeof(CbScreenSize));
+        m_deviceContext->PSSetConstantBuffers(static_cast<UINT>(ConstantBufferSlot::ScreenSize), 1, m_screenSizeCB->GetBuffer().GetAddressOf());
+        CbScreenSize cb{
+            Vector2(static_cast<float>(m_resolutionWidth), static_cast<float>(m_resolutionHeight)),
+            0.0f, 0.0f };
+        m_deviceContext->UpdateSubresource(m_screenSizeCB->GetRawBuffer(), 0, nullptr, &cb, 0, 0);
     }
 
     Microsoft::WRL::ComPtr<IDXGIAdapter1> GraphicsDevice::GetHighPerformanceAdapter(Microsoft::WRL::ComPtr<IDXGIFactory5> factory)

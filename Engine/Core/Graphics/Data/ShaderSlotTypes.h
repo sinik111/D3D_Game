@@ -35,10 +35,12 @@ enum class SamplerSlot
 
 enum class ConstantBufferSlot
 {
-    Global = 0,
+    Frame = 0,
     Material = 1,
     Object = 2,
     Bone = 3,
     Blur = 4,
-    Sprite = 5
+    Sprite = 5,
+    LocalLight = 6,
+    ScreenSize = 7,
 };

@@ -1,32 +1,5 @@
 #include "../Include/Shared.hlsli"
-
-float NDFGGXTR(float nDotH, float roughness)
-{
-    float a = roughness * roughness;
-    float aSq = a * a;
-    
-    float denom = (nDotH * nDotH) * (aSq - 1.0f) + 1.0f;
-    
-    return aSq / (PI * denom * denom);
-}
-
-float3 FresnelSchlick(float3 f0, float cosTheta)
-{
-    return f0 + (1.0f - f0) * pow(1.0f - cosTheta, 5.0f);
-}
-
-float GAFSchlickGGXSub(float cosTheta, float k)
-{
-    return cosTheta / (cosTheta * (1.0f - k) + k);
-}
-
-float GAFSchlickGGX(float nDotV, float nDotL, float roughness)
-{
-    float a = roughness + 1.0f;
-    float k = (a * a) / 8.0f;
-    
-    return GAFSchlickGGXSub(nDotV, k) * GAFSchlickGGXSub(nDotL, k);
-}
+#include "../Include/PBR_Shared.hlsli"
 
 float4 main(PS_INPUT_TEXCOORD input) : SV_Target
 {
@@ -134,10 +107,10 @@ float4 main(PS_INPUT_TEXCOORD input) : SV_Target
     
     float3 f0 = lerp(DielectricFactor, baseColor.rgb, metalness);
     
-    float g = GAFSchlickGGX(nDotV, nDotL, roughness);
-    
     float3 directLighting = 0.0f;
     {
+        float g = GAFSchlickGGX(nDotV, nDotL, roughness);
+        
         float d = NDFGGXTR(nDotH, max(0.04f, roughness));
         
         float3 f = FresnelSchlick(f0, hDotV);

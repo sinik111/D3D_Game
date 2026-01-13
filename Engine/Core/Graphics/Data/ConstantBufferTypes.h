@@ -90,6 +90,24 @@ namespace engine
 		Vector2 pivot;
 		float __pad[2];
 	};
+
+	struct CbLocalLight
+	{
+		Vector3 lightColor;
+		float lightIntensity;
+
+		Vector3 lightPosition;
+		float lightRange;
+
+		Vector3 lightDirection;
+		float lightAngle;
+	};
+
+	struct CbScreenSize
+	{
+		Vector2 screenSize;
+		float __pad[2];
+	};
 }
 
 #pragma warning(pop)

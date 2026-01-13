@@ -90,6 +90,8 @@ namespace engine
 
         std::shared_ptr<ConstantBuffer> m_blurConstantBuffer;
 
+        std::shared_ptr<ConstantBuffer> m_screenSizeCB;
+
         // quad
         std::shared_ptr<VertexBuffer> m_quadVertexBuffer;
         std::shared_ptr<IndexBuffer> m_quadIndexBuffer;

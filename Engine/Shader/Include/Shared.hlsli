@@ -113,6 +113,24 @@ cbuffer Sprite : register(b5)
     float2 __pad1_Sprite;
 };
 
+cbuffer LocalLight : register(b6)
+{
+    float3 g_lightColor;
+    float g_lightIntensity;
+    
+    float3 g_lightPosition;
+    float g_lightRange;
+    
+    float3 g_lightDirection;
+    float g_lightAngle;
+};
+
+cbuffer ScreenSize : register(b7)
+{
+    float2 g_screenSize;
+    float2 __pad1_ScreenSize;
+};
+
 struct VS_INPUT_POSITION
 {
     float3 position : POSITION;
@@ -174,8 +192,10 @@ struct PS_OUTPUT_GBUFFER
     float4 emissive : SV_Target3;
 };
 
-
-
+struct PS_INPUT
+{
+    float4 position : SV_Position;
+};
 
 static const float PI = 3.141592f;
 static const float EPSILON = 0.00001f;

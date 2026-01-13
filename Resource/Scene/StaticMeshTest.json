@@ -1,6 +1,6 @@
 {
     "Name": "StaticMeshTest",
-    "NumGameObjects": 12,
+    "NumGameObjects": 13,
     "GameObjects": [
         {
             "ID": 0,
@@ -429,6 +429,50 @@
                     "OpaquePSFilePath": "Resource/Shader/Pixel/GBuffer_PS.hlsl",
                     "CutoutPSFilePath": "Resource/Shader/Pixel/GBuffer_Cutout_PS.hlsl",
                     "TransparentPSFilePath": "Resource/Shader/Pixel/LightTransparent_PS.hlsl"
+                }
+            ]
+        },
+        {
+            "ID": 12,
+            "Name": "GameObject",
+            "Active": true,
+            "Components": [
+                {
+                    "Type": "Transform",
+                    "Active": true,
+                    "Position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "Rotation": {
+                        "x": -0.5037739872932434,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 0.8638355135917664
+                    },
+                    "Scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
+                },
+                {
+                    "Type": "Light",
+                    "Active": true,
+                    "LightType": 0,
+                    "Color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    },
+                    "Intensity": 7.099999904632568,
+                    "Range": 10.0,
+                    "Angle": 45.0,
+                    "Near": 90000.0,
+                    "Far": 100000.0,
+                    "ForwardDistance": 1000.0,
+                    "HeightRatio": 0.8999999761581421
                 }
             ]
         }

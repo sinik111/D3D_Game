@@ -1,6 +1,6 @@
 {
     "Name": "LightTest",
-    "NumGameObjects": 4,
+    "NumGameObjects": 7,
     "GameObjects": [
         {
             "ID": 0,
@@ -149,6 +149,138 @@
                     "OpaquePSFilePath": "Resource/Shader/Pixel/GBuffer_PS.hlsl",
                     "CutoutPSFilePath": "Resource/Shader/Pixel/GBuffer_Cutout_PS.hlsl",
                     "TransparentPSFilePath": "Resource/Shader/Pixel/LightTransparent_PS.hlsl"
+                }
+            ]
+        },
+        {
+            "ID": 4,
+            "Name": "PointLight1",
+            "Active": true,
+            "Components": [
+                {
+                    "Type": "Transform",
+                    "Active": true,
+                    "Position": {
+                        "x": 0.0,
+                        "y": 2.4000000953674316,
+                        "z": -3.299999952316284
+                    },
+                    "Rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 1.0
+                    },
+                    "Scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
+                },
+                {
+                    "Type": "Light",
+                    "Active": true,
+                    "LightType": 1,
+                    "Color": {
+                        "x": 1.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "Intensity": 74.9000015258789,
+                    "Range": 8.100000381469727,
+                    "Angle": 45.0,
+                    "Near": 90000.0,
+                    "Far": 100000.0,
+                    "ForwardDistance": 1000.0,
+                    "HeightRatio": 0.8999999761581421
+                }
+            ]
+        },
+        {
+            "ID": 5,
+            "Name": "PointLight2",
+            "Active": true,
+            "Components": [
+                {
+                    "Type": "Transform",
+                    "Active": true,
+                    "Position": {
+                        "x": 0.0,
+                        "y": 2.5,
+                        "z": -12.199999809265137
+                    },
+                    "Rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 1.0
+                    },
+                    "Scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
+                },
+                {
+                    "Type": "Light",
+                    "Active": true,
+                    "LightType": 1,
+                    "Color": {
+                        "x": 0.2941175699234009,
+                        "y": 1.0,
+                        "z": 0.0
+                    },
+                    "Intensity": 5.400000095367432,
+                    "Range": 10.0,
+                    "Angle": 45.0,
+                    "Near": 90000.0,
+                    "Far": 100000.0,
+                    "ForwardDistance": 1000.0,
+                    "HeightRatio": 0.8999999761581421
+                }
+            ]
+        },
+        {
+            "ID": 6,
+            "Name": "PointLight3",
+            "Active": true,
+            "Components": [
+                {
+                    "Type": "Transform",
+                    "Active": true,
+                    "Position": {
+                        "x": 0.0,
+                        "y": 1.600000023841858,
+                        "z": -23.399999618530273
+                    },
+                    "Rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 1.0
+                    },
+                    "Scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
+                },
+                {
+                    "Type": "Light",
+                    "Active": true,
+                    "LightType": 1,
+                    "Color": {
+                        "x": 0.0,
+                        "y": 0.058823585510253906,
+                        "z": 1.0
+                    },
+                    "Intensity": 4.5,
+                    "Range": 9.100000381469727,
+                    "Angle": 45.0,
+                    "Near": 90000.0,
+                    "Far": 100000.0,
+                    "ForwardDistance": 1000.0,
+                    "HeightRatio": 0.8999999761581421
                 }
             ]
         }

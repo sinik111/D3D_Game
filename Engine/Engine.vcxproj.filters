@@ -554,8 +554,11 @@
     <FxCompile Include="Shader\Vertex\Quad_VS.hlsl" />
     <FxCompile Include="Shader\Pixel\Sprite_Unlit_Cutout_PS.hlsl" />
     <FxCompile Include="Shader\Pixel\Sprite_Unlit_Transparent_PS.hlsl" />
+    <FxCompile Include="Shader\Pixel\DeferredPointLight_PS.hlsl" />
+    <FxCompile Include="Shader\Vertex\LightVolume_VS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shader\Include\Shared.hlsli" />
+    <None Include="Shader\Include\PBR_Shared.hlsli" />
   </ItemGroup>
 </Project>

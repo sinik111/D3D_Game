@@ -27,7 +27,7 @@ namespace engine
         std::vector<Renderer*> m_transparentList;
         std::vector<Renderer*> m_screenList;
 
-        std::shared_ptr<ConstantBuffer> m_globalConstantBuffer;
+        std::shared_ptr<ConstantBuffer> m_frameCB;
         std::shared_ptr<SamplerState> m_comparisonSamplerState;
         std::shared_ptr<SamplerState> m_clampSamplerState;
         std::shared_ptr<SamplerState> m_linearSamplerState;
@@ -45,6 +45,23 @@ namespace engine
         std::shared_ptr<PixelShader> m_skyboxPixelShader;
         std::shared_ptr<RasterizerState> m_skyboxRSState;
         std::shared_ptr<DepthStencilState> m_skyboxDSState;
+
+        // light
+        std::shared_ptr<VertexBuffer> m_sphereVB;
+        std::shared_ptr<IndexBuffer> m_sphereIB;
+        std::shared_ptr<VertexBuffer> m_coneVB;
+        std::shared_ptr<IndexBuffer> m_coneIB;
+
+        std::shared_ptr<VertexShader> m_lightVolumeVS;
+        std::shared_ptr<PixelShader> m_pointLightPS;
+        std::shared_ptr<PixelShader> m_spotLightPS;
+        std::shared_ptr<InputLayout> m_lightVolumeInputLayout;
+        std::shared_ptr<ConstantBuffer> m_localLightCB;
+        std::shared_ptr<ConstantBuffer> m_objectCB;
+
+        std::shared_ptr<BlendState> m_additiveBS;
+        std::shared_ptr<RasterizerState> m_frontRSS;
+        std::shared_ptr<DepthStencilState> m_lightVolumeDSS;
 
         // transparent
         std::shared_ptr<BlendState> m_transparentBlendState;

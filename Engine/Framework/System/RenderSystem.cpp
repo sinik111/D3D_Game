@@ -37,7 +37,7 @@ namespace engine
 
     RenderSystem::RenderSystem()
     {
-        m_globalConstantBuffer = ResourceManager::Get().GetOrCreateConstantBuffer("CbFrame", sizeof(CbFrame));
+        m_frameCB = ResourceManager::Get().GetOrCreateConstantBuffer("Frame", sizeof(CbFrame));
 
         m_comparisonSamplerState = ResourceManager::Get().GetDefaultSamplerState(DefaultSamplerType::Comparison);
         m_clampSamplerState = ResourceManager::Get().GetDefaultSamplerState(DefaultSamplerType::Clamp);
@@ -62,6 +62,53 @@ namespace engine
 
             m_transparentBlendState = ResourceManager::Get().GetDefaultBlendState(DefaultBlendType::AlphaBlend);
             m_transparentDSState = ResourceManager::Get().GetDefaultDepthStencilState(DefaultDepthStencilType::DepthRead);
+        }
+
+        // light
+        {
+            m_sphereVB = ResourceManager::Get().GetGeometryVertexBuffer("DefaultSphere");
+            m_sphereIB = ResourceManager::Get().GetGeometryIndexBuffer("DefaultSphere");
+            m_coneVB = ResourceManager::Get().GetGeometryVertexBuffer("DefaultCone");
+            m_coneIB = ResourceManager::Get().GetGeometryIndexBuffer("DefaultCone");
+
+            m_lightVolumeVS = ResourceManager::Get().GetOrCreateVertexShader("Resource/Shader/Vertex/LightVolume_VS.hlsl");
+            m_pointLightPS = ResourceManager::Get().GetOrCreatePixelShader("Resource/Shader/Pixel/DeferredPointLight_PS.hlsl");
+            //m_spotLightPS = ResourceManager::Get().GetOrCreatePixelShader("Resource/Shader/Pixel/Skybox_PS.hlsl");
+            m_lightVolumeInputLayout = m_lightVolumeVS->GetOrCreateInputLayout<PositionVertex>();
+            m_localLightCB = ResourceManager::Get().GetOrCreateConstantBuffer("LocalLight", sizeof(CbLocalLight));
+            m_objectCB = ResourceManager::Get().GetOrCreateConstantBuffer("Object", sizeof(CbObject));
+
+            {
+                D3D11_BLEND_DESC desc{};
+                desc.RenderTarget[0].BlendEnable = TRUE;
+                desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+                desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+                desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+                desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+                desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+                desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+                desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+                m_additiveBS = ResourceManager::Get().GetOrCreateBlendState("LightAdditive", desc);
+            }
+
+            {
+                D3D11_RASTERIZER_DESC desc{};
+                desc.FillMode = D3D11_FILL_SOLID;
+                desc.CullMode = D3D11_CULL_FRONT;
+
+                m_frontRSS = ResourceManager::Get().GetOrCreateRasterizerState("LightVolume", desc);
+            }
+
+            {
+                D3D11_DEPTH_STENCIL_DESC desc{};
+                desc.DepthEnable = TRUE;
+                desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Disable depth write
+                desc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+                desc.StencilEnable = FALSE;
+
+                m_lightVolumeDSS = ResourceManager::Get().GetOrCreateDepthStencilState("LightVolume", desc);
+            }
         }
     }
 
@@ -215,15 +262,15 @@ namespace engine
         cbFrame.fxaaQualityEdgeThresholdMin = 0.0833f; // 0.0312 to 0.0833 (default: 0.0833)
 
         context->VSSetConstantBuffers(
-            static_cast<UINT>(ConstantBufferSlot::Global),
+            static_cast<UINT>(ConstantBufferSlot::Frame),
             1,
-            m_globalConstantBuffer->GetBuffer().GetAddressOf());
+            m_frameCB->GetBuffer().GetAddressOf());
         context->PSSetConstantBuffers(
-            static_cast<UINT>(ConstantBufferSlot::Global),
+            static_cast<UINT>(ConstantBufferSlot::Frame),
             1,
-            m_globalConstantBuffer->GetBuffer().GetAddressOf());
+            m_frameCB->GetBuffer().GetAddressOf());
 
-        context->UpdateSubresource(m_globalConstantBuffer->GetRawBuffer(), 0, nullptr, &cbFrame, 0, 0);
+        context->UpdateSubresource(m_frameCB->GetRawBuffer(), 0, nullptr, &cbFrame, 0, 0);
 
         graphics.ClearAllViews();
 
@@ -416,9 +463,77 @@ namespace engine
 
     void RenderSystem::DrawLocalLight()
     {
-        const auto& context = GraphicsDevice::Get().GetDeviceContext();
+        auto& graphics = GraphicsDevice::Get();
+        auto* context = graphics.GetDeviceContext().Get();
+        auto& lightSystem = SystemManager::Get().GetLightSystem();
+        const auto& lights = lightSystem.GetLights();
 
+        context->VSSetShader(m_lightVolumeVS->GetRawShader(), nullptr, 0);
+        context->RSSetState(m_frontRSS->GetRawRasterizerState());
+        context->OMSetDepthStencilState(m_lightVolumeDSS->GetRawDepthStencilState(), 0);
+        static const float blendFactor[4]{ 1.0f, 1.0f, 1.0f, 1.0f };
+        context->OMSetBlendState(m_additiveBS->GetRawBlendState(), blendFactor, 0xffffffff);
 
+        // CB 바인딩
+        context->PSSetConstantBuffers(6, 1, m_localLightCB->GetBuffer().GetAddressOf());
+        for (auto* light : lights)
+        {
+            if (!light->IsActive())
+            {
+                continue;
+            }
+            if (light->GetLightType() == LightType::Directional)
+            {
+                continue; // 이미 처리함
+            }
+            CbLocalLight cbData;
+
+            // Transform 계산 (라이트 위치/크기에 맞춰 World Matrix 생성)
+            Matrix world = Matrix::Identity;
+            float range = light->GetRange();
+
+            if (light->GetLightType() == LightType::Point)
+            {
+                // Point Light: 구체 스케일 = Range
+                world = Matrix::CreateScale(range * 2) * Matrix::CreateTranslation(light->GetTransform()->GetWorldPosition());
+
+                // CB 데이터 채우기
+                cbData.lightColor = light->GetColor();
+                cbData.lightIntensity = light->GetIntensity();
+                cbData.lightPosition = light->GetTransform()->GetWorldPosition();
+                cbData.lightRange = range;
+
+                // PS 설정
+                context->PSSetShader(m_pointLightPS->GetRawShader(), nullptr, 0);
+
+                // 버퍼 업데이트
+                context->UpdateSubresource(m_localLightCB->GetRawBuffer(), 0, nullptr, &cbData, 0, 0);
+
+                // World Matrix 업데이트 (Object CB 사용)
+                CbObject cbObj;
+                cbObj.world = world.Transpose(); // HLSL은 열우선
+                context->UpdateSubresource(m_objectCB->GetRawBuffer(), 0, nullptr, &cbObj, 0, 0);
+
+                // Draw Sphere
+                static const UINT stride = m_sphereVB->GetBufferStride();
+                static const UINT offset = 0;
+                context->IASetVertexBuffers(0, 1, m_sphereVB->GetBuffer().GetAddressOf(), &stride, &offset);
+                context->IASetIndexBuffer(m_sphereIB->GetRawBuffer(), m_sphereIB->GetIndexFormat(), 0);
+                context->DrawIndexed(m_sphereIB->GetIndexCount(), 0, 0);
+            }
+            else if (light->GetLightType() == LightType::Spot)
+            {
+                // Spot Light: 원뿔 형태
+                // 스케일과 회전(Direction) 필요
+                // GeometryGenerator::MakeCone의 기본 방향(Y+ 등) 확인 후 회전 적용 필요
+
+                // ... (Point와 유사) ...
+            }
+        }
+
+        context->RSSetState(nullptr);
+        context->OMSetDepthStencilState(nullptr, 0);
+        context->OMSetBlendState(nullptr, blendFactor, 0xffffffff);
     }
 
     void RenderSystem::DrawSkybox()
