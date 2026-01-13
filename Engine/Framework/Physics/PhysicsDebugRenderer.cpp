@@ -9,6 +9,8 @@
 #include "Framework/Object/Component/CharacterController.h"
 #include "Framework/Object/Component/Transform.h"
 #include "Framework/Object/GameObject/GameObject.h"
+#include "Framework/Scene/SceneManager.h"
+#include "Framework/Scene/Scene.h"
 #include "Core/Graphics/Device/GraphicsDevice.h"
 
 namespace engine
@@ -29,6 +31,7 @@ namespace engine
         // BasicEffect 생성
         m_effect = std::make_unique<DirectX::BasicEffect>(device);
         m_effect->SetVertexColorEnabled(true);
+        m_effect->SetLightingEnabled(false);  // 조명 비활성화 (와이어프레임용)
 
         // InputLayout 생성
         void const* shaderByteCode;
@@ -86,6 +89,26 @@ namespace engine
 
         auto context = GraphicsDevice::Get().GetDeviceContext().Get();
 
+        // 이전 상태 저장
+        Microsoft::WRL::ComPtr<ID3D11BlendState> prevBlendState;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> prevDepthState;
+        Microsoft::WRL::ComPtr<ID3D11RasterizerState> prevRasterState;
+        Microsoft::WRL::ComPtr<ID3D11InputLayout> prevInputLayout;
+        Microsoft::WRL::ComPtr<ID3D11VertexShader> prevVS;
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> prevPS;
+        D3D11_PRIMITIVE_TOPOLOGY prevTopology;
+        FLOAT prevBlendFactor[4];
+        UINT prevSampleMask;
+        UINT prevStencilRef;
+
+        context->OMGetBlendState(prevBlendState.GetAddressOf(), prevBlendFactor, &prevSampleMask);
+        context->OMGetDepthStencilState(prevDepthState.GetAddressOf(), &prevStencilRef);
+        context->RSGetState(prevRasterState.GetAddressOf());
+        context->IAGetInputLayout(prevInputLayout.GetAddressOf());
+        context->VSGetShader(prevVS.GetAddressOf(), nullptr, nullptr);
+        context->PSGetShader(prevPS.GetAddressOf(), nullptr, nullptr);
+        context->IAGetPrimitiveTopology(&prevTopology);
+
         // Effect 설정
         m_effect->SetView(view);
         m_effect->SetProjection(projection);
@@ -107,6 +130,15 @@ namespace engine
             RenderControllers();
         }
         m_batch->End();
+
+        // 이전 상태 복원
+        context->OMSetBlendState(prevBlendState.Get(), prevBlendFactor, prevSampleMask);
+        context->OMSetDepthStencilState(prevDepthState.Get(), prevStencilRef);
+        context->RSSetState(prevRasterState.Get());
+        context->IASetInputLayout(prevInputLayout.Get());
+        context->VSSetShader(prevVS.Get(), nullptr, 0);
+        context->PSSetShader(prevPS.Get(), nullptr, 0);
+        context->IASetPrimitiveTopology(prevTopology);
     }
 
     void PhysicsDebugRenderer::OnGui()
@@ -131,7 +163,31 @@ namespace engine
 
     void PhysicsDebugRenderer::RenderColliders()
     {
-        const auto& colliders = PhysicsSystem::Get().GetRegisteredColliders();
+        // 에디터 모드에서도 작동하도록 씬에서 직접 콜라이더를 찾음
+        std::vector<Collider*> colliders;
+        
+        // PhysicsSystem에 등록된 콜라이더 (Play 모드)
+        const auto& registeredColliders = PhysicsSystem::Get().GetRegisteredColliders();
+        if (!registeredColliders.empty())
+        {
+            colliders = registeredColliders;
+        }
+        else
+        {
+            // 씬에서 직접 찾기 (Edit 모드)
+            Scene* scene = SceneManager::Get().GetScene();
+            if (scene)
+            {
+                for (const auto& go : scene->GetGameObjects())
+                {
+                    if (!go) continue;
+                    if (Collider* col = go->GetComponent<Collider>())
+                    {
+                        colliders.push_back(col);
+                    }
+                }
+            }
+        }
 
         for (Collider* collider : colliders)
         {
@@ -201,7 +257,29 @@ namespace engine
 
     void PhysicsDebugRenderer::RenderControllers()
     {
-        const auto& controllers = PhysicsSystem::Get().GetRegisteredControllers();
+        // 에디터 모드에서도 작동하도록 씬에서 직접 컨트롤러를 찾음
+        std::vector<CharacterController*> controllers;
+        
+        const auto& registeredControllers = PhysicsSystem::Get().GetRegisteredControllers();
+        if (!registeredControllers.empty())
+        {
+            controllers = registeredControllers;
+        }
+        else
+        {
+            Scene* scene = SceneManager::Get().GetScene();
+            if (scene)
+            {
+                for (const auto& go : scene->GetGameObjects())
+                {
+                    if (!go) continue;
+                    if (CharacterController* ctrl = go->GetComponent<CharacterController>())
+                    {
+                        controllers.push_back(ctrl);
+                    }
+                }
+            }
+        }
 
         DirectX::XMVECTOR color = DirectX::XMLoadFloat4(
             reinterpret_cast<const DirectX::XMFLOAT4*>(&m_controllerColor));

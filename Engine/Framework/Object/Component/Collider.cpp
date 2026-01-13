@@ -213,6 +213,7 @@ namespace engine
 
     void Collider::Save(json& j) const
     {
+        Object::Save(j);  // Type 필드 저장
         j["center"] = { m_center.x, m_center.y, m_center.z };
         j["isTrigger"] = m_isTrigger;
         j["layer"] = m_layer;
