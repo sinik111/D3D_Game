@@ -3,7 +3,7 @@
 		<Vendor>$(SolutionDir)Vendor</Vendor>
         <TripletStatic>x64-windows-static-md</TripletStatic>
         <TripletDynamic>x64-windows</TripletDynamic>
-		<PhysX>$(Vendor)\PhysX</PhysX>
+		<PhysX>$(SolutionDir)Vendor\PhysX</PhysX>
 		
 		<DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
 		<RunPostBuildEvent>Always</RunPostBuildEvent>
