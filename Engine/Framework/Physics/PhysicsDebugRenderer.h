@@ -17,6 +17,7 @@ namespace engine
     class SphereCollider;
     class CapsuleCollider;
     class CharacterController;
+    enum class CapsuleDirection;
 
     // ═══════════════════════════════════════════════════════════════
     // PhysicsDebugRenderer - 물리 충돌체 디버그 시각화
@@ -97,6 +98,7 @@ namespace engine
         void DrawLine(const Vector3& start, const Vector3& end, const DirectX::XMVECTOR& color);
         void DrawCircle(const Vector3& center, float radius, const Vector3& normal, 
                        const DirectX::XMVECTOR& color, int segments = 32);
+        Quaternion GetCapsuleDirectionRotation(CapsuleDirection direction);
 
         friend class Singleton<PhysicsDebugRenderer>;
     };

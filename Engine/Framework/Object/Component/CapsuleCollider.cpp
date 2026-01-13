@@ -28,16 +28,7 @@ namespace engine
     void CapsuleCollider::SetDirection(CapsuleDirection direction)
     {
         m_direction = direction;
-        
-        if (m_shape)
-        {
-            // 방향에 따른 로컬 회전 설정
-            physx::PxTransform localPose(
-                PhysicsUtility::ToPxVec3(m_center),
-                GetDirectionRotation()
-            );
-            m_shape->setLocalPose(localPose);
-        }
+        UpdateLocalPose();
     }
 
     physx::PxGeometry* CapsuleCollider::CreateGeometry()
@@ -57,12 +48,8 @@ namespace engine
         physx::PxCapsuleGeometry capsule(m_radius, GetHalfHeight());
         m_shape->setGeometry(capsule);
 
-        // 방향에 따른 로컬 회전 갱신
-        physx::PxTransform localPose(
-            PhysicsUtility::ToPxVec3(m_center),
-            GetDirectionRotation()
-        );
-        m_shape->setLocalPose(localPose);
+        // 로컬 회전 갱신 (direction + rotation 조합)
+        UpdateLocalPose();
     }
 
     physx::PxQuat CapsuleCollider::GetDirectionRotation() const
@@ -89,15 +76,58 @@ namespace engine
         }
     }
 
+    void CapsuleCollider::UpdateLocalPose()
+    {
+        if (!m_shape)
+        {
+            return;
+        }
+
+        // 사용자 회전 (오일러 각도 → 쿼터니언)
+        Vector3 radians = m_rotation * (DirectX::XM_PI / 180.0f);
+        Quaternion userRot = Quaternion::CreateFromYawPitchRoll(radians.y, radians.x, radians.z);
+
+        // Direction 회전
+        physx::PxQuat dirQuat = GetDirectionRotation();
+        Quaternion dirRot(dirQuat.x, dirQuat.y, dirQuat.z, dirQuat.w);
+
+        // Direction 먼저, 그 다음 사용자 회전 적용
+        Quaternion finalRot = dirRot * userRot;
+
+        physx::PxTransform localPose(
+            PhysicsUtility::ToPxVec3(m_center),
+            physx::PxQuat(finalRot.x, finalRot.y, finalRot.z, finalRot.w)
+        );
+        m_shape->setLocalPose(localPose);
+    }
+
     void CapsuleCollider::OnGui()
     {
         Collider::OnGui();
         
-        // TODO: ImGui 편집
-        // ImGui::DragFloat("Radius", &m_radius, 0.1f, 0.001f, 1000.0f);
-        // ImGui::DragFloat("Height", &m_height, 0.1f, m_radius * 2.0f, 1000.0f);
-        // int dir = static_cast<int>(m_direction);
-        // ImGui::Combo("Direction", &dir, "X\0Y\0Z\0");
+        ImGui::Separator();
+        
+        // Radius
+        float radius = m_radius;
+        if (ImGui::DragFloat("Radius", &radius, 0.01f, 0.001f, 1000.0f))
+        {
+            SetRadius(radius);
+        }
+        
+        // Height
+        float height = m_height;
+        if (ImGui::DragFloat("Height", &height, 0.01f, m_radius * 2.0f, 1000.0f))
+        {
+            SetHeight(height);
+        }
+        
+        // Direction
+        const char* directions[] = { "X", "Y", "Z" };
+        int dir = static_cast<int>(m_direction);
+        if (ImGui::Combo("Direction", &dir, directions, 3))
+        {
+            SetDirection(static_cast<CapsuleDirection>(dir));
+        }
     }
 
     void CapsuleCollider::Save(json& j) const

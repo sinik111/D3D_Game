@@ -50,6 +50,9 @@ namespace engine
         physx::PxGeometry* CreateGeometry() override;
         void UpdateGeometry() override;
 
+        // Direction과 Rotation을 조합하기 위해 오버라이드
+        void UpdateLocalPose();
+
     public:
         void OnGui() override;
         void Save(json& j) const override;

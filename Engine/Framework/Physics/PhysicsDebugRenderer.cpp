@@ -226,15 +226,23 @@ namespace engine
             world.Decompose(scale, worldRot, translation);
             
             Vector3 center = collider->GetCenter();
+            Vector3 localRotation = collider->GetRotation();
+
+            // 로컬 회전 (오일러 각도 -> 쿼터니언)
+            Vector3 radians = localRotation * (DirectX::XM_PI / 180.0f);
+            Quaternion localRot = Quaternion::CreateFromYawPitchRoll(radians.y, radians.x, radians.z);
 
             // 센터 오프셋 적용 (월드 회전 고려)
             Vector3 rotatedCenter = Vector3::Transform(center, worldRot);
             Vector3 finalPos = worldPos + rotatedCenter;
 
+            // 최종 회전 = 월드 회전 * 로컬 회전
+            Quaternion finalRot = worldRot * localRot;
+
             // 타입별 렌더링
             if (BoxCollider* box = dynamic_cast<BoxCollider*>(collider))
             {
-                DrawBox(finalPos, box->GetHalfExtents(), worldRot, color);
+                DrawBox(finalPos, box->GetHalfExtents(), finalRot, color);
             }
             else if (SphereCollider* sphere = dynamic_cast<SphereCollider*>(collider))
             {
@@ -242,7 +250,10 @@ namespace engine
             }
             else if (CapsuleCollider* capsule = dynamic_cast<CapsuleCollider*>(collider))
             {
-                DrawCapsule(finalPos, capsule->GetRadius(), capsule->GetHeight(), worldRot, color);
+                // CapsuleCollider는 direction에 따른 추가 회전이 있음
+                Quaternion directionRot = GetCapsuleDirectionRotation(capsule->GetDirection());
+                Quaternion capsuleFinalRot = worldRot * directionRot * localRot;
+                DrawCapsule(finalPos, capsule->GetRadius(), capsule->GetHeight(), capsuleFinalRot, color);
             }
 
             // 피봇 표시
@@ -487,6 +498,29 @@ namespace engine
             Vector3 p2 = center + tangent * (radius * cosf(angle2)) + bitangent * (radius * sinf(angle2));
 
             DrawLine(p1, p2, color);
+        }
+    }
+
+    Quaternion PhysicsDebugRenderer::GetCapsuleDirectionRotation(CapsuleDirection direction)
+    {
+        // PhysX 캡슐은 기본적으로 X축 방향
+        // 디버그 렌더러의 DrawCapsule은 Y축 방향 기준이므로 변환 필요
+        switch (direction)
+        {
+        case CapsuleDirection::X:
+            // Y축 → X축: Z축 기준 -90도 회전
+            return Quaternion::CreateFromAxisAngle(Vector3::UnitZ, -DirectX::XM_PIDIV2);
+            
+        case CapsuleDirection::Y:
+            // 기본값, 회전 없음
+            return Quaternion::Identity;
+            
+        case CapsuleDirection::Z:
+            // Y축 → Z축: X축 기준 90도 회전
+            return Quaternion::CreateFromAxisAngle(Vector3::UnitX, DirectX::XM_PIDIV2);
+            
+        default:
+            return Quaternion::Identity;
         }
     }
 }
