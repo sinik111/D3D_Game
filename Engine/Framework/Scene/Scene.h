@@ -6,6 +6,12 @@
 
 namespace engine
 {
+    enum class CreateObjectType
+    {
+        Default,
+        UI,
+    };
+
     class Camera;
     class GameObject;
     class Component;

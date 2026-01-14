@@ -153,7 +153,7 @@ namespace engine
 
     void RectTransform::Save(json& j) const
     {
-        Transform::Save(j);
+        Object::Save(j);
 
         j["AnchoredPosition"] = { m_anchoredPosition.x, m_anchoredPosition.y };
         j["Width"] = m_width;
