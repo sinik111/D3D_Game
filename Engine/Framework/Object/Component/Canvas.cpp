@@ -43,23 +43,20 @@ namespace engine
 	{
 		Component::Save(j);
 
-		j["ReferenceResolution"] = { m_referenceResolution.x, m_referenceResolution.y };
+		j["LockRectTransform"] = m_lockRectTransformInEditor;
+		j["ReferenceResolution"] = m_referenceResolution;
 		j["SortingOrder"] = m_sortingOrder;
 	}
+
 	void Canvas::Load(const json& j)
 	{
 		Component::Load(j);
 
-		if (j.contains("ReferenceResolution") &&
-			j["ReferenceResolution"].is_array() &&
-			j["ReferenceResolution"].size() == 2)
-		{
-			m_referenceResolution.x = j["ReferenceResolution"][0].get<float>();
-			m_referenceResolution.y = j["ReferenceResolution"][1].get<float>();
-		}
-
+		JsonGet(j, "LockRectTransform", m_lockRectTransformInEditor);
+		JsonGet(j, "ReferenceResolution", m_referenceResolution);
 		JsonGet(j, "SortingOrder", m_sortingOrder);
 	}
+
 	std::string Canvas::GetType() const
 	{
 		return "Canvas";
