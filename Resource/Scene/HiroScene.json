@@ -65,7 +65,7 @@
         },
         {
             "ID": 2,
-            "Name": "UI",
+            "Name": "Canvas",
             "Active": true,
             "Components": [
                 {
@@ -114,7 +114,8 @@
         },
         {
             "ID": 3,
-            "Name": "Canvas",
+            "ParentID": 2,
+            "Name": "Image",
             "Active": true,
             "Components": [
                 {
@@ -158,6 +159,24 @@
                         0.5,
                         0.5
                     ]
+                },
+                {
+                    "Type": "SpriteRenderer",
+                    "Active": true,
+                    "TextureFilePath": "None",
+                    "VSFilePath": "Resource/Shader/Vertex/Quad_VS.hlsl",
+                    "OpaquePSFilePath": "Resource/Shader/Pixel/Sprite_Unlit_PS.hlsl",
+                    "CutoutPSFilePath": "Resource/Shader/Pixel/Sprite_Unlit_Cutout_PS.hlsl",
+                    "TransparentPSFilePath": "Resource/Shader/Pixel/Sprite_Unlit_Transparent_PS.hlsl",
+                    "RenderType": 0,
+                    "BillboardType": 0,
+                    "Color": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0,
+                        "w": 1.0
+                    },
+                    "CullMode": 0
                 }
             ]
         }

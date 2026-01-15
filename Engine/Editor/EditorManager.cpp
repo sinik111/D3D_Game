@@ -545,49 +545,56 @@ namespace engine
     {
         ImGui::Begin("Hierarchy");
 
-        //if (ImGui::Button("Create GameObject"))
-        //{
-        //    SceneManager::Get().GetScene()->CreateGameObject();
-        //}
-
-
         if (ImGui::Button("Create GameObject"))
         {
             ImGui::OpenPopup("CreateGameObjectPopup");
         }
 
-        // 생성 팝업
         if (ImGui::BeginPopup("CreateGameObjectPopup"))
         {
             auto* scene = SceneManager::Get().GetScene();
 
-            // Default 생성
+            // 1) 기본 오브젝트
             if (ImGui::MenuItem("Default (Transform)"))
             {
                 if (scene)
                 {
                     scene->CreateGameObject(CreateObjectType::Default, "GameObject");
                 }
+
                 ImGui::CloseCurrentPopup();
             }
 
-            // UI 생성
-            if (ImGui::MenuItem("UI (RectTransform)"))
+            // 2) UI 하위 메뉴
+            if (ImGui::BeginMenu("UI"))
             {
-                if (scene)
+                // Canvas 프리셋 (지금은 그냥 UI 오브젝트 + 이름만 Canvas로)
+                if (ImGui::MenuItem("Canvas"))
                 {
-                    scene->CreateGameObject(CreateObjectType::UI, "UIObject");
+                    if (scene)
+                    {
+                        scene->CreateGameObject(CreateObjectType::UI, "Canvas");
+                    }
+
+                    ImGui::CloseCurrentPopup();
                 }
-                ImGui::CloseCurrentPopup();
+
+                // UI 빈 오브젝트(= RectTransform)
+                if (ImGui::MenuItem("UI Object (RectTransform)"))
+                {
+                    if (scene)
+                    {
+                        scene->CreateGameObject(CreateObjectType::UI, "UIObject");
+                    }
+
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndMenu();
             }
 
             ImGui::EndPopup();
         }
-
-
-
-
-
 
         ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x, 10.0f));
         if (ImGui::BeginDragDropTarget())
