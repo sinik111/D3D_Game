@@ -43,12 +43,17 @@ namespace engine
 	{
 		Component::Save(j);
 
+		j["LockRectTransform"] = m_lockRectTransformInEditor;
 		j["ReferenceResolution"] = { m_referenceResolution.x, m_referenceResolution.y };
 		j["SortingOrder"] = m_sortingOrder;
 	}
+
 	void Canvas::Load(const json& j)
 	{
 		Component::Load(j);
+
+		if (j.contains("LockRectTransform") && j["LockRectTransform"].is_boolean())
+			m_lockRectTransformInEditor = j["LockRectTransform"].get<bool>();
 
 		if (j.contains("ReferenceResolution") &&
 			j["ReferenceResolution"].is_array() &&
@@ -60,6 +65,7 @@ namespace engine
 
 		JsonGet(j, "SortingOrder", m_sortingOrder);
 	}
+
 	std::string Canvas::GetType() const
 	{
 		return "Canvas";

@@ -113,6 +113,7 @@
                 {
                     "Type": "Canvas",
                     "Active": true,
+                    "LockRectTransform": true,
                     "ReferenceResolution": [
                         1920.0,
                         1080.0
@@ -151,8 +152,8 @@
                     "Type": "RectTransform",
                     "Active": true,
                     "AnchoredPosition": [
-                        10.300000190734863,
-                        6.599999904632568
+                        0.0,
+                        0.0
                     ],
                     "Width": 100.0,
                     "Height": 100.0,
