@@ -78,18 +78,20 @@ namespace engine
 
     void RectTransform::SetPivot(const Vector2& pivot)
     {
-        ClampVec2(pivot, 0.0f, 1.0f);
+        m_pivot = ClampVec2(pivot, 0.0f, 1.0f);
         MarkUIDirty();
     }
 
     void RectTransform::SetAnchorMin(const Vector2& anchorMin)
     {
-        ClampVec2(anchorMin, 0.0f, 1.0f);
+        m_anchorMin = ClampVec2(anchorMin, 0.0f, 1.0f);
+        MarkUIDirty();
     }
 
     void RectTransform::SetAnchorMax(const Vector2& anchorMax)
     {
-        ClampVec2(anchorMax, 0.0f, 1.0f);
+        m_anchorMax = ClampVec2(anchorMax, 0.0f, 1.0f);
+        MarkUIDirty();
     }
 
     void RectTransform::MarkUIDirty(bool v)

@@ -29,6 +29,8 @@ namespace engine
 		m_sampler = ResourceManager::Get().GetDefaultSamplerState(DefaultSamplerType::Linear);
 		m_blend = ResourceManager::Get().GetDefaultBlendState(DefaultBlendType::AlphaBlend);
 		m_depthNone = ResourceManager::Get().GetDefaultDepthStencilState(DefaultDepthStencilType::None);
+
+		SetTexture("Resource/Texture/Earth.png");
 	}
 
 	void UIImage::DrawUI() const
@@ -151,10 +153,12 @@ namespace engine
 
 	void UIImage::Draw(RenderType type) const
 	{
-		if (type != RenderType::Screen)
-			return;
+		UIElement::Draw(type);
 
-		DrawUI();
+		//if (type != RenderType::Screen)
+		//	return;
+
+		//DrawUI();
 	}
 
 	DirectX::BoundingBox UIImage::GetBounds() const

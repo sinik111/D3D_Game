@@ -223,7 +223,7 @@
                 {
                     "Type": "UIImage",
                     "Active": true,
-                    "TexturePath": "",
+                    "TexturePath": "Resource/Texture/Earth.png",
                     "AlphaBlend": true,
                     "SkipInvalidRect": true
                 }
