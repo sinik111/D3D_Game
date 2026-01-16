@@ -15,22 +15,44 @@
 #include "Core/Graphics/Device/GraphicsDevice.h"
 
 #include "Framework/Object/Component/RectTransform.h"
+#include "Framework/Asset/MaterialData.h"
+#include "Framework/System/SystemManager.h"
+#include "Framework/System/RenderSystem.h"
 
 namespace engine
 {
 	void UIImage::Initialize()
 	{
-		UIElement::Initialize();
+		//UIElement::Initialize();
+		if (m_texture == nullptr)
+		{
+			m_texture = ResourceManager::Get().GetDefaultTexture(DefaultTextureType::White);
+			m_textureFilePath = "None";
+		}
 
-		m_vs = ResourceManager::Get().GetOrCreateVertexShader("Resource/Shader/Vertex/FullscreenQuad_VS.hlsl");
-		m_ps = ResourceManager::Get().GetOrCreatePixelShader("Resource/Shader/Pixel/Blit_PS.hlsl");
+		if (!m_isLoaded)
+		{
+			m_vsFilePath = "Resource/Shader/Vertex/FullscreenQuad_VS.hlsl";
+			m_opaquePSFilePath = "Resource/Shader/Pixel/Sprite_Unlit_PS.hlsl";
+			m_cutoutPSFilePath = "Resource/Shader/Pixel/Sprite_Unlit_Cutout_PS.hlsl";
+			m_transparentPSFilePath = "Resource/Shader/Pixel/Blit_PS.hlsl";
+
+			m_vs = ResourceManager::Get().GetOrCreateVertexShader(m_vsFilePath);
+
+
+			m_transparentPS = ResourceManager::Get().GetOrCreatePixelShader(m_transparentPSFilePath);
+		}
+
+		m_vertexBuffer = ResourceManager::Get().GetGeometryVertexBuffer("DefaultQuad");
+		m_indexBuffer = ResourceManager::Get().GetGeometryIndexBuffer("DefaultQuad");
+
 		m_inputLayout = m_vs->GetOrCreateInputLayout<PositionTexCoordVertex>();
+		m_samplerState = ResourceManager::Get().GetDefaultSamplerState(DefaultSamplerType::Linear);
 
-		m_sampler = ResourceManager::Get().GetDefaultSamplerState(DefaultSamplerType::Linear);
 		m_blend = ResourceManager::Get().GetDefaultBlendState(DefaultBlendType::AlphaBlend);
 		m_depthNone = ResourceManager::Get().GetDefaultDepthStencilState(DefaultDepthStencilType::None);
 
-		SetTexture("Resource/Texture/Earth.png");
+		SystemManager::Get().GetRenderSystem().Register(this);
 	}
 
 	void UIImage::DrawUI() const
@@ -43,7 +65,17 @@ namespace engine
 		if (!rt)
 			return;
 
-		const UIRect& rect = rt->GetWorldRect();
+		auto& gd = GraphicsDevice::Get();
+		const D3D11_VIEWPORT oldVp = gd.GetViewport();
+
+		UIRect root;
+
+		root.x = 0.0f;
+		root.y = 0.0f;
+		root.w = oldVp.Width;
+		root.h = oldVp.Height;
+
+		const UIRect& rect = rt->GetWorldRectResolved(root);
 
 		if (m_drawOnlyWhenRectValid)
 		{
@@ -55,11 +87,7 @@ namespace engine
 		if (!m_texture)
 			return;
 
-		auto& gd = GraphicsDevice::Get();
 		auto dc = gd.GetDeviceContext();
-
-		// 기존 게임 뷰포트 저장 후 UI용으로 변경
-		const D3D11_VIEWPORT oldVp = gd.GetViewport();
 
 		D3D11_VIEWPORT uiVp{};
 		uiVp.TopLeftX = rect.x;
@@ -86,7 +114,7 @@ namespace engine
 
 		// VS/PS
 		dc->VSSetShader(m_vs->GetRawShader(), nullptr, 0);
-		dc->PSSetShader(m_ps->GetRawShader(), nullptr, 0);
+		dc->PSSetShader(m_transparentPS->GetRawShader(), nullptr, 0);
 
 		// States (UI는 깊이 끄고, 알파블렌드)
 		{
@@ -107,7 +135,7 @@ namespace engine
 			ID3D11ShaderResourceView* srv = m_texture->GetRawSRV();
 			dc->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &srv);
 
-			auto samp = m_sampler ? m_sampler->GetSamplerState().GetAddressOf() : nullptr;
+			auto samp = m_samplerState ? m_samplerState->GetSamplerState().GetAddressOf() : nullptr;
 			if (samp)
 				dc->PSSetSamplers(static_cast<UINT>(SamplerSlot::Linear), 1, samp);
 		}
@@ -125,10 +153,18 @@ namespace engine
 		dc->RSSetViewports(1, &oldVp);
 	}
 
-	void UIImage::SetTexture(const std::string& filePath)
+	void UIImage::SetTexture(const std::string& textureFilePath)
 	{
-		m_textureFilePath = filePath;
-		m_texture = ResourceManager::Get().GetOrCreateTexture(filePath);
+		if (textureFilePath.empty() || textureFilePath == "None")
+		{
+			return;
+		}
+
+		m_textureFilePath = textureFilePath;
+
+		m_texture = ResourceManager::Get().GetOrCreateTexture(textureFilePath);
+		m_width = m_texture->GetWidth();
+		m_height = m_texture->GetHeight();
 	}
 
 	const std::string& UIImage::GetTexturePath() const
@@ -171,6 +207,28 @@ namespace engine
 
 	void UIImage::OnGui()
 	{
+		ImGui::Text("Texture: %s", std::filesystem::path(m_textureFilePath).filename().string().c_str());
+		std::string selectedTex;
+
+		static std::vector<std::string> texExtensions{ ".png", ".jpg", ".tga" };
+		static std::string hlslExtension{ ".hlsl" };
+
+		if (DrawFileSelector("Select Texture", "Resource/Texture", texExtensions, selectedTex))
+		{
+			SetTexture(selectedTex);
+		}
+		ImGui::Spacing();
+		// 2. Settings (RenderType, Shadow, etc.)
+		// RenderType (Enum to Checkbox or Combo)
+		static const char* renderTypes[] = { "Opaque", "Cutout", "Transparent" };
+		int currentType = static_cast<int>(m_renderType);
+		if (ImGui::Combo("Render Type", &currentType, renderTypes, IM_ARRAYSIZE(renderTypes)))
+		{
+			m_renderType = static_cast<MaterialRenderType>(currentType);
+
+			ReplaceRenderSystem();
+		}
+
 		ImGui::Checkbox("Alpha Blend", &m_useAlphaBlend);
 		ImGui::Checkbox("Draw Only When Rect Valid", &m_drawOnlyWhenRectValid);
 	}
@@ -180,6 +238,10 @@ namespace engine
 		UIElement::Save(j);
 
 		j["TexturePath"] = m_textureFilePath;
+		j["OpaquePSFilePath"] = m_opaquePSFilePath;
+		j["CutoutPSFilePath"] = m_cutoutPSFilePath;
+		j["TransparentPSFilePath"] = m_transparentPSFilePath;
+		j["RenderType"] = m_renderType;
 		j["AlphaBlend"] = m_useAlphaBlend;
 		j["SkipInvalidRect"] = m_drawOnlyWhenRectValid;
 	}
@@ -189,17 +251,31 @@ namespace engine
 		UIElement::Load(j);
 
 		JsonGet(j, "TexturePath", m_textureFilePath);
+		JsonGet(j, "OpaquePSFilePath", m_opaquePSFilePath);
+		JsonGet(j, "CutoutPSFilePath", m_cutoutPSFilePath);
+		JsonGet(j, "TransparentPSFilePath", m_transparentPSFilePath);
+		JsonGet(j, "RenderType", m_renderType);
 		JsonGet(j, "AlphaBlend", m_useAlphaBlend);
 		JsonGet(j, "SkipInvalidRect", m_drawOnlyWhenRectValid);
-
-		if (!m_textureFilePath.empty())
-		{
-			m_texture = ResourceManager::Get().GetOrCreateTexture(m_textureFilePath);
-		}
+		Refresh();
 	}
 
 	std::string UIImage::GetType() const
 	{
 		return "UIImage";
+	}
+
+	void UIImage::ReplaceRenderSystem()
+	{
+		SystemManager::Get().GetRenderSystem().Unregister(this);
+		SystemManager::Get().GetRenderSystem().Register(this);
+	}
+	void UIImage::Refresh()
+	{
+		SetTexture(m_textureFilePath);
+
+		m_opaquePS = ResourceManager::Get().GetOrCreatePixelShader(m_opaquePSFilePath);
+		m_cutoutPS = ResourceManager::Get().GetOrCreatePixelShader(m_cutoutPSFilePath);
+		m_transparentPS = ResourceManager::Get().GetOrCreatePixelShader(m_transparentPSFilePath);
 	}
 }

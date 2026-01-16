@@ -6,6 +6,9 @@
 
 #include "Common/Utility/JsonHelper.h"
 
+#include "Framework/Object/GameObject/GameObject.h"
+#include "Framework/Object/Component/Transform.h"
+
 namespace engine
 {
     static Vector2 ClampVec2(const Vector2& v, float min, float max)
@@ -44,6 +47,26 @@ namespace engine
     const UIRect& RectTransform::GetWorldRect() const
     {
         return m_worldRect;
+    }
+
+    RectTransform* RectTransform::FindPrentRectTransform() const
+    {
+        Transform* p = GetParent();
+
+        while (p)
+        {
+            GameObject* go = p->GetGameObject();
+
+            if (go)
+            {
+                if (auto* ptr = go->GetComponent<RectTransform>())
+                    return ptr;
+            }
+
+            p = p->GetParent();
+        }
+
+        return nullptr;
     }
 
     bool RectTransform::IsUIDirty() const
@@ -101,11 +124,23 @@ namespace engine
 
     void RectTransform::Recalculate(const UIRect& parentRect)
     {
-        const Vector2 size{ m_width, m_height };
+        Vector2 parentPos = parentRect.Pos();
+        Vector2 parentSize = parentRect.Size();
 
-        const Vector2 parentTopLeft = parentRect.Pos();
-        const Vector2 pivotPos = parentTopLeft + m_anchoredPosition;
-        const Vector2 topLeft = pivotPos - Vector2(size.x * m_pivot.x, size.y * m_pivot.y);
+        Vector2 aMin = { parentPos.x + parentSize.x * m_anchorMin.x,
+                         parentPos.y + parentSize.y * m_anchorMin.y };
+
+        Vector2 aMax = { parentPos.x + parentSize.x * m_anchorMax.x, 
+                         parentPos.y + parentSize.y * m_anchorMax.y };
+        
+        Vector2 anchorSize = { aMax.x - aMin.x , aMax.y - aMin.y };
+        Vector2 anchorCenter = { (aMin.x + aMax.x) * 0.5f, (aMin.y + aMax.y) * 0.5f };
+
+        Vector2 size = { std::max(0.0f, anchorSize.x + m_width), std::max(0.0f, anchorSize.y + m_height)};
+        
+        const Vector2 pivotPos = anchorCenter + m_anchoredPosition;
+        const Vector2 topLeft = { pivotPos.x - size.x * m_pivot.x,
+                                  pivotPos.y - size.y * m_pivot.y };
 
         m_worldRect.x = topLeft.x;
         m_worldRect.y = topLeft.y;
@@ -113,6 +148,23 @@ namespace engine
         m_worldRect.h = size.y;
 
         MarkUIDirty(false);
+    }
+
+    UIRect& RectTransform::GetWorldRectResolved(const UIRect& rootRect)
+    {
+        UIRect parentRect = rootRect;
+
+        if (RectTransform* prt = FindPrentRectTransform())
+        {
+            parentRect = prt->GetWorldRectResolved(rootRect);
+        }
+
+        if (IsUIDirty())
+        {
+            Recalculate(parentRect);
+        }
+
+        return m_worldRect;
     }
 
     void RectTransform::OnGui()
