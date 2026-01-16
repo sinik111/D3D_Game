@@ -141,6 +141,12 @@ cbuffer Grid : register(b8)
     float2 __pad1_Grid;
 };
 
+cbuffer PickingId : register(b9)
+{
+    uint g_pickingId;
+    float3 __pad1_PickingId;
+};
+
 struct VS_INPUT_POSITION
 {
     float3 position : POSITION;

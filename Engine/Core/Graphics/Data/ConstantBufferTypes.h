@@ -117,6 +117,12 @@ namespace engine
 		float gridWidth; // 선 두께 (예: 0.02 ~ 0.05)
 		float __pad1[2];
 	};
+
+	struct CbPickingId
+	{
+		unsigned int pickingId;
+		float __pad1[3];
+	};
 }
 
 #pragma warning(pop)

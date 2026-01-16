@@ -2,8 +2,6 @@
 
 float4 main(PS_INPUT input) : SV_Target
 {
-    int thickness = 5;
-    
     uint centerVal = g_texStencilMap.Load(int3(input.position.xy, 0)).g;
     
     if (centerVal > 0)
@@ -11,11 +9,20 @@ float4 main(PS_INPUT input) : SV_Target
         discard;
     }
     
-    for (int y = -thickness; y <= thickness; ++y)
+    int thickness = 5;
+    int stride = 2;
+
+    [unroll]
+    for (int y = -thickness; y <= thickness; y += stride)
     {
-        for (int x = -thickness; x <= thickness; ++x)
+        [unroll]
+        for (int x = -thickness; x <= thickness; x += stride)
         {
-            if (length(float2(x, y)) > thickness)
+            if (x == 0 && y == 0)
+                continue;
+
+            // 원형 범위 체크 (Squared distance 사용으로 sqrt 제거)
+            if ((x * x + y * y) > (thickness * thickness))
             {
                 continue;
             }

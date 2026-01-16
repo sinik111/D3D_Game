@@ -45,4 +45,5 @@ enum class ConstantBufferSlot
     LocalLight = 6,
     ScreenSize = 7,
     Grid = 8,
+    PickingId = 9,
 };
