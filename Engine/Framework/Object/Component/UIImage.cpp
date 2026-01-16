@@ -167,8 +167,8 @@ namespace engine
 
 	void UIImage::OnGui()
 	{
-		ImGui::Checkbox("AlphaBlend", &m_useAlphaBlend);
-		ImGui::Checkbox("Skip when rect invalid", &m_drawOnlyWhenRectValid);
+		ImGui::Checkbox("Alpha Blend", &m_useAlphaBlend);
+		ImGui::Checkbox("Draw Only When Rect Valid", &m_drawOnlyWhenRectValid);
 	}
 
 	void UIImage::Save(json& j) const

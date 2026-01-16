@@ -27,9 +27,5 @@ namespace engine
 		Canvas* GetCanvasInParent() const;
 
 		bool CanDraw() const;
-
-	public:
-		void OnGui() override;
-		virtual std::string GetType() const override;
 	};
 }

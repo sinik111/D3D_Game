@@ -98,6 +98,8 @@ namespace engine
 
 	bool UIElement::CanDraw() const
 	{
+		if (!GetCanvasInParent()) return false;
+
 		GameObject* go = GetGameObject();
 		if (!go)
 		{
@@ -115,17 +117,5 @@ namespace engine
 		}
 
 		return true;
-	}
-
-	void UIElement::OnGui()
-	{
-		ImGui::Text("UIElement (Screen Renderer)");
-		ImGui::Text("Canvas: %s", GetCanvasInParent() ? "Yes" : "No");
-		ImGui::Text("RectTransform: %s", GetRectTransform() ? "Yes" : "No");
-	}
-
-	std::string UIElement::GetType() const
-	{
-		return "UIElement";
 	}
 }
