@@ -6,6 +6,7 @@
 namespace engine
 {
 	class Texture;
+	class ConstantBuffer;
 	class VertexShader;
 	class PixelShader;
 	class InputLayout;

@@ -3,6 +3,7 @@
 
 #include "Core/Graphics/Resource/ResourceManager.h"
 #include "Core/Graphics/Resource/Texture.h"
+#include "Core/Graphics/Resource/ConstantBuffer.h"
 #include "Core/Graphics/Resource/VertexShader.h"
 #include "Core/Graphics/Resource/PixelShader.h"
 #include "Core/Graphics/Resource/InputLayout.h"
@@ -12,6 +13,7 @@
 #include "Core/Graphics/Resource/BlendState.h"
 #include "Core/Graphics/Resource/DepthStencilState.h"
 #include "Core/Graphics/Data/ShaderSlotTypes.h"
+#include "Core/Graphics/Data/ConstantBufferTypes.h"
 #include "Core/Graphics/Device/GraphicsDevice.h"
 
 #include "Framework/Object/Component/RectTransform.h"
@@ -66,16 +68,31 @@ namespace engine
 			return;
 
 		auto& gd = GraphicsDevice::Get();
-		const D3D11_VIEWPORT oldVp = gd.GetViewport();
+		auto dc = gd.GetDeviceContext();
+		const D3D11_VIEWPORT vp = gd.GetViewport();
+		const float W = vp.Width;
+		const float H = vp.Height;
 
 		UIRect root;
 
-		root.x = 0.0f;
-		root.y = 0.0f;
-		root.w = oldVp.Width;
-		root.h = oldVp.Height;
-
 		const UIRect& rect = rt->GetWorldRectResolved(root);
+
+		float cx = rect.x + rect.w * 0.5f;
+		float cy = rect.y + rect.h * 0.5f;
+
+		CbObject cbObject{};
+		
+		Matrix matWorld = Matrix::CreateScale(rect.w, rect.h, 1.0f) * Matrix::CreateTranslation(rect.x, rect.y, 0.0f);
+
+		
+
+
+
+
+
+
+
+
 
 		if (m_drawOnlyWhenRectValid)
 		{
@@ -87,7 +104,6 @@ namespace engine
 		if (!m_texture)
 			return;
 
-		auto dc = gd.GetDeviceContext();
 
 		D3D11_VIEWPORT uiVp{};
 		uiVp.TopLeftX = rect.x;
@@ -96,8 +112,6 @@ namespace engine
 		uiVp.Height = rect.h;
 		uiVp.MinDepth = 0.0f;
 		uiVp.MaxDepth = 1.0f;
-
-		dc->RSSetViewports(1, &uiVp);
 
 		// IA
 		{
@@ -148,9 +162,6 @@ namespace engine
 			ID3D11ShaderResourceView* nullSRV = nullptr;
 			dc->PSSetShaderResources(static_cast<UINT>(TextureSlot::Blit), 1, &nullSRV);
 		}
-
-		// 뷰포트 복구
-		dc->RSSetViewports(1, &oldVp);
 	}
 
 	void UIImage::SetTexture(const std::string& textureFilePath)
