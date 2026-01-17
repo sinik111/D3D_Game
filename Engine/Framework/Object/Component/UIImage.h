@@ -22,36 +22,24 @@ namespace engine
 	private:
 		std::string m_textureFilePath;
 		std::string m_vsFilePath;
-		std::string m_opaquePSFilePath;
-		std::string m_cutoutPSFilePath;
-		std::string m_transparentPSFilePath;
-
+		std::string m_psFilePath;
 		std::shared_ptr<Texture> m_texture;
 
 		std::shared_ptr<VertexShader> m_vs;
-
-		std::shared_ptr<PixelShader> m_opaquePS;
-		std::shared_ptr<PixelShader> m_cutoutPS;
-		std::shared_ptr<PixelShader> m_transparentPS;
-		std::shared_ptr<PixelShader> m_maskCutoutPS;
+		std::shared_ptr<PixelShader>  m_ps;
+		std::shared_ptr<InputLayout> m_inputLayout;
 
 		std::shared_ptr<VertexBuffer> m_vertexBuffer;
 		std::shared_ptr<IndexBuffer> m_indexBuffer;
-		std::shared_ptr<InputLayout> m_inputLayout;
 
-		std::shared_ptr<SamplerState> m_samplerState;
+		std::shared_ptr<SamplerState> m_sampler;
 		std::shared_ptr<BlendState> m_blend;
 		std::shared_ptr<DepthStencilState> m_depthNone;
 
+		std::shared_ptr<ConstantBuffer> m_uiCB;
 
 		bool m_useAlphaBlend = true;
 		bool m_drawOnlyWhenRectValid = true;
-		bool m_isLoaded = false;
-
-		float m_width = 100.0f;
-		float m_height = 100.0f;
-
-		MaterialRenderType m_renderType = MaterialRenderType::Transparent;
 
 	public:
 		UIImage() = default;
@@ -80,7 +68,6 @@ namespace engine
 		std::string GetType() const override;
 
 	private:
-		void ReplaceRenderSystem();
 		void Refresh();
 	};
 }

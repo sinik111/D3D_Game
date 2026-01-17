@@ -141,6 +141,16 @@ cbuffer Grid : register(b8)
     float2 __pad1_Grid;
 };
 
+cbuffer UIElement : register(b9)
+{
+    float4x4 g_uiClip;
+    float4 g_uiColor;
+    float4 g_uiUV;
+    float4 g_uiClipRect;
+    uint g_uiFlags;
+    float3 __uiPad;
+}
+
 struct VS_INPUT_POSITION
 {
     float3 position : POSITION;

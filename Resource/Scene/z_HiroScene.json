@@ -146,11 +146,9 @@
                 {
                     "Type": "UIImage",
                     "Active": true,
-                    "TexturePath": "Resource/Texture/Earth.png",
-                    "OpaquePSFilePath": "Resource/Shader/Pixel/Sprite_Unlit_PS.hlsl",
-                    "CutoutPSFilePath": "Resource/Shader/Pixel/Sprite_Unlit_Cutout_PS.hlsl",
-                    "TransparentPSFilePath": "Resource/Shader/Pixel/Blit_PS.hlsl",
-                    "RenderType": 2,
+                    "TexturePath": "Resource/Texture/Pikachu.png",
+                    "VSFilePath": "Resource/Shader/Vertex/UIQuad_VS.hlsl",
+                    "PSFilePath": "Resource/Shader/Pixel/UIQuad_PS.hlsl",
                     "AlphaBlend": true,
                     "SkipInvalidRect": true
                 }
