@@ -9,6 +9,7 @@
 #include "Framework/System/SystemManager.h"
 #include "Framework/System/TransformSystem.h"
 #include "Framework/Object/GameObject/GameObject.h"
+#include "Framework/Object/Component/RectTransform.h"
 
 namespace engine
 {
@@ -335,6 +336,9 @@ namespace engine
         {
             child->MarkDirty();
         }
+
+        if (auto* rt = GetGameObject()->GetComponent<RectTransform>())
+            rt->MarkUIDirty();
     }
 
     void Transform::AddChild(Transform* child)

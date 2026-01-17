@@ -119,7 +119,17 @@ namespace engine
 
     void RectTransform::MarkUIDirty(bool v)
     {
+        if (m_uiDirty == v)return;
         m_uiDirty = v;
+
+        if (v)
+        {
+            for (auto* child : GetChildren())
+            {
+                if (auto* crt = child->GetGameObject()->GetComponent<RectTransform>())
+                    crt->MarkUIDirty();
+            }
+        }
     }
 
     void RectTransform::Recalculate(const UIRect& parentRect)

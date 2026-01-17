@@ -1,6 +1,6 @@
 {
     "Name": "z_HiroScene",
-    "NumGameObjects": 3,
+    "NumGameObjects": 5,
     "GameObjects": [
         {
             "ID": 0,
@@ -98,7 +98,7 @@
         {
             "ID": 2,
             "ParentID": 1,
-            "Name": "UIObject",
+            "Name": "Pikachu",
             "Active": true,
             "Components": [
                 {
@@ -125,11 +125,70 @@
                     "Type": "RectTransform",
                     "Active": true,
                     "AnchoredPosition": {
-                        "x": 0.0,
-                        "y": 0.0
+                        "x": -206.60000610351563,
+                        "y": -86.30000305175781
                     },
-                    "Width": 100.0,
-                    "Height": 100.0,
+                    "Width": 223.89999389648438,
+                    "Height": 125.9000015258789,
+                    "Pivot": {
+                        "x": 1.0,
+                        "y": 0.5600000023841858
+                    },
+                    "AnchorMin": {
+                        "x": 0.3400000035762787,
+                        "y": 0.4300000071525574
+                    },
+                    "AnchorMax": {
+                        "x": 0.0,
+                        "y": 0.9599999785423279
+                    }
+                },
+                {
+                    "Type": "UIImage",
+                    "Active": true,
+                    "TexturePath": "Resource/Texture/Pikachu.png",
+                    "VSFilePath": "Resource/Shader/Vertex/UIQuad_VS.hlsl",
+                    "PSFilePath": "Resource/Shader/Pixel/UIQuad_PS.hlsl",
+                    "AlphaBlend": true,
+                    "SkipInvalidRect": true
+                }
+            ]
+        },
+        {
+            "ID": 3,
+            "ParentID": 2,
+            "Name": "Sun",
+            "Active": true,
+            "Components": [
+                {
+                    "Type": "Transform",
+                    "Active": true,
+                    "Position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "Rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 1.0
+                    },
+                    "Scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
+                },
+                {
+                    "Type": "RectTransform",
+                    "Active": true,
+                    "AnchoredPosition": {
+                        "x": -9.300000190734863,
+                        "y": 120.30000305175781
+                    },
+                    "Width": 142.60000610351563,
+                    "Height": 107.4000015258789,
                     "Pivot": {
                         "x": 0.5,
                         "y": 0.5
@@ -146,7 +205,66 @@
                 {
                     "Type": "UIImage",
                     "Active": true,
-                    "TexturePath": "Resource/Texture/Pikachu.png",
+                    "TexturePath": "Resource/Texture/Sun.png",
+                    "VSFilePath": "Resource/Shader/Vertex/UIQuad_VS.hlsl",
+                    "PSFilePath": "Resource/Shader/Pixel/UIQuad_PS.hlsl",
+                    "AlphaBlend": true,
+                    "SkipInvalidRect": true
+                }
+            ]
+        },
+        {
+            "ID": 4,
+            "ParentID": 3,
+            "Name": "Earth",
+            "Active": true,
+            "Components": [
+                {
+                    "Type": "Transform",
+                    "Active": true,
+                    "Position": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "Rotation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "w": 1.0
+                    },
+                    "Scale": {
+                        "x": 1.0,
+                        "y": 1.0,
+                        "z": 1.0
+                    }
+                },
+                {
+                    "Type": "RectTransform",
+                    "Active": true,
+                    "AnchoredPosition": {
+                        "x": 3.0999999046325684,
+                        "y": -228.5
+                    },
+                    "Width": 111.19999694824219,
+                    "Height": 108.4000015258789,
+                    "Pivot": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+                    "AnchorMin": {
+                        "x": 0.5,
+                        "y": 0.5
+                    },
+                    "AnchorMax": {
+                        "x": 0.5,
+                        "y": 0.5
+                    }
+                },
+                {
+                    "Type": "UIImage",
+                    "Active": true,
+                    "TexturePath": "Resource/Texture/Earth.png",
                     "VSFilePath": "Resource/Shader/Vertex/UIQuad_VS.hlsl",
                     "PSFilePath": "Resource/Shader/Pixel/UIQuad_PS.hlsl",
                     "AlphaBlend": true,
