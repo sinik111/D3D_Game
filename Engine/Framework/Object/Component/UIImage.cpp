@@ -131,7 +131,7 @@ namespace engine
 			cbUI.color = m_color;
 			cbUI.uv = Vector4(0, 0, 1, 1);
 			cbUI.clipRect = Vector4(0, 0, vp.Width, vp.Height);
-			cbUI.flags = 0;
+			cbUI.maskMode = 1;	// rect
 
 			dc->UpdateSubresource(m_uiCB->GetRawBuffer(), 0, nullptr, &cbUI, 0, 0);
 			dc->VSSetConstantBuffers(static_cast<UINT>(ConstantBufferSlot::UIElement), 1, m_uiCB->GetBuffer().GetAddressOf());
