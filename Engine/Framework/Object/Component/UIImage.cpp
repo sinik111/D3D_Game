@@ -128,7 +128,7 @@ namespace engine
 				DirectX::XMMatrixTranslation(tx, ty, 0.0f)
 			);
 
-			cbUI.color = Vector4(1, 1, 1, 1);
+			cbUI.color = m_color;
 			cbUI.uv = Vector4(0, 0, 1, 1);
 			cbUI.clipRect = Vector4(0, 0, vp.Width, vp.Height);
 			cbUI.flags = 0;
@@ -186,6 +186,16 @@ namespace engine
 		return m_useAlphaBlend;
 	}
 
+	void UIImage::SetColor(const Vector4& color)
+	{
+		m_color = color;
+	}
+
+	const Vector4& UIImage::GetColor() const
+	{
+		return m_color;
+	}
+
 	bool UIImage::HasRenderType(RenderType type) const
 	{
 		return type == RenderType::Screen;
@@ -215,6 +225,7 @@ namespace engine
 		}
 		ImGui::Spacing();
 
+		ImGui::ColorEdit4("Color", &m_color.x);
 		ImGui::Checkbox("Alpha Blend", &m_useAlphaBlend);
 		ImGui::Checkbox("Draw Only When Rect Valid", &m_drawOnlyWhenRectValid);
 	}
@@ -227,6 +238,7 @@ namespace engine
 		j["VSFilePath"] = m_vsFilePath;
 		j["PSFilePath"] = m_psFilePath;
 
+		j["Color"] = m_color; 
 		j["AlphaBlend"] = m_useAlphaBlend;
 		j["SkipInvalidRect"] = m_drawOnlyWhenRectValid;
 	}
@@ -239,6 +251,7 @@ namespace engine
 		JsonGet(j, "VSFilePath", m_vsFilePath);
 		JsonGet(j, "PSFilePath", m_psFilePath);
 
+		JsonGet(j, "Color", m_color);
 		JsonGet(j, "AlphaBlend", m_useAlphaBlend);
 		JsonGet(j, "SkipInvalidRect", m_drawOnlyWhenRectValid);
 		Refresh();

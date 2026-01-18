@@ -38,6 +38,8 @@ namespace engine
 
 		std::shared_ptr<ConstantBuffer> m_uiCB;
 
+		Vector4 m_color = Vector4(1, 1, 1, 1);
+
 		bool m_useAlphaBlend = true;
 		bool m_drawOnlyWhenRectValid = true;
 
@@ -55,6 +57,9 @@ namespace engine
 
 		void SetAlphaBlend(bool enable);
 		bool IsAlphaBlend() const;
+		
+		void SetColor(const Vector4& color);
+		const Vector4& GetColor() const;
 
 	public:
 		bool HasRenderType(RenderType type) const override;

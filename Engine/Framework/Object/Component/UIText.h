@@ -34,7 +34,7 @@ namespace engine
         std::string m_text = "Text";
         Vector4 m_color = Vector4(1, 1, 1, 1);
 
-        std::string m_fontMetaPath;
+        std::string m_fontFilePath;
         std::shared_ptr<UIFont> m_font;
 
         float m_fontScale = 1.0f;

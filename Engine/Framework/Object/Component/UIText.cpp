@@ -131,13 +131,13 @@ namespace engine
 
 	void UIText::SetFont(const std::string& fontMetaPath)
 	{
-		m_fontMetaPath = fontMetaPath;
+		m_fontFilePath = fontMetaPath;
 		RefreshFont();
 	}
 
 	const std::string& UIText::GetFontPath() const
 	{
-		return m_fontMetaPath;
+		return m_fontFilePath;
 	}
 
 	void UIText::SetAlphaBlend(bool enable)
@@ -180,7 +180,7 @@ namespace engine
 		UIElement::Save(j);
 		j["Text"] = m_text;
 		j["Color"] = m_color;
-		j["FontMetaPath"] = m_fontMetaPath;
+		j["FontMetaPath"] = m_fontFilePath;
 		j["FontScale"] = m_fontScale;
 		j["LetterSpacing"] = m_letterSpacing;
 		j["LineSpacing"] = m_lineSpacing;
@@ -196,7 +196,7 @@ namespace engine
 		UIElement::Load(j);
 		JsonGet(j, "Text", m_text);
 		JsonGet(j, "Color", m_color);
-		JsonGet(j, "FontMetaPath", m_fontMetaPath);
+		JsonGet(j, "FontMetaPath", m_fontFilePath);
 		JsonGet(j, "FontScale", m_fontScale);
 		JsonGet(j, "LetterSpacing", m_letterSpacing);
 		JsonGet(j, "LineSpacing", m_lineSpacing);
